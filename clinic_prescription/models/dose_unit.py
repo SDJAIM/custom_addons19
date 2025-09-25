@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class DoseUnit(models.Model):
@@ -56,9 +57,11 @@ class DoseUnit(models.Model):
         help='Medication forms this unit applies to'
     )
     
-    _sql_constraints = [
-        ('unique_abbreviation', 'UNIQUE(abbreviation)', 'Abbreviation must be unique!'),
-    ]
+    @api.constrains('abbreviation')
+    def _check_abbreviation_unique(self):
+        for record in self:
+            if record.abbreviation and self.search_count([('abbreviation', '=', record.abbreviation), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Abbreviation must be unique!'))
     
     def name_get(self):
         result = []

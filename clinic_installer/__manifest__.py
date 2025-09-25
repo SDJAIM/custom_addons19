@@ -56,7 +56,8 @@
         'board',
 
         # Clinic Modules - In Dependency Order
-        'clinic_staff',        # Staff must be first for security rules
+        'clinic_base',         # Base utilities must be first
+        'clinic_staff',        # Staff must be before patient for security rules
         'clinic_patient',      # Patient management
         'clinic_theme',        # Theme
         'clinic_appointment_core',  # Appointments
@@ -81,7 +82,6 @@
     'assets': {
         'web.assets_backend': [
             'clinic_installer/static/src/css/installer.css',
-            'clinic_installer/static/src/js/installer.js',
         ],
     },
 

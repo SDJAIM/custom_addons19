@@ -291,11 +291,23 @@ class ClinicStaff(models.Model):
     # ========================
     # Constraints and Validations
     # ========================
-    _sql_constraints = [
-        ('staff_code_unique', 'UNIQUE(staff_code)', 'Staff code must be unique!'),
-        ('email_unique', 'UNIQUE(email)', 'Email address must be unique!'),
-        ('license_unique', 'UNIQUE(license_number)', 'License number must be unique!'),
-    ]
+    @api.constrains('staff_code')
+    def _check_staff_code_unique(self):
+        for record in self:
+            if self.search_count([('staff_code', '=', record.staff_code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Staff code must be unique!'))
+
+    @api.constrains('email')
+    def _check_email_unique(self):
+        for record in self:
+            if record.email and self.search_count([('email', '=', record.email), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Email address must be unique!'))
+
+    @api.constrains('license_number')
+    def _check_license_unique(self):
+        for record in self:
+            if record.license_number and self.search_count([('license_number', '=', record.license_number), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('License number must be unique!'))
     
     @api.model
     def create(self, vals):

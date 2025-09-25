@@ -40,7 +40,8 @@ Features:
     ],
     
     'data': [
-        # Assets are defined in the 'assets' key below, not needed in data files
+        # Note: assets.xml uses old Odoo approach - consider migrating to 'assets' key
+        'views/assets.xml',
     ],
     
     'assets': {

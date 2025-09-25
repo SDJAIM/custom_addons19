@@ -45,37 +45,15 @@ Features:
         # Security
         'security/finance_security.xml',
         'security/ir.model.access.csv',
-        
+
         # Data
         'data/finance_sequence.xml',
         'data/payment_terms.xml',
         'data/insurance_data.xml',
-        
+
         # Views
-        'views/insurance_policy_views.xml',
-        'views/insurance_claim_views.xml',
-        'views/payment_plan_views.xml',
-        'views/billing_views.xml',
         'views/invoice_views.xml',
-        'views/revenue_analysis_views.xml',
-        'views/menu_views.xml',
-        
-        # Reports
-        'reports/invoice_report.xml',
-        'reports/claim_report.xml',
-        'reports/revenue_report.xml',
-        
-        # Wizards
-        'wizards/claim_submission_wizard.xml',
-        'wizards/payment_collection_wizard.xml',
     ],
-    
-    'assets': {
-        'web.assets_backend': [
-            'clinic_finance/static/src/scss/finance.scss',
-            'clinic_finance/static/src/js/payment_widget.js',
-        ],
-    },
     
     'installable': True,
     'application': False,

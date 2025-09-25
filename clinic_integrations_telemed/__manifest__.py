@@ -50,14 +50,9 @@ Features:
 
         # Configuration Data
         'data/telemed_config_data.xml',
-        'data/telemed_data.xml',
 
         # Views
         'views/telemed_settings_views.xml',
-        'views/telemed_session_views.xml',
-        'views/telemed_config_views.xml',
-        'views/appointment_telemed_views.xml',
-        'views/menu_views.xml',
     ],
     
     'installable': True,

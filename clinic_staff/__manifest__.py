@@ -54,12 +54,6 @@ Features:
         'views/menu_views.xml',  # Menu structure must be loaded after actions
     ],
     
-    'assets': {
-        'web.assets_backend': [
-            'clinic_staff/static/src/scss/staff.scss',
-            'clinic_staff/static/src/js/staff_calendar.js',
-        ],
-    },
     
     'installable': True,
     'application': False,

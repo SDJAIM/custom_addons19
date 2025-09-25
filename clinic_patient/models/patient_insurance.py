@@ -310,8 +310,15 @@ class ClinicInsuranceCompany(models.Model):
     
     notes = fields.Text(string='Notes')
     active = fields.Boolean(string='Active', default=True)
-    
-    _sql_constraints = [
-        ('name_unique', 'UNIQUE(name)', 'Insurance company name must be unique!'),
-        ('code_unique', 'UNIQUE(code)', 'Insurance company code must be unique!'),
-    ]
+
+    @api.constrains('name')
+    def _check_name_unique(self):
+        for record in self:
+            if self.search_count([('name', '=', record.name), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Insurance company name must be unique!'))
+
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Insurance company code must be unique!'))

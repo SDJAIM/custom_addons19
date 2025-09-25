@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class ClinicStaffSpecialization(models.Model):
@@ -52,10 +53,22 @@ class ClinicStaffSpecialization(models.Model):
     
     active = fields.Boolean(string='Active', default=True)
     
-    _sql_constraints = [
-        ('name_unique', 'UNIQUE(name, category_id)', 'Specialization name must be unique within category!'),
-        ('code_unique', 'UNIQUE(code)', 'Specialization code must be unique!'),
-    ]
+    @api.constrains('name', 'category_id')
+    def _check_name_unique(self):
+        for record in self:
+            domain = [('name', '=', record.name), ('id', '!=', record.id)]
+            if record.category_id:
+                domain.append(('category_id', '=', record.category_id.id))
+            else:
+                domain.append(('category_id', '=', False))
+            if self.search_count(domain) > 0:
+                raise ValidationError(_('Specialization name must be unique within category!'))
+
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Specialization code must be unique!'))
     
     @api.depends('name', 'category_id')
     def name_get(self):
@@ -87,6 +100,8 @@ class ClinicStaffSpecializationCategory(models.Model):
     
     active = fields.Boolean(string='Active', default=True)
     
-    _sql_constraints = [
-        ('name_unique', 'UNIQUE(name)', 'Category name must be unique!'),
-    ]
+    @api.constrains('name')
+    def _check_name_unique(self):
+        for record in self:
+            if self.search_count([('name', '=', record.name), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Category name must be unique!'))

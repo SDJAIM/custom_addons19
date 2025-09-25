@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class ClinicBranch(models.Model):
@@ -105,9 +106,11 @@ class ClinicBranch(models.Model):
     
     notes = fields.Text(string='Notes')
     
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Branch code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Branch code must be unique!'))
     
     @api.depends('street', 'street2', 'city', 'state_id', 'country_id', 'zip')
     def _compute_address(self):

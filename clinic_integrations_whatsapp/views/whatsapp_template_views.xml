@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- WhatsApp Template Tree View -->
+    <record id="view_clinic_whatsapp_template_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.tree</field>
+        <field name="model">clinic.whatsapp.template</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="template_type"/>
+                <field name="language"/>
+                <field name="category"/>
+                <field name="status"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- WhatsApp Template Form View -->
+    <record id="view_clinic_whatsapp_template_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.form</field>
+        <field name="model">clinic.whatsapp.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_toggle"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Template Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Template Configuration">
+                            <field name="template_type"/>
+                            <field name="category"/>
+                            <field name="language"/>
+                            <field name="whatsapp_template_id" placeholder="WhatsApp Template ID"/>
+                        </group>
+                        <group string="Status">
+                            <field name="status"/>
+                            <field name="approved_date" attrs="{'invisible': [('status', '!=', 'approved')]}"/>
+                            <field name="rejection_reason" attrs="{'invisible': [('status', '!=', 'rejected')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Header">
+                            <group>
+                                <field name="header_type"/>
+                                <field name="header_text" attrs="{'invisible': [('header_type', '!=', 'text')]}"/>
+                                <field name="header_media_url" attrs="{'invisible': [('header_type', 'not in', ['image', 'video', 'document'])]}"/>
+                            </group>
+                        </page>
+                        <page string="Body">
+                            <field name="body_text" placeholder="Message body with {{variables}}"/>
+                            <separator string="Variables"/>
+                            <field name="variables">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="example_value"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Footer">
+                            <field name="footer_text" placeholder="Optional footer text"/>
+                        </page>
+                        <page string="Buttons">
+                            <field name="buttons">
+                                <tree editable="bottom">
+                                    <field name="button_type"/>
+                                    <field name="text"/>
+                                    <field name="url" attrs="{'invisible': [('button_type', '!=', 'url')]}"/>
+                                    <field name="phone_number" attrs="{'invisible': [('button_type', '!=', 'phone_number')]}"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for WhatsApp Templates -->
+    <record id="action_clinic_whatsapp_template" model="ir.actions.act_window">
+        <field name="name">WhatsApp Templates</field>
+        <field name="res_model">clinic.whatsapp.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a WhatsApp Template
+            </p>
+            <p>
+                Templates must be approved by WhatsApp before they can be used.
+            </p>
+        </field>
+    </record>
+</odoo>

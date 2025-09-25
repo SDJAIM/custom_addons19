@@ -1,7 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_clinic_tooth_all,clinic.tooth.all,model_clinic_tooth,base.group_user,1,0,0,0
-access_clinic_tooth_manager,clinic.tooth.manager,model_clinic_tooth,group_treatment_manager,1,1,1,1
-
 access_clinic_treatment_procedure_all,clinic.treatment.procedure.all,model_clinic_treatment_procedure,base.group_user,1,0,0,0
 access_clinic_treatment_procedure_clinician,clinic.treatment.procedure.clinician,model_clinic_treatment_procedure,group_treatment_clinician,1,1,1,0
 access_clinic_treatment_procedure_manager,clinic.treatment.procedure.manager,model_clinic_treatment_procedure,group_treatment_manager,1,1,1,1

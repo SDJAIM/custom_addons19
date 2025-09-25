@@ -72,11 +72,17 @@ class DrugInteraction(models.Model):
         default=True
     )
 
-    _sql_constraints = [
-        ('unique_drug_pair',
-         'UNIQUE(drug1_id, drug2_id)',
-         'This drug interaction already exists!'),
-    ]
+    @api.constrains('drug1_id', 'drug2_id')
+    def _check_unique_drug_pair(self):
+        for record in self:
+            if record.drug1_id and record.drug2_id:
+                existing = self.search_count([
+                    ('drug1_id', '=', record.drug1_id.id),
+                    ('drug2_id', '=', record.drug2_id.id),
+                    ('id', '!=', record.id)
+                ])
+                if existing > 0:
+                    raise ValidationError(_('This drug interaction already exists!'))
 
     @api.constrains('drug1_id', 'drug2_id')
     def _check_different_drugs(self):

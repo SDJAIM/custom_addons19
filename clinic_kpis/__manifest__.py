@@ -50,30 +50,30 @@ Features:
         # Security
         'security/kpi_security.xml',
         'security/ir.model.access.csv',
-        
+
         # Data
-        'data/kpi_data.xml',
-        'data/dashboard_data.xml',
-        
+        # 'data/kpi_data.xml',  # File not found - needs to be created
+        # 'data/dashboard_data.xml',  # File not found - needs to be created
+
         # Views
-        'views/kpi_dashboard_views.xml',
-        'views/appointment_analytics_views.xml',
-        'views/revenue_analytics_views.xml',
-        'views/patient_analytics_views.xml',
-        'views/staff_performance_views.xml',
-        'views/menu_views.xml',
-        
+        # 'views/kpi_dashboard_views.xml',  # File not found - needs to be created
+        # 'views/appointment_analytics_views.xml',  # File not found - needs to be created
+        # 'views/revenue_analytics_views.xml',  # File not found - needs to be created
+        # 'views/patient_analytics_views.xml',  # File not found - needs to be created
+        # 'views/staff_performance_views.xml',  # File not found - needs to be created
+        # 'views/menu_views.xml',  # File not found - needs to be created
+
         # Reports
-        'reports/kpi_report_templates.xml',
-        'reports/monthly_report.xml',
+        # 'reports/kpi_report_templates.xml',  # File not found - needs to be created
+        # 'reports/monthly_report.xml',  # File not found - needs to be created
     ],
-    
+
     'assets': {
         'web.assets_backend': [
-            'clinic_kpis/static/src/scss/dashboard.scss',
-            'clinic_kpis/static/src/js/dashboard_widget.js',
-            'clinic_kpis/static/src/js/kpi_renderer.js',
-            'clinic_kpis/static/src/xml/dashboard_templates.xml',
+            # 'clinic_kpis/static/src/scss/dashboard.scss',  # File not found - needs to be created
+            # 'clinic_kpis/static/src/js/dashboard_widget.js',  # File not found - needs to be created
+            # 'clinic_kpis/static/src/js/kpi_renderer.js',  # File not found - needs to be created
+            # 'clinic_kpis/static/src/xml/dashboard_templates.xml',  # File not found - needs to be created
         ],
     },
     

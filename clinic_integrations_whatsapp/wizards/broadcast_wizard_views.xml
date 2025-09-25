@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Broadcast WhatsApp Wizard Form View -->
+    <record id="view_clinic_broadcast_whatsapp_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.broadcast.whatsapp.wizard.form</field>
+        <field name="model">clinic.broadcast.whatsapp.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Broadcast WhatsApp Message</h1>
+                    </div>
+                    <group>
+                        <group string="Recipients">
+                            <field name="recipient_type"/>
+                            <field name="patient_ids" widget="many2many_tags"
+                                   attrs="{'invisible': [('recipient_type', '!=', 'selected')], 'required': [('recipient_type', '=', 'selected')]}"/>
+                            <field name="patient_tag_ids" widget="many2many_tags"
+                                   attrs="{'invisible': [('recipient_type', '!=', 'by_tags')], 'required': [('recipient_type', '=', 'by_tags')]}"/>
+                            <field name="total_recipients" readonly="1"/>
+                        </group>
+                        <group string="Message">
+                            <field name="template_id"
+                                   domain="[('active', '=', True), ('status', '=', 'approved'), ('category', '=', 'MARKETING')]"
+                                   required="1"/>
+                            <field name="schedule_type"/>
+                            <field name="scheduled_date"
+                                   attrs="{'invisible': [('schedule_type', '=', 'now')], 'required': [('schedule_type', '=', 'scheduled')]}"/>
+                        </group>
+                    </group>
+                    <group string="Filters" attrs="{'invisible': [('recipient_type', '!=', 'filtered')]}">
+                        <field name="filter_appointment_days" attrs="{'invisible': [('recipient_type', '!=', 'filtered')]}"/>
+                        <field name="filter_age_min" attrs="{'invisible': [('recipient_type', '!=', 'filtered')]}"/>
+                        <field name="filter_age_max" attrs="{'invisible': [('recipient_type', '!=', 'filtered')]}"/>
+                        <field name="filter_gender" attrs="{'invisible': [('recipient_type', '!=', 'filtered')]}"/>
+                    </group>
+                    <notebook>
+                        <page string="Preview">
+                            <group string="Message Preview">
+                                <field name="message_preview" readonly="1" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Advanced">
+                            <group>
+                                <field name="test_mode"/>
+                                <field name="test_phone_numbers"
+                                       placeholder="Enter test phone numbers separated by commas"
+                                       attrs="{'invisible': [('test_mode', '=', False)], 'required': [('test_mode', '=', True)]}"/>
+                                <field name="batch_size"/>
+                                <field name="delay_between_messages"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_send_broadcast" string="Send Broadcast" type="object" class="btn-primary"
+                            confirm="Are you sure you want to send this broadcast message?"/>
+                    <button name="action_schedule_broadcast" string="Schedule" type="object" class="btn-primary"
+                            attrs="{'invisible': [('schedule_type', '=', 'now')]}"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Broadcast WhatsApp Wizard -->
+    <record id="action_clinic_broadcast_whatsapp_wizard" model="ir.actions.act_window">
+        <field name="name">Broadcast WhatsApp Message</field>
+        <field name="res_model">clinic.broadcast.whatsapp.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu item for Broadcast -->
+    <menuitem id="menu_clinic_whatsapp_broadcast"
+              name="Broadcast Message"
+              parent="clinic_integrations_whatsapp.menu_clinic_whatsapp_root"
+              action="action_clinic_broadcast_whatsapp_wizard"
+              sequence="30"
+              groups="base.group_system"/>
+</odoo>

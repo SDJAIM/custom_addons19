@@ -83,9 +83,7 @@
                                                 <tr>
                                                     <td><span t-field="line.procedure_id.name"/></td>
                                                     <td>
-                                                        <t t-if="line.tooth_ids">
-                                                            <span t-esc="', '.join(line.tooth_ids.mapped('name'))"/>
-                                                        </t>
+                                                        <span t-field="line.body_area"/>
                                                     </td>
                                                     <td class="text-center"><span t-field="line.sessions_required"/></td>
                                                     <td class="text-center"><span t-field="line.sessions_completed"/></td>

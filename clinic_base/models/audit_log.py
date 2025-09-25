@@ -4,6 +4,7 @@ from odoo import models, fields, api, _
 from odoo.http import request
 import json
 import logging
+from datetime import timedelta
 
 _logger = logging.getLogger(__name__)
 

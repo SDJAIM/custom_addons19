@@ -301,10 +301,17 @@ class ClinicPatient(models.Model):
     # ========================
     # Constraints and Validations
     # ========================
-    _sql_constraints = [
-        ('patient_id_unique', 'UNIQUE(patient_id)', 'Patient ID must be unique!'),
-        ('email_unique', 'UNIQUE(email)', 'Email address must be unique!'),
-    ]
+    @api.constrains('patient_id')
+    def _check_patient_id_unique(self):
+        for record in self:
+            if self.search_count([('patient_id', '=', record.patient_id), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Patient ID must be unique!'))
+
+    @api.constrains('email')
+    def _check_email_unique(self):
+        for record in self:
+            if record.email and self.search_count([('email', '=', record.email), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Email address must be unique!'))
     
     @api.model_create_multi
     def create(self, vals_list):

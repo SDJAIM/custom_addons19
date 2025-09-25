@@ -196,9 +196,11 @@ class TreatmentProcedure(models.Model):
         string='Minimum Repeat Interval (days)'
     )
     
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Procedure code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Procedure code must be unique!'))
     
     @api.constrains('standard_cost')
     def _check_standard_cost(self):
@@ -274,9 +276,11 @@ class ProcedureCategory(models.Model):
         default=True
     )
     
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Category code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Category code must be unique!'))
     
     def _compute_procedure_count(self):
         for record in self:

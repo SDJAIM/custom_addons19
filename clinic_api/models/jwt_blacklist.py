@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from datetime import datetime
+from odoo.exceptions import ValidationError
 
 class JWTBlacklist(models.Model):
     _name = 'clinic.api.jwt_blacklist'
@@ -35,9 +36,11 @@ class JWTBlacklist(models.Model):
         readonly=True
     )
 
-    _sql_constraints = [
-        ('jti_unique', 'UNIQUE(jti)', 'JWT ID must be unique!'),
-    ]
+    @api.constrains('jti')
+    def _check_jti_unique(self):
+        for record in self:
+            if record.jti and self.search_count([('jti', '=', record.jti), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('JWT ID must be unique!'))
 
     @api.model
     def cleanup_expired(self):

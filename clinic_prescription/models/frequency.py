@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class Frequency(models.Model):
@@ -92,9 +93,11 @@ class Frequency(models.Model):
         default=10
     )
     
-    _sql_constraints = [
-        ('unique_code', 'UNIQUE(code)', 'Frequency code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Frequency code must be unique!'))
     
     @api.depends('times_per_day')
     def _compute_hours_between(self):

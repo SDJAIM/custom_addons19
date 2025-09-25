@@ -46,31 +46,7 @@ Features:
         # Security
         'security/dental_security.xml',
         'security/ir.model.access.csv',
-        
-        # Data
-        'data/tooth_data.xml',
-        'data/dental_procedures.xml',
-        'data/tooth_conditions.xml',
-        
-        # Views
-        'views/dental_chart_views.xml',
-        'views/tooth_history_views.xml',
-        'views/periodontal_chart_views.xml',
-        'views/dental_procedure_views.xml',
-        'views/menu_views.xml',
-        
-        # Reports
-        'reports/dental_chart_report.xml',
     ],
-    
-    'assets': {
-        'web.assets_backend': [
-            'clinic_dental_chart/static/src/scss/dental_chart.scss',
-            'clinic_dental_chart/static/src/js/dental_chart_widget.js',
-            'clinic_dental_chart/static/src/js/tooth_component.js',
-            'clinic_dental_chart/static/src/xml/dental_chart_templates.xml',
-        ],
-    },
     
     'installable': True,
     'application': False,

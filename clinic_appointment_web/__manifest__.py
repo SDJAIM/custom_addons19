@@ -47,21 +47,6 @@ Features:
         # Security
         'security/booking_security.xml',
         'security/ir.model.access.csv',
-        
-        # Data
-        'data/booking_data.xml',
-        'data/email_templates.xml',
-        
-        # Views - Backend
-        'views/booking_config_views.xml',
-        'views/booking_request_views.xml',
-        'views/menu_views.xml',
-        
-        # Views - Website
-        'views/website_templates.xml',
-        'views/booking_templates.xml',
-        'views/portal_templates.xml',
-        'views/confirmation_templates.xml',
     ],
 
     'installable': True,

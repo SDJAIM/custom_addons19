@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class MedicationRoute(models.Model):
@@ -64,9 +65,11 @@ class MedicationRoute(models.Model):
         string='Equipment Notes'
     )
     
-    _sql_constraints = [
-        ('unique_code', 'UNIQUE(code)', 'Route code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Route code must be unique!'))
     
     def name_get(self):
         result = []

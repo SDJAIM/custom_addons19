@@ -63,12 +63,6 @@ Features:
         'views/menu_views.xml',
     ],
     
-    'assets': {
-        'web.assets_backend': [
-            'clinic_appointment_core/static/src/scss/appointment.scss',
-            'clinic_appointment_core/static/src/js/appointment_calendar.js',
-        ],
-    },
     
     'installable': True,
     'application': False,

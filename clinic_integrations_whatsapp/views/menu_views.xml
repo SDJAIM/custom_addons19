@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main WhatsApp Menu -->
+    <menuitem id="menu_clinic_whatsapp_root"
+              name="WhatsApp"
+              parent="clinic_base.menu_clinic_root"
+              sequence="80"
+              groups="base.group_user"/>
+
+    <!-- Messages Menu -->
+    <menuitem id="menu_clinic_whatsapp_messages"
+              name="Messages"
+              parent="menu_clinic_whatsapp_root"
+              action="action_clinic_whatsapp_message"
+              sequence="10"/>
+
+    <!-- Templates Menu -->
+    <menuitem id="menu_clinic_whatsapp_templates"
+              name="Templates"
+              parent="menu_clinic_whatsapp_root"
+              action="action_clinic_whatsapp_template"
+              sequence="20"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_clinic_whatsapp_config_root"
+              name="Configuration"
+              parent="menu_clinic_whatsapp_root"
+              sequence="100"
+              groups="base.group_system"/>
+
+    <!-- WhatsApp Config Menu -->
+    <menuitem id="menu_clinic_whatsapp_config"
+              name="WhatsApp Accounts"
+              parent="menu_clinic_whatsapp_config_root"
+              action="action_clinic_whatsapp_config"
+              sequence="10"/>
+
+    <!-- Settings Menu -->
+    <menuitem id="menu_clinic_whatsapp_settings"
+              name="Settings"
+              parent="menu_clinic_whatsapp_config_root"
+              action="base.action_res_config_settings"
+              context="{'module': 'clinic_integrations_whatsapp'}"
+              sequence="20"/>
+</odoo>

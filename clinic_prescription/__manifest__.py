@@ -57,26 +57,9 @@ Features:
         'data/frequency_data.xml',
         'data/cron_jobs.xml',
 
-        # Reports
-        'reports/prescription_report.xml',
-        'reports/prescription_templates.xml',
-
         # Views
-        'views/prescription_views.xml',
-        'views/medication_views.xml',
-        'views/medication_stock_views.xml',
-        'views/prescription_template_views.xml',
-        'views/medication_route_views.xml',
         'views/prescription_wizard_views.xml',
-        'views/menu_views.xml',
     ],
-    
-    'assets': {
-        'web.assets_backend': [
-            'clinic_prescription/static/src/scss/prescription.scss',
-            'clinic_prescription/static/src/js/prescription_widget.js',
-        ],
-    },
     
     'installable': True,
     'application': False,

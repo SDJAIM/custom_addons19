@@ -51,14 +51,6 @@ Features:
         # Security
         'security/api_security.xml',
         'security/ir.model.access.csv',
-        
-        # Data
-        'data/api_data.xml',
-        
-        # Views
-        'views/api_key_views.xml',
-        'views/api_log_views.xml',
-        'views/menu_views.xml',
     ],
     
     'installable': True,

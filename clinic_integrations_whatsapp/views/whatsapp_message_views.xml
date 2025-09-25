@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- WhatsApp Message Tree View -->
+    <record id="view_clinic_whatsapp_message_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.message.tree</field>
+        <field name="model">clinic.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="status == 'sent'" decoration-danger="status == 'failed'" decoration-warning="status == 'pending'">
+                <field name="create_date" string="Date"/>
+                <field name="phone_number"/>
+                <field name="message_type"/>
+                <field name="template_id" optional="hide"/>
+                <field name="status"/>
+                <field name="direction"/>
+                <field name="patient_id" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- WhatsApp Message Form View -->
+    <record id="view_clinic_whatsapp_message_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.message.form</field>
+        <field name="model">clinic.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="status" widget="statusbar" statusbar_visible="pending,queued,sent,delivered"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Message Information">
+                            <field name="phone_number"/>
+                            <field name="patient_id"/>
+                            <field name="direction"/>
+                            <field name="message_type"/>
+                            <field name="template_id" attrs="{'invisible': [('message_type', '!=', 'template')]}"/>
+                        </group>
+                        <group string="Status">
+                            <field name="status"/>
+                            <field name="whatsapp_message_id"/>
+                            <field name="sent_date"/>
+                            <field name="delivered_date"/>
+                            <field name="read_date"/>
+                        </group>
+                    </group>
+                    <group string="Content">
+                        <field name="message_body" nolabel="1"/>
+                    </group>
+                    <group string="Error Information" attrs="{'invisible': [('status', '!=', 'failed')]}">
+                        <field name="error_message" nolabel="1" readonly="1"/>
+                        <field name="retry_count"/>
+                        <field name="last_retry_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- WhatsApp Message Search View -->
+    <record id="view_clinic_whatsapp_message_search" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.message.search</field>
+        <field name="model">clinic.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="phone_number"/>
+                <field name="patient_id"/>
+                <filter string="Sent" name="sent" domain="[('status', '=', 'sent')]"/>
+                <filter string="Failed" name="failed" domain="[('status', '=', 'failed')]"/>
+                <filter string="Pending" name="pending" domain="[('status', '=', 'pending')]"/>
+                <separator/>
+                <filter string="Incoming" name="incoming" domain="[('direction', '=', 'incoming')]"/>
+                <filter string="Outgoing" name="outgoing" domain="[('direction', '=', 'outgoing')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'message_type'}"/>
+                    <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for WhatsApp Messages -->
+    <record id="action_clinic_whatsapp_message" model="ir.actions.act_window">
+        <field name="name">WhatsApp Messages</field>
+        <field name="res_model">clinic.whatsapp.message</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_clinic_whatsapp_message_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No WhatsApp messages yet
+            </p>
+            <p>
+                WhatsApp messages will appear here once you start sending them.
+            </p>
+        </field>
+    </record>
+</odoo>

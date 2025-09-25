@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class ClinicAppointmentType(models.Model):
@@ -152,9 +153,11 @@ class ClinicAppointmentType(models.Model):
         ('urgent', 'Urgent')
     ], string='Default Priority', default='medium')
     
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Appointment type code must be unique!'),
-    ]
+    @api.constrains('code')
+    def _check_code_unique(self):
+        for record in self:
+            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
+                raise ValidationError(_('Appointment type code must be unique!'))
     
     @api.onchange('is_emergency')
     def _onchange_is_emergency(self):

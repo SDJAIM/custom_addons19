@@ -182,9 +182,16 @@ class ClinicRoom(models.Model):
         store=True
     )
 
-    _sql_constraints = [
-        ('code_branch_unique', 'UNIQUE(code, branch_id)', 'Room code must be unique per branch!'),
-    ]
+    @api.constrains('code', 'branch_id')
+    def _check_code_branch_unique(self):
+        for record in self:
+            domain = [('code', '=', record.code), ('id', '!=', record.id)]
+            if record.branch_id:
+                domain.append(('branch_id', '=', record.branch_id.id))
+            else:
+                domain.append(('branch_id', '=', False))
+            if self.search_count(domain) > 0:
+                raise ValidationError(_('Room code must be unique per branch!'))
 
     @api.model
     def create(self, vals):
