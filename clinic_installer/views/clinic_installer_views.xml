@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Clinic Installer Form View -->
+    <record id="view_clinic_installer_form" model="ir.ui.view">
+        <field name="name">clinic.installer.form</field>
+        <field name="model">clinic.installer</field>
+        <field name="arch" type="xml">
+            <form string="Clinic System Installer">
+                <header>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="start,checking,installing,configuring,done"/>
+                </header>
+                
+                <sheet>
+                    <h1>Clinic System Installer</h1>
+                    
+                    <group string="Progress">
+                        <field name="progress" widget="progressbar"/>
+                        <field name="current_step" readonly="1"/>
+                    </group>
+                    
+                    <group string="Options">
+                        <field name="load_demo_data" widget="boolean_toggle"/>
+                        <field name="install_optional_modules" widget="boolean_toggle"/>
+                        <field name="create_admin_user" widget="boolean_toggle"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Installation Log" name="log">
+                            <field name="log_messages" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                <footer>
+                    <button string="Start Installation" 
+                            name="action_start_installation" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="state != 'start'"/>
+                    <button string="Close" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action -->
+    <record id="action_clinic_installer" model="ir.actions.act_window">
+        <field name="name">Clinic System Installer</field>
+        <field name="res_model">clinic.installer</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+    <!-- Menu -->
+    <menuitem id="menu_clinic_installer" 
+              name="Clinic Installer" 
+              parent="base.menu_administration" 
+              action="action_clinic_installer"
+              sequence="1"/>
+
+</odoo>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Definition -->
+    <record id="report_treatment_plan" model="ir.actions.report">
+        <field name="name">Treatment Plan</field>
+        <field name="model">clinic.treatment.plan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">clinic_treatment.treatment_plan_document</field>
+        <field name="report_file">clinic_treatment.treatment_plan_document</field>
+        <field name="print_report_name">'Treatment Plan - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_clinic_treatment_plan"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Report Template -->
+    <template id="treatment_plan_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>TREATMENT PLAN</h2>
+                            <h4><span t-field="doc.name"/></h4>
+                        </div>
+
+                        <!-- Patient Information -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-6">
+                                <strong>Patient:</strong>
+                                <address t-field="doc.patient_id"
+                                    t-options='{"widget": "contact", "fields": ["name", "phone", "email"], "no_marker": true}'/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Plan Details:</strong><br/>
+                                <span><strong>Date:</strong> <span t-field="doc.plan_date"/></span><br/>
+                                <span><strong>Doctor:</strong> <span t-field="doc.doctor_id.name"/></span><br/>
+                                <span><strong>Status:</strong> <span t-field="doc.state"/></span><br/>
+                                <t t-if="doc.priority">
+                                    <span><strong>Priority:</strong> <span t-field="doc.priority"/></span><br/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Diagnosis -->
+                        <t t-if="doc.diagnosis">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Diagnosis</h4>
+                                    <p t-field="doc.diagnosis"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Treatment Goals -->
+                        <t t-if="doc.goals">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Treatment Goals</h4>
+                                    <p t-field="doc.goals" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Treatment Items -->
+                        <t t-if="doc.treatment_line_ids">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Treatment Schedule</h4>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Procedure</th>
+                                                <th>Tooth</th>
+                                                <th class="text-center">Sessions</th>
+                                                <th class="text-center">Completed</th>
+                                                <th class="text-right">Cost</th>
+                                                <th>Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="doc.treatment_line_ids" t-as="line">
+                                                <tr>
+                                                    <td><span t-field="line.procedure_id.name"/></td>
+                                                    <td>
+                                                        <t t-if="line.tooth_ids">
+                                                            <span t-esc="', '.join(line.tooth_ids.mapped('name'))"/>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-center"><span t-field="line.sessions_required"/></td>
+                                                    <td class="text-center"><span t-field="line.sessions_completed"/></td>
+                                                    <td class="text-right">
+                                                        <span t-field="line.estimated_cost"
+                                                            t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                                    </td>
+                                                    <td><span t-field="line.notes"/></td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="4" class="text-right"><strong>Total Estimated Cost:</strong></td>
+                                                <td class="text-right">
+                                                    <strong t-field="doc.total_estimated_cost"
+                                                        t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                                </td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Instructions -->
+                        <t t-if="doc.instructions">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Special Instructions</h4>
+                                    <p t-field="doc.instructions" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Medications -->
+                        <t t-if="doc.medication_ids">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Prescribed Medications</h4>
+                                    <ul>
+                                        <li t-foreach="doc.medication_ids" t-as="med">
+                                            <span t-field="med.display_name"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Follow-up -->
+                        <t t-if="doc.follow_up_required">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Follow-up Required</h4>
+                                    <p>
+                                        <strong>Date:</strong> <span t-field="doc.follow_up_date"/><br/>
+                                        <t t-if="doc.follow_up_instructions">
+                                            <strong>Instructions:</strong> <span t-field="doc.follow_up_instructions"/>
+                                        </t>
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-5">
+                            <div class="col-6">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    <strong>Doctor's Signature</strong><br/>
+                                    <span t-field="doc.doctor_id.name"/><br/>
+                                    <t t-if="doc.doctor_id.license_number">
+                                        License: <span t-field="doc.doctor_id.license_number"/>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    <strong>Patient's Signature</strong><br/>
+                                    <span t-field="doc.patient_id.name"/><br/>
+                                    Date: _____________________
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Notes -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center text-muted">
+                                <small>
+                                    This treatment plan is subject to change based on clinical findings.<br/>
+                                    Please contact us if you have any questions.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

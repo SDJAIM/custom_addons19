@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Demo Medications with Stock Integration -->
+        <record id="demo_medication_paracetamol" model="clinic.medication">
+            <field name="name">Paracetamol</field>
+            <field name="generic_name">Acetaminophen</field>
+            <field name="strength">500mg</field>
+            <field name="medication_form">tablet</field>
+            <field name="medication_type">otc</field>
+            <field name="track_inventory">True</field>
+            <field name="use_expiration_date">True</field>
+            <field name="expiration_time">1095</field> <!-- 3 years -->
+            <field name="use_alert_date">True</field>
+            <field name="alert_time">90</field> <!-- 3 months warning -->
+        </record>
+
+        <record id="demo_medication_amoxicillin" model="clinic.medication">
+            <field name="name">Amoxicillin</field>
+            <field name="generic_name">Amoxicillin</field>
+            <field name="strength">250mg</field>
+            <field name="medication_form">capsule</field>
+            <field name="medication_type">prescription</field>
+            <field name="track_inventory">True</field>
+            <field name="use_expiration_date">True</field>
+            <field name="expiration_time">730</field> <!-- 2 years -->
+            <field name="use_alert_date">True</field>
+            <field name="alert_time">30</field> <!-- 1 month warning -->
+        </record>
+
+        <record id="demo_medication_insulin" model="clinic.medication">
+            <field name="name">Insulin Glargine</field>
+            <field name="generic_name">Insulin Glargine</field>
+            <field name="strength">100U/ml</field>
+            <field name="medication_form">injection</field>
+            <field name="medication_type">prescription</field>
+            <field name="storage_requirements">refrigerate</field>
+            <field name="track_inventory">True</field>
+            <field name="use_expiration_date">True</field>
+            <field name="expiration_time">365</field> <!-- 1 year -->
+            <field name="use_alert_date">True</field>
+            <field name="alert_time">14</field> <!-- 2 weeks warning -->
+        </record>
+
+        <!-- Demo Stock Lots for FEFO demonstration -->
+        <!-- These would be created through stock operations normally -->
+
+        <!-- Demo Prescription for FEFO Testing -->
+        <record id="demo_prescription_001" model="clinic.prescription">
+            <field name="prescription_number">RX-DEMO-001</field>
+            <field name="patient_id" ref="clinic_patient.demo_patient_john_doe"/>
+            <field name="doctor_id" ref="clinic_staff.demo_doctor_smith"/>
+            <field name="prescription_type">acute</field>
+            <field name="validity_days">30</field>
+        </record>
+
+        <record id="demo_prescription_line_001" model="clinic.prescription.line">
+            <field name="prescription_id" ref="demo_prescription_001"/>
+            <field name="medication_id" ref="demo_medication_paracetamol"/>
+            <field name="dose">1</field>
+            <field name="dose_unit_id" ref="clinic_prescription.dose_unit_tablet"/>
+            <field name="route_id" ref="clinic_prescription.route_oral"/>
+            <field name="frequency_id" ref="clinic_prescription.frequency_tid"/>
+            <field name="duration">7</field>
+            <field name="quantity">21</field>
+            <field name="instructions">Take with food</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Module Category -->
+        <record id="module_category_clinic_finance" model="ir.module.category">
+            <field name="name">Clinic Finance</field>
+            <field name="description">Manage billing and insurance</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <!-- Privilege for groups -->
+        <record id="privilege_clinic_finance" model="res.groups.privilege">
+            <field name="name">Finance Access</field>
+            <field name="description">Access level for finance management</field>
+            <field name="placeholder">No access</field>
+            <field name="sequence">10</field>
+            <field name="category_id" ref="module_category_clinic_finance"/>
+        </record>
+
+        <!-- Security Groups -->
+        <record id="group_billing_user" model="res.groups">
+            <field name="name">Billing User</field>
+            <field name="privilege_id" ref="privilege_clinic_finance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    
+        <record id="group_billing_manager" model="res.groups">
+            <field name="name">Billing Manager</field>
+            <field name="privilege_id" ref="privilege_clinic_finance"/>
+        <field name="implied_ids" eval="[(4, ref('group_billing_user'))]"/>
+    </record>
+    
+        <record id="group_insurance_specialist" model="res.groups">
+            <field name="name">Insurance Specialist</field>
+            <field name="privilege_id" ref="privilege_clinic_finance"/>
+        <field name="implied_ids" eval="[(4, ref('group_billing_user'))]"/>
+        </record>
+
+        <!-- Record Rules -->
+    
+    <!-- Insurance Policies: Users see all, Managers can edit -->
+    <record id="insurance_policy_user_rule" model="ir.rule">
+        <field name="name">User: View Insurance Policies</field>
+        <field name="model_id" ref="model_clinic_insurance_policy"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_billing_user'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="0"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+    
+    <record id="insurance_policy_manager_rule" model="ir.rule">
+        <field name="name">Manager: All Insurance Policies</field>
+        <field name="model_id" ref="model_clinic_insurance_policy"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_billing_manager'))]"/>
+    </record>
+    
+    <!-- Insurance Claims: Based on state and role -->
+    <record id="insurance_claim_user_rule" model="ir.rule">
+        <field name="name">User: Own Draft Claims</field>
+        <field name="model_id" ref="model_clinic_insurance_claim"/>
+        <field name="domain_force">[('create_uid', '=', user.id), ('state', '=', 'draft')]</field>
+        <field name="groups" eval="[(4, ref('group_billing_user'))]"/>
+    </record>
+    
+    <record id="insurance_claim_specialist_rule" model="ir.rule">
+        <field name="name">Specialist: All Claims</field>
+        <field name="model_id" ref="model_clinic_insurance_claim"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_insurance_specialist'))]"/>
+    </record>
+    
+    <!-- Payment Plans: Users see own, Managers see all -->
+    <record id="payment_plan_user_rule" model="ir.rule">
+        <field name="name">User: Own Payment Plans</field>
+        <field name="model_id" ref="model_clinic_payment_plan"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_billing_user'))]"/>
+    </record>
+    
+    <record id="payment_plan_manager_rule" model="ir.rule">
+        <field name="name">Manager: All Payment Plans</field>
+        <field name="model_id" ref="model_clinic_payment_plan"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_billing_manager'))]"/>
+        </record>
+    </data>
+</odoo>

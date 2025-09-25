@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Clinic Installer Wizard Views -->
+    
+    <!-- Welcome Step -->
+    <record id="view_clinic_installer_wizard_welcome" model="ir.ui.view">
+        <field name="name">Clinic Installer - Welcome</field>
+        <field name="model">clinic.installer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Welcome to Clinic System Installer">
+                <div class="o_form_sheet">
+                    <div class="text-center">
+                        <img src="/clinic_installer/static/description/icon.png" alt="Clinic System" style="width: 128px; height: 128px; margin: 20px;"/>
+                        <h1>🏥 Welcome to Clinic System</h1>
+                        <p class="lead">This wizard will guide you through the installation of a complete clinic management system.</p>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">📋 What will be installed:</h5>
+                                    <ul class="list-unstyled">
+                                        <li>✅ Patient Management</li>
+                                        <li>✅ Staff Management</li>
+                                        <li>✅ Appointment Scheduling</li>
+                                        <li>✅ Treatment Records</li>
+                                        <li>✅ Prescription Management</li>
+                                        <li>✅ Billing &amp; Insurance</li>
+                                        <li>✅ Reports &amp; Analytics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">🔧 Optional Features:</h5>
+                                    <ul class="list-unstyled">
+                                        <li>🦷 Dental Chart (Dentistry)</li>
+                                        <li>🌐 Online Booking Portal</li>
+                                        <li>📱 WhatsApp Integration</li>
+                                        <li>🎥 Telemedicine</li>
+                                        <li>🔗 REST API</li>
+                                        <li>📊 Advanced KPIs</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <strong>📝 Note:</strong> The installation process will take a few minutes. 
+                        Please do not close this window during installation.
+                    </div>
+                </div>
+                
+                <footer class="modal-footer">
+                    <button string="Cancel" type="object" name="action_cancel" class="btn-secondary"/>
+                    <button string="Next" type="object" name="action_next_step" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Options Step -->
+    <record id="view_clinic_installer_wizard_options" model="ir.ui.view">
+        <field name="name">Clinic Installer - Options</field>
+        <field name="model">clinic.installer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Installation Options">
+                <div class="o_form_sheet">
+                    <h1>⚙️ Installation Options</h1>
+                    <p>Choose your installation preferences:</p>
+                    
+                    <group string="Installation Options">
+                        <field name="install_optional_modules" widget="boolean_toggle"/>
+                        <field name="load_demo_data" widget="boolean_toggle"/>
+                        <field name="create_admin_user" widget="boolean_toggle"/>
+                        <field name="configure_company" widget="boolean_toggle"/>
+                    </group>
+                    
+                    <group string="Clinic Information" invisible="not configure_company">
+                        <field name="clinic_name" required="1"/>
+                        <field name="clinic_email"/>
+                        <field name="clinic_phone"/>
+                        <field name="clinic_address"/>
+                    </group>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <strong>⚠️ Important:</strong>
+                        <ul>
+                            <li>Optional modules include WhatsApp, Telemedicine, and API integrations</li>
+                            <li>Demo data is useful for testing but should not be used in production</li>
+                            <li>Admin user will be created with login 'clinic_admin'</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <footer class="modal-footer">
+                    <button string="Back" type="object" name="action_previous_step" class="btn-secondary"/>
+                    <button string="Start Installation" type="object" name="action_next_step" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Progress Step -->
+    <record id="view_clinic_installer_wizard_progress" model="ir.ui.view">
+        <field name="name">Clinic Installer - Progress</field>
+        <field name="model">clinic.installer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Installation Progress" create="false" edit="false">
+                <div class="o_form_sheet">
+                    <h1>🔄 Installing Clinic System</h1>
+                    <p>Please wait while the system is being installed...</p>
+                    
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             t-attf-style="width: {{progress_percentage}}%">
+                            <field name="progress_percentage"/>%
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mb-4">
+                        <h4><field name="current_step"/></h4>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>📋 Installation Log</h5>
+                        </div>
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            <field name="installation_log" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <strong>💡 Tip:</strong> This process may take several minutes depending on your system performance.
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Complete Step -->
+    <record id="view_clinic_installer_wizard_complete" model="ir.ui.view">
+        <field name="name">Clinic Installer - Complete</field>
+        <field name="model">clinic.installer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Installation Complete">
+                <div class="o_form_sheet">
+                    <div class="text-center">
+                        <div style="font-size: 72px; color: #28a745;">✅</div>
+                        <h1>🎉 Installation Complete!</h1>
+                        <p class="lead">Your clinic management system has been successfully installed.</p>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">🚀 Next Steps:</h5>
+                                    <ol>
+                                        <li>Explore the clinic dashboard</li>
+                                        <li>Configure user permissions</li>
+                                        <li>Add your staff members</li>
+                                        <li>Set up services and pricing</li>
+                                        <li>Configure appointment schedules</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">📚 Resources:</h5>
+                                    <ul class="list-unstyled">
+                                        <li>📖 User Documentation</li>
+                                        <li>🎥 Video Tutorials</li>
+                                        <li>💬 Community Support</li>
+                                        <li>📧 Technical Support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mt-4" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%">
+                            100% Complete
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5>📋 Installation Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <field name="installation_log" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <footer class="modal-footer">
+                    <button string="Close" type="object" name="action_next_step" class="btn-secondary"/>
+                    <button string="Open Dashboard" type="object" name="action_open_clinic_dashboard" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Wizard Action -->
+    <record id="action_clinic_installer_wizard" model="ir.actions.act_window">
+        <field name="name">Clinic System Installer</field>
+        <field name="res_model">clinic.installer.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+    
+    <!-- Menu Item -->
+    <menuitem id="menu_clinic_installer" 
+              name="Install Clinic System" 
+              action="action_clinic_installer_wizard"
+              parent="base.menu_administration"
+              sequence="1"/>
+    
+</odoo>

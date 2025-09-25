@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clinic_dental_chart_user,clinic.dental.chart.user,model_clinic_dental_chart,group_dental_user,1,0,0,0
+access_clinic_dental_chart_dentist,clinic.dental.chart.dentist,model_clinic_dental_chart,group_dentist,1,1,1,0
+access_clinic_dental_chart_manager,clinic.dental.chart.manager,model_clinic_dental_chart,group_dental_manager,1,1,1,1
+access_clinic_tooth_user,clinic.tooth.user,model_clinic_tooth,group_dental_user,1,0,0,0
+access_clinic_tooth_dentist,clinic.tooth.dentist,model_clinic_tooth,group_dentist,1,1,1,0
+access_clinic_tooth_manager,clinic.tooth.manager,model_clinic_tooth,group_dental_manager,1,1,1,1
+access_clinic_tooth_history_user,clinic.tooth.history.user,model_clinic_tooth_history,group_dental_user,1,0,0,0
+access_clinic_tooth_history_dentist,clinic.tooth.history.dentist,model_clinic_tooth_history,group_dentist,1,1,1,0
+access_clinic_tooth_history_manager,clinic.tooth.history.manager,model_clinic_tooth_history,group_dental_manager,1,1,1,1
+access_clinic_dental_procedure_user,clinic.dental.procedure.user,model_clinic_dental_procedure,group_dental_user,1,0,0,0
+access_clinic_dental_procedure_manager,clinic.dental.procedure.manager,model_clinic_dental_procedure,group_dental_manager,1,1,1,1
+access_clinic_dental_procedure_category_user,clinic.dental.procedure.category.user,model_clinic_dental_procedure_category,group_dental_user,1,0,0,0
+access_clinic_dental_procedure_category_manager,clinic.dental.procedure.category.manager,model_clinic_dental_procedure_category,group_dental_manager,1,1,1,1
+access_clinic_periodontal_chart_user,clinic.periodontal.chart.user,model_clinic_periodontal_chart,group_dental_user,1,0,0,0
+access_clinic_periodontal_chart_dentist,clinic.periodontal.chart.dentist,model_clinic_periodontal_chart,group_dentist,1,1,1,0
+access_clinic_periodontal_chart_manager,clinic.periodontal.chart.manager,model_clinic_periodontal_chart,group_dental_manager,1,1,1,1

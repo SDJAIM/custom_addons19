@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Record Rules for Multi-Company and Branch Isolation -->
+
+    <!-- Multi-Company Rule for Patients -->
+    <record id="patient_company_rule" model="ir.rule">
+        <field name="name">Patient: Company</field>
+        <field name="model_id" ref="model_clinic_patient"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Multi-Company Rule for Patient Family -->
+    <record id="patient_family_company_rule" model="ir.rule">
+        <field name="name">Patient Family: Company</field>
+        <field name="model_id" ref="model_clinic_patient_family"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Multi-Company Rule for Patient Insurance -->
+    <record id="patient_insurance_company_rule" model="ir.rule">
+        <field name="name">Patient Insurance: Company</field>
+        <field name="model_id" ref="model_clinic_patient_insurance"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Patient Branch Rule - Users can only see patients from their branches -->
+    <record id="patient_branch_rule" model="ir.rule">
+        <field name="name">Patient: User Branch Access</field>
+        <field name="model_id" ref="model_clinic_patient"/>
+        <field name="domain_force">[('company_id', 'in', company_ids), '|',
+            ('branch_ids', '=', False),
+            ('branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Patient Manager Rule - Managers can see all patients -->
+    <record id="patient_manager_rule" model="ir.rule">
+        <field name="name">Patient: Manager All Access</field>
+        <field name="model_id" ref="model_clinic_patient"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_clinic_patient_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Patient Insurance Branch Rule -->
+    <record id="patient_insurance_branch_rule" model="ir.rule">
+        <field name="name">Patient Insurance: Branch Access</field>
+        <field name="model_id" ref="model_clinic_patient_insurance"/>
+        <field name="domain_force">['|',
+            ('patient_id.branch_ids', '=', False),
+            ('patient_id.branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Patient Portal Access - Patients can only see their own records -->
+    <record id="patient_portal_rule" model="ir.rule">
+        <field name="name">Patient: Portal Own Records</field>
+        <field name="model_id" ref="model_clinic_patient"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

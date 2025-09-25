@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Specialization Categories -->
+        <record id="spec_cat_medical" model="clinic.staff.specialization.category">
+            <field name="name">Medical</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="spec_cat_dental" model="clinic.staff.specialization.category">
+            <field name="name">Dental</field>
+            <field name="sequence">20</field>
+        </record>
+        
+        <record id="spec_cat_nursing" model="clinic.staff.specialization.category">
+            <field name="name">Nursing</field>
+            <field name="sequence">30</field>
+        </record>
+        
+        <!-- Medical Specializations -->
+        <record id="spec_general_medicine" model="clinic.staff.specialization">
+            <field name="name">General Medicine</field>
+            <field name="code">GM</field>
+            <field name="category_id" ref="spec_cat_medical"/>
+            <field name="staff_type">doctor</field>
+        </record>
+        
+        <record id="spec_cardiology" model="clinic.staff.specialization">
+            <field name="name">Cardiology</field>
+            <field name="code">CARD</field>
+            <field name="category_id" ref="spec_cat_medical"/>
+            <field name="staff_type">doctor</field>
+        </record>
+        
+        <record id="spec_pediatrics" model="clinic.staff.specialization">
+            <field name="name">Pediatrics</field>
+            <field name="code">PED</field>
+            <field name="category_id" ref="spec_cat_medical"/>
+            <field name="staff_type">doctor</field>
+        </record>
+        
+        <record id="spec_orthopedics" model="clinic.staff.specialization">
+            <field name="name">Orthopedics</field>
+            <field name="code">ORTH</field>
+            <field name="category_id" ref="spec_cat_medical"/>
+            <field name="staff_type">doctor</field>
+        </record>
+        
+        <!-- Dental Specializations -->
+        <record id="spec_general_dentistry" model="clinic.staff.specialization">
+            <field name="name">General Dentistry</field>
+            <field name="code">GD</field>
+            <field name="category_id" ref="spec_cat_dental"/>
+            <field name="staff_type">dentist</field>
+        </record>
+        
+        <record id="spec_orthodontics" model="clinic.staff.specialization">
+            <field name="name">Orthodontics</field>
+            <field name="code">ORTHO</field>
+            <field name="category_id" ref="spec_cat_dental"/>
+            <field name="staff_type">dentist</field>
+        </record>
+        
+        <record id="spec_endodontics" model="clinic.staff.specialization">
+            <field name="name">Endodontics</field>
+            <field name="code">ENDO</field>
+            <field name="category_id" ref="spec_cat_dental"/>
+            <field name="staff_type">dentist</field>
+        </record>
+        
+        <record id="spec_oral_surgery" model="clinic.staff.specialization">
+            <field name="name">Oral Surgery</field>
+            <field name="code">OS</field>
+            <field name="category_id" ref="spec_cat_dental"/>
+            <field name="staff_type">dentist</field>
+        </record>
+        
+        <record id="spec_periodontics" model="clinic.staff.specialization">
+            <field name="name">Periodontics</field>
+            <field name="code">PERIO</field>
+            <field name="category_id" ref="spec_cat_dental"/>
+            <field name="staff_type">dentist</field>
+        </record>
+        
+        <!-- Nursing Specializations -->
+        <record id="spec_general_nursing" model="clinic.staff.specialization">
+            <field name="name">General Nursing</field>
+            <field name="code">GN</field>
+            <field name="category_id" ref="spec_cat_nursing"/>
+            <field name="staff_type">nurse</field>
+        </record>
+        
+        <record id="spec_emergency_nursing" model="clinic.staff.specialization">
+            <field name="name">Emergency Nursing</field>
+            <field name="code">EN</field>
+            <field name="category_id" ref="spec_cat_nursing"/>
+            <field name="staff_type">nurse</field>
+        </record>
+        
+        <record id="spec_pediatric_nursing" model="clinic.staff.specialization">
+            <field name="name">Pediatric Nursing</field>
+            <field name="code">PN</field>
+            <field name="category_id" ref="spec_cat_nursing"/>
+            <field name="staff_type">nurse</field>
+        </record>
+    </data>
+</odoo>

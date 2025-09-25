@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="telemed_session_staff_rule" model="ir.rule">
+        <field name="name">Staff: Own Telemed Sessions</field>
+        <field name="model_id" ref="model_clinic_telemed_session"/>
+        <field name="domain_force">[('appointment_id.staff_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('clinic_staff.group_clinic_staff_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="telemed_session_manager_rule" model="ir.rule">
+        <field name="name">Manager: All Telemed Sessions</field>
+        <field name="model_id" ref="model_clinic_telemed_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('clinic_appointment_core.group_appointment_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

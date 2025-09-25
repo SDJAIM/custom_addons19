@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clinic_installer_admin,clinic.installer admin,model_clinic_installer,clinic_installer.group_clinic_installer_admin,1,1,1,1
+access_clinic_installer_user,clinic.installer user,model_clinic_installer,clinic_installer.group_clinic_installer_user,1,0,0,0
+access_clinic_installer_wizard_admin,clinic.installer.wizard admin,model_clinic_installer_wizard,clinic_installer.group_clinic_installer_admin,1,1,1,1
+access_clinic_installer_wizard_user,clinic.installer.wizard user,model_clinic_installer_wizard,clinic_installer.group_clinic_installer_user,1,0,0,0

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Daily Frequencies -->
+        <record id="freq_qd" model="clinic.frequency">
+            <field name="name">Once Daily</field>
+            <field name="code">QD</field>
+            <field name="latin_abbreviation">quaque die</field>
+            <field name="times_per_day">1</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="freq_bid" model="clinic.frequency">
+            <field name="name">Twice Daily</field>
+            <field name="code">BID</field>
+            <field name="latin_abbreviation">bis in die</field>
+            <field name="times_per_day">2</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">20</field>
+        </record>
+        
+        <record id="freq_tid" model="clinic.frequency">
+            <field name="name">Three Times Daily</field>
+            <field name="code">TID</field>
+            <field name="latin_abbreviation">ter in die</field>
+            <field name="times_per_day">3</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">30</field>
+        </record>
+        
+        <record id="freq_qid" model="clinic.frequency">
+            <field name="name">Four Times Daily</field>
+            <field name="code">QID</field>
+            <field name="latin_abbreviation">quater in die</field>
+            <field name="times_per_day">4</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">40</field>
+        </record>
+        
+        <!-- Hourly Frequencies -->
+        <record id="freq_q4h" model="clinic.frequency">
+            <field name="name">Every 4 Hours</field>
+            <field name="code">Q4H</field>
+            <field name="latin_abbreviation">quaque 4 hora</field>
+            <field name="times_per_day">6</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">50</field>
+        </record>
+        
+        <record id="freq_q6h" model="clinic.frequency">
+            <field name="name">Every 6 Hours</field>
+            <field name="code">Q6H</field>
+            <field name="latin_abbreviation">quaque 6 hora</field>
+            <field name="times_per_day">4</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">60</field>
+        </record>
+        
+        <record id="freq_q8h" model="clinic.frequency">
+            <field name="name">Every 8 Hours</field>
+            <field name="code">Q8H</field>
+            <field name="latin_abbreviation">quaque 8 hora</field>
+            <field name="times_per_day">3</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">70</field>
+        </record>
+        
+        <record id="freq_q12h" model="clinic.frequency">
+            <field name="name">Every 12 Hours</field>
+            <field name="code">Q12H</field>
+            <field name="latin_abbreviation">quaque 12 hora</field>
+            <field name="times_per_day">2</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">80</field>
+        </record>
+        
+        <!-- As Needed -->
+        <record id="freq_prn" model="clinic.frequency">
+            <field name="name">As Needed</field>
+            <field name="code">PRN</field>
+            <field name="latin_abbreviation">pro re nata</field>
+            <field name="times_per_day">0</field>
+            <field name="frequency_type">as_needed</field>
+            <field name="sequence">90</field>
+            <field name="instructions">Take as needed for specified condition</field>
+        </record>
+        
+        <record id="freq_q4h_prn" model="clinic.frequency">
+            <field name="name">Every 4 Hours As Needed</field>
+            <field name="code">Q4H PRN</field>
+            <field name="times_per_day">6</field>
+            <field name="frequency_type">as_needed</field>
+            <field name="sequence">100</field>
+        </record>
+        
+        <record id="freq_q6h_prn" model="clinic.frequency">
+            <field name="name">Every 6 Hours As Needed</field>
+            <field name="code">Q6H PRN</field>
+            <field name="times_per_day">4</field>
+            <field name="frequency_type">as_needed</field>
+            <field name="sequence">110</field>
+        </record>
+        
+        <!-- Specific Times -->
+        <record id="freq_qhs" model="clinic.frequency">
+            <field name="name">At Bedtime</field>
+            <field name="code">QHS</field>
+            <field name="latin_abbreviation">quaque hora somni</field>
+            <field name="times_per_day">1</field>
+            <field name="frequency_type">specific</field>
+            <field name="bedtime">True</field>
+            <field name="sequence">120</field>
+        </record>
+        
+        <record id="freq_qam" model="clinic.frequency">
+            <field name="name">Every Morning</field>
+            <field name="code">QAM</field>
+            <field name="times_per_day">1</field>
+            <field name="frequency_type">specific</field>
+            <field name="morning">True</field>
+            <field name="sequence">130</field>
+        </record>
+        
+        <record id="freq_ac" model="clinic.frequency">
+            <field name="name">Before Meals</field>
+            <field name="code">AC</field>
+            <field name="latin_abbreviation">ante cibum</field>
+            <field name="times_per_day">3</field>
+            <field name="frequency_type">specific</field>
+            <field name="before_meals">True</field>
+            <field name="sequence">140</field>
+        </record>
+        
+        <record id="freq_pc" model="clinic.frequency">
+            <field name="name">After Meals</field>
+            <field name="code">PC</field>
+            <field name="latin_abbreviation">post cibum</field>
+            <field name="times_per_day">3</field>
+            <field name="frequency_type">specific</field>
+            <field name="after_meals">True</field>
+            <field name="sequence">150</field>
+        </record>
+        
+        <!-- Weekly Frequencies -->
+        <record id="freq_qweek" model="clinic.frequency">
+            <field name="name">Once Weekly</field>
+            <field name="code">Q1W</field>
+            <field name="times_per_day">0.14</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">160</field>
+        </record>
+        
+        <record id="freq_biweekly" model="clinic.frequency">
+            <field name="name">Twice Weekly</field>
+            <field name="code">BIW</field>
+            <field name="times_per_day">0.29</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">170</field>
+        </record>
+        
+        <record id="freq_tiw" model="clinic.frequency">
+            <field name="name">Three Times Weekly</field>
+            <field name="code">TIW</field>
+            <field name="times_per_day">0.43</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">180</field>
+        </record>
+        
+        <!-- Other -->
+        <record id="freq_stat" model="clinic.frequency">
+            <field name="name">Immediately</field>
+            <field name="code">STAT</field>
+            <field name="latin_abbreviation">statim</field>
+            <field name="times_per_day">1</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">190</field>
+            <field name="instructions">Give immediately</field>
+        </record>
+        
+        <record id="freq_qod" model="clinic.frequency">
+            <field name="name">Every Other Day</field>
+            <field name="code">QOD</field>
+            <field name="times_per_day">0.5</field>
+            <field name="frequency_type">regular</field>
+            <field name="sequence">200</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Treatment Plan Sequence -->
+        <record id="seq_clinic_treatment_plan" model="ir.sequence">
+            <field name="name">Treatment Plan</field>
+            <field name="code">clinic.treatment.plan</field>
+            <field name="prefix">TP/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- Consent Form Sequence -->
+        <record id="seq_clinic_treatment_consent" model="ir.sequence">
+            <field name="name">Treatment Consent</field>
+            <field name="code">clinic.treatment.consent</field>
+            <field name="prefix">CONSENT/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

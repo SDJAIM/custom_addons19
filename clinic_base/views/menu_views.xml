@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- System Configuration Menu -->
+        <menuitem id="menu_clinic_system"
+                  name="System"
+                  sequence="200"
+                  groups="group_clinic_base_manager"/>
+
+        <!-- Audit Logs -->
+        <menuitem id="menu_clinic_audit"
+                  name="Audit &amp; Logs"
+                  parent="menu_clinic_system"
+                  sequence="10"/>
+
+        <menuitem id="menu_clinic_audit_logs"
+                  name="Audit Logs"
+                  parent="menu_clinic_audit"
+                  action="action_clinic_audit_log"
+                  sequence="10"/>
+    </data>
+</odoo>

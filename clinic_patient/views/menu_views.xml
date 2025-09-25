@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top Menu -->
+    <menuitem id="menu_clinic_patient_root"
+              name="Patients"
+              sequence="10"
+              groups="group_clinic_patient_user"/>
+    
+    <!-- Patient Management -->
+    <menuitem id="menu_clinic_patient_main"
+              name="Patient Management"
+              parent="menu_clinic_patient_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_patient_list"
+              name="Patients"
+              parent="menu_clinic_patient_main"
+              action="action_clinic_patient"
+              sequence="10"/>
+    
+    <!-- Insurance -->
+    <menuitem id="menu_clinic_insurance"
+              name="Insurance"
+              parent="menu_clinic_patient_root"
+              sequence="20"/>
+    
+    <menuitem id="menu_clinic_insurance_companies"
+              name="Insurance Companies"
+              parent="menu_clinic_insurance"
+              action="action_clinic_insurance_company"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_patient_insurance"
+              name="Patient Policies"
+              parent="menu_clinic_insurance"
+              sequence="20"/>
+    
+    <!-- Documents -->
+    <menuitem id="menu_clinic_documents"
+              name="Documents"
+              parent="menu_clinic_patient_root"
+              sequence="30"/>
+    
+    <!-- Configuration -->
+    <menuitem id="menu_clinic_patient_config"
+              name="Configuration"
+              parent="menu_clinic_patient_root"
+              sequence="100"
+              groups="group_clinic_patient_admin"/>
+</odoo>

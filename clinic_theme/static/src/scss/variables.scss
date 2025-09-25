@@ -1,0 +1,57 @@
+// Clinic Theme Variables
+// Design System Tokens as specified in roadmap
+
+:root {
+    // Brand Colors
+    --c-brand: #2a7de1;
+    --c-brand-600: #1f5fb0;
+    --c-accent: #2ec4b6;
+    
+    // Status Colors
+    --c-danger: #e24a4a;
+    --c-warning: #e6a700;
+    --c-success: #2fb170;
+    --c-info: #17a2b8;
+    
+    // Base Colors
+    --c-bg: #f7f9fc;
+    --c-bg-secondary: #ffffff;
+    --c-text: #1b2430;
+    --c-text-muted: #6c757d;
+    --c-border: #dee2e6;
+    
+    // Healthcare Specific
+    --c-emergency: #dc3545;
+    --c-urgent: #fd7e14;
+    --c-routine: #28a745;
+    
+    // Spacing & Sizing
+    --radius: 8px;
+    --radius-sm: 4px;
+    --radius-lg: 12px;
+    --gap: 12px;
+    --min-touch: 44px;
+    
+    // Shadows
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    
+    // Transitions
+    --transition: all 0.3s ease;
+    --transition-fast: all 0.15s ease;
+}
+
+// SCSS Variables for compilation
+$brand-primary: var(--c-brand);
+$brand-accent: var(--c-accent);
+$success: var(--c-success);
+$warning: var(--c-warning);
+$danger: var(--c-danger);
+$info: var(--c-info);
+
+// Breakpoints
+$mobile: 576px;
+$tablet: 768px;
+$desktop: 992px;
+$wide: 1200px;

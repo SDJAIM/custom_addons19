@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Simple Clinic Installer View -->
+    <record id="view_clinic_installer_form_simple" model="ir.ui.view">
+        <field name="name">clinic.installer.form.simple</field>
+        <field name="model">clinic.installer</field>
+        <field name="arch" type="xml">
+            <form string="Clinic System Installer">
+                <sheet>
+                    <h1>Clinic System Installer</h1>
+                    <group>
+                        <field name="state" readonly="1"/>
+                        <field name="progress"/>
+                        <field name="current_step"/>
+                        <field name="load_demo_data"/>
+                        <field name="install_optional_modules"/>
+                        <field name="create_admin_user"/>
+                    </group>
+                    <group string="Log">
+                        <field name="log_messages" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Start Installation" name="action_start_installation" type="object" class="btn-primary"/>
+                    <button string="Close" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Simple Action -->
+    <record id="action_clinic_installer_simple" model="ir.actions.act_window">
+        <field name="name">Clinic Installer</field>
+        <field name="res_model">clinic.installer</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+    <!-- Simple Menu -->
+    <menuitem id="menu_clinic_installer_simple" 
+              name="Clinic Installer" 
+              parent="base.menu_administration" 
+              action="action_clinic_installer_simple"
+              sequence="1"/>
+
+</odoo>

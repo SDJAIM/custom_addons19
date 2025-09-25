@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Enteral Routes -->
+        <record id="route_po" model="clinic.medication.route">
+            <field name="name">By Mouth</field>
+            <field name="code">PO</field>
+            <field name="route_type">enteral</field>
+            <field name="sequence">10</field>
+            <field name="description">Oral administration</field>
+        </record>
+        
+        <record id="route_sl" model="clinic.medication.route">
+            <field name="name">Sublingual</field>
+            <field name="code">SL</field>
+            <field name="route_type">enteral</field>
+            <field name="sequence">20</field>
+            <field name="description">Under the tongue</field>
+        </record>
+        
+        <record id="route_pr" model="clinic.medication.route">
+            <field name="name">Per Rectum</field>
+            <field name="code">PR</field>
+            <field name="route_type">enteral</field>
+            <field name="sequence">30</field>
+            <field name="description">Rectal administration</field>
+        </record>
+        
+        <!-- Parenteral Routes -->
+        <record id="route_iv" model="clinic.medication.route">
+            <field name="name">Intravenous</field>
+            <field name="code">IV</field>
+            <field name="route_type">parenteral</field>
+            <field name="sequence">40</field>
+            <field name="description">Into a vein</field>
+            <field name="requires_equipment">True</field>
+            <field name="equipment_notes">IV cannula required</field>
+        </record>
+        
+        <record id="route_im" model="clinic.medication.route">
+            <field name="name">Intramuscular</field>
+            <field name="code">IM</field>
+            <field name="route_type">parenteral</field>
+            <field name="sequence">50</field>
+            <field name="description">Into a muscle</field>
+            <field name="requires_equipment">True</field>
+            <field name="equipment_notes">Syringe and needle required</field>
+        </record>
+        
+        <record id="route_sc" model="clinic.medication.route">
+            <field name="name">Subcutaneous</field>
+            <field name="code">SC</field>
+            <field name="route_type">parenteral</field>
+            <field name="sequence">60</field>
+            <field name="description">Under the skin</field>
+            <field name="requires_equipment">True</field>
+            <field name="equipment_notes">Syringe and needle required</field>
+        </record>
+        
+        <!-- Topical Routes -->
+        <record id="route_topical" model="clinic.medication.route">
+            <field name="name">Topical</field>
+            <field name="code">TOP</field>
+            <field name="route_type">topical</field>
+            <field name="sequence">70</field>
+            <field name="description">Apply to skin</field>
+        </record>
+        
+        <record id="route_ophthalmic" model="clinic.medication.route">
+            <field name="name">Ophthalmic</field>
+            <field name="code">OPHTH</field>
+            <field name="route_type">topical</field>
+            <field name="sequence">80</field>
+            <field name="description">Into the eye</field>
+        </record>
+        
+        <record id="route_otic" model="clinic.medication.route">
+            <field name="name">Otic</field>
+            <field name="code">OTIC</field>
+            <field name="route_type">topical</field>
+            <field name="sequence">90</field>
+            <field name="description">Into the ear</field>
+        </record>
+        
+        <record id="route_nasal" model="clinic.medication.route">
+            <field name="name">Nasal</field>
+            <field name="code">NAS</field>
+            <field name="route_type">topical</field>
+            <field name="sequence">100</field>
+            <field name="description">Into the nose</field>
+        </record>
+        
+        <!-- Inhalation Routes -->
+        <record id="route_inhalation" model="clinic.medication.route">
+            <field name="name">Inhalation</field>
+            <field name="code">INH</field>
+            <field name="route_type">inhalation</field>
+            <field name="sequence">110</field>
+            <field name="description">Breathe in through mouth or nose</field>
+        </record>
+        
+        <record id="route_nebulizer" model="clinic.medication.route">
+            <field name="name">Nebulizer</field>
+            <field name="code">NEB</field>
+            <field name="route_type">inhalation</field>
+            <field name="sequence">120</field>
+            <field name="description">Via nebulizer device</field>
+            <field name="requires_equipment">True</field>
+            <field name="equipment_notes">Nebulizer machine required</field>
+        </record>
+    </data>
+</odoo>

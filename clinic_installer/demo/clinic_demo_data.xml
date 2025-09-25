@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Demo Company -->
+        <record id="demo_clinic_company" model="res.company">
+            <field name="name">Demo Medical Clinic</field>
+            <field name="email">demo@democlinic.com</field>
+            <field name="phone">+1 (555) 123-4567</field>
+            <field name="street">123 Health Avenue</field>
+            <field name="city">Medical City</field>
+            <field name="state_id" ref="base.state_us_5"/>  <!-- California -->
+            <field name="zip">90210</field>
+            <field name="country_id" ref="base.us"/>
+            <field name="website">https://democlinic.com</field>
+        </record>
+        
+        <!-- Demo Users -->
+        <record id="demo_clinic_admin" model="res.users">
+            <field name="name">Dr. Sarah Wilson</field>
+            <field name="login">demo_admin</field>
+            <field name="email">admin@democlinic.com</field>
+            <field name="active" eval="True"/>
+            <field name="company_id" ref="demo_clinic_company"/>
+        </record>
+        
+        <record id="demo_doctor" model="res.users">
+            <field name="name">Dr. Michael Chen</field>
+            <field name="login">demo_doctor</field>
+            <field name="email">doctor@democlinic.com</field>
+            <field name="active" eval="True"/>
+            <field name="company_id" ref="demo_clinic_company"/>
+        </record>
+        
+        <record id="demo_receptionist" model="res.users">
+            <field name="name">Emma Rodriguez</field>
+            <field name="login">demo_receptionist</field>
+            <field name="email">reception@democlinic.com</field>
+            <field name="active" eval="True"/>
+            <field name="company_id" ref="demo_clinic_company"/>
+        </record>
+        
+        <!-- Demo Installation Log -->
+        <record id="demo_installation_log" model="ir.config_parameter">
+            <field name="key">clinic_installer.demo_installation_date</field>
+            <field name="value">2024-01-15 10:30:00</field>
+        </record>
+        
+        <record id="demo_modules_installed" model="ir.config_parameter">
+            <field name="key">clinic_installer.demo_modules_count</field>
+            <field name="value">13</field>
+        </record>
+        
+        <!-- Demo Configuration -->
+        <record id="demo_config_timezone" model="ir.config_parameter">
+            <field name="key">clinic_installer.demo_timezone</field>
+            <field name="value">America/Los_Angeles</field>
+        </record>
+        
+        <record id="demo_config_language" model="ir.config_parameter">
+            <field name="key">clinic_installer.demo_language</field>
+            <field name="value">en_US</field>
+        </record>
+        
+        <!-- Sample Services (if applicable) -->
+        <record id="demo_service_consultation" model="product.product">
+            <field name="name">General Consultation</field>
+            <field name="type">service</field>
+            <field name="list_price">150.00</field>
+            <field name="standard_price">75.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="description">Standard medical consultation service</field>
+        </record>
+        
+        <record id="demo_service_checkup" model="product.product">
+            <field name="name">Annual Health Checkup</field>
+            <field name="type">service</field>
+            <field name="list_price">300.00</field>
+            <field name="standard_price">150.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="description">Comprehensive annual health examination</field>
+        </record>
+        
+        <!-- Demo Installation Success Notification -->
+        <record id="demo_installation_notification" model="ir.config_parameter">
+            <field name="key">clinic_installer.demo_installation_success</field>
+            <field name="value">true</field>
+        </record>
+        
+    </data>
+</odoo>

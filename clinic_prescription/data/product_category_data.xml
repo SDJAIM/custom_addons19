@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Product Category for Medications -->
+        <record id="product_category_medication" model="product.category">
+            <field name="name">Medications</field>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+        </record>
+
+        <!-- Subcategories for different types of medications -->
+        <record id="product_category_prescription_meds" model="product.category">
+            <field name="name">Prescription Medications</field>
+            <field name="parent_id" ref="product_category_medication"/>
+            <field name="property_cost_method">fifo</field>
+        </record>
+
+        <record id="product_category_otc_meds" model="product.category">
+            <field name="name">Over-the-Counter Medications</field>
+            <field name="parent_id" ref="product_category_medication"/>
+            <field name="property_cost_method">fifo</field>
+        </record>
+
+        <record id="product_category_controlled_substances" model="product.category">
+            <field name="name">Controlled Substances</field>
+            <field name="parent_id" ref="product_category_medication"/>
+            <field name="property_cost_method">fifo</field>
+        </record>
+
+        <record id="product_category_vaccines" model="product.category">
+            <field name="name">Vaccines</field>
+            <field name="parent_id" ref="product_category_medication"/>
+            <field name="property_cost_method">fifo</field>
+        </record>
+
+    </data>
+</odoo>

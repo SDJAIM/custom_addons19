@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clinic_appointment_portal,clinic.appointment.portal,model_clinic_appointment,base.group_portal,1,0,0,0
+access_clinic_appointment_user,clinic.appointment.user,model_clinic_appointment,group_appointment_user,1,1,1,0
+access_clinic_appointment_manager,clinic.appointment.manager,model_clinic_appointment,group_appointment_manager,1,1,1,1
+access_clinic_appointment_admin,clinic.appointment.admin,model_clinic_appointment,group_appointment_admin,1,1,1,1
+
+access_clinic_appointment_type_all,clinic.appointment.type.all,model_clinic_appointment_type,base.group_user,1,0,0,0
+access_clinic_appointment_type_manager,clinic.appointment.type.manager,model_clinic_appointment_type,group_appointment_manager,1,1,1,0
+access_clinic_appointment_type_admin,clinic.appointment.type.admin,model_clinic_appointment_type,group_appointment_admin,1,1,1,1
+
+access_clinic_appointment_slot_user,clinic.appointment.slot.user,model_clinic_appointment_slot,group_appointment_user,1,1,1,0
+access_clinic_appointment_slot_manager,clinic.appointment.slot.manager,model_clinic_appointment_slot,group_appointment_manager,1,1,1,1
+access_clinic_appointment_slot_admin,clinic.appointment.slot.admin,model_clinic_appointment_slot,group_appointment_admin,1,1,1,1
+
+access_clinic_waiting_list_user,clinic.waiting.list.user,model_clinic_waiting_list,group_appointment_user,1,1,1,0
+access_clinic_waiting_list_manager,clinic.waiting.list.manager,model_clinic_waiting_list,group_appointment_manager,1,1,1,1
+access_clinic_waiting_list_admin,clinic.waiting.list.admin,model_clinic_waiting_list,group_appointment_admin,1,1,1,1

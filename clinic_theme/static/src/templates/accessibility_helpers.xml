@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="clinic_accessibility_helpers" xml:space="preserve">
+
+    <!-- Skip to Content Link Template -->
+    <t t-name="clinic_theme.SkipToContent">
+        <a href="#main-content" class="skip-to-content" tabindex="0">
+            Skip to main content
+        </a>
+    </t>
+
+    <!-- Screen Reader Announcement Template -->
+    <t t-name="clinic_theme.ScreenReaderAnnouncement">
+        <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            <t t-esc="message"/>
+        </div>
+    </t>
+
+    <!-- Accessible Loading Spinner -->
+    <t t-name="clinic_theme.AccessibleSpinner">
+        <div class="spinner-container" role="status">
+            <span class="sr-only">Loading...</span>
+            <div class="spinner-border" aria-hidden="true">
+                <span class="spinner-text">Loading, please wait...</span>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accessible Form Field -->
+    <t t-name="clinic_theme.AccessibleFormField">
+        <div class="form-group">
+            <label t-att-for="field_id" t-att-class="'form-label' + (required ? ' required-field' : '')">
+                <t t-esc="label"/>
+            </label>
+            <input
+                t-att-type="field_type or 'text'"
+                t-att-id="field_id"
+                t-att-name="field_name"
+                t-att-class="'form-control' + (error ? ' is-invalid' : '')"
+                t-att-aria-describedby="help_text ? field_id + '_help' : (error ? field_id + '_error' : '')"
+                t-att-aria-invalid="error ? 'true' : 'false'"
+                t-att-required="required"
+                t-att-placeholder="placeholder"
+                t-att-value="value"/>
+            <small t-if="help_text" t-att-id="field_id + '_help'" class="form-text text-muted">
+                <t t-esc="help_text"/>
+            </small>
+            <div t-if="error" t-att-id="field_id + '_error'" class="invalid-feedback" role="alert">
+                <t t-esc="error"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accessible Button with Icon -->
+    <t t-name="clinic_theme.AccessibleIconButton">
+        <button t-att-type="button_type or 'button'"
+                t-att-class="'btn ' + (button_class or 'btn-primary')"
+                t-att-aria-label="aria_label or label"
+                t-att-disabled="disabled">
+            <i t-att-class="'icon ' + icon_class" aria-hidden="true"/>
+            <span t-if="!icon_only" t-esc="label"/>
+            <span t-if="icon_only" class="sr-only" t-esc="label"/>
+        </button>
+    </t>
+
+    <!-- Accessible Alert -->
+    <t t-name="clinic_theme.AccessibleAlert">
+        <div t-att-class="'alert alert-' + (alert_type or 'info') + (dismissible ? ' alert-dismissible fade show' : '')"
+             role="alert"
+             t-att-aria-live="alert_type === 'danger' ? 'assertive' : 'polite'"
+             aria-atomic="true">
+            <strong t-if="title" t-esc="title"/>
+            <t t-esc="message"/>
+            <button t-if="dismissible" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close alert">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    </t>
+
+    <!-- Accessible Modal -->
+    <t t-name="clinic_theme.AccessibleModal">
+        <div class="modal fade" tabindex="-1" role="dialog"
+             t-att-aria-labelledby="modal_id + '_title'"
+             t-att-aria-describedby="modal_id + '_body'"
+             aria-modal="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" t-att-id="modal_id + '_title'">
+                            <t t-esc="title"/>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close modal">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" t-att-id="modal_id + '_body'">
+                        <t t-raw="body_content"/>
+                    </div>
+                    <div t-if="show_footer" class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button t-if="save_button" type="button" class="btn btn-primary">
+                            <t t-esc="save_button_text or 'Save changes'"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accessible Table -->
+    <t t-name="clinic_theme.AccessibleTable">
+        <div class="table-responsive" tabindex="0" role="region" t-att-aria-label="table_label">
+            <table class="table table-striped" role="table">
+                <caption t-if="caption" t-esc="caption"/>
+                <thead>
+                    <tr role="row">
+                        <t t-foreach="headers" t-as="header">
+                            <th scope="col" role="columnheader" t-att-aria-sort="header.sortable ? 'none' : false">
+                                <t t-esc="header.label"/>
+                                <span t-if="header.sortable" class="sr-only">(sortable)</span>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="rows" t-as="row">
+                        <tr role="row">
+                            <t t-foreach="row" t-as="cell">
+                                <td role="cell" t-att-aria-label="cell.label">
+                                    <t t-esc="cell.value"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <!-- Accessible Tabs -->
+    <t t-name="clinic_theme.AccessibleTabs">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs" role="tablist">
+                <t t-foreach="tabs" t-as="tab">
+                    <li class="nav-item" role="presentation">
+                        <button t-att-class="'nav-link' + (tab_first ? ' active' : '')"
+                                t-att-id="tab.id + '-tab'"
+                                t-att-data-bs-toggle="tab"
+                                t-att-data-bs-target="'#' + tab.id"
+                                type="button"
+                                role="tab"
+                                t-att-aria-controls="tab.id"
+                                t-att-aria-selected="tab_first ? 'true' : 'false'">
+                            <t t-esc="tab.label"/>
+                        </button>
+                    </li>
+                </t>
+            </ul>
+            <div class="tab-content">
+                <t t-foreach="tabs" t-as="tab">
+                    <div t-att-class="'tab-pane fade' + (tab_first ? ' show active' : '')"
+                         t-att-id="tab.id"
+                         role="tabpanel"
+                         t-att-aria-labelledby="tab.id + '-tab'"
+                         tabindex="0">
+                        <t t-raw="tab.content"/>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accessible Breadcrumb -->
+    <t t-name="clinic_theme.AccessibleBreadcrumb">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
+                <t t-foreach="items" t-as="item">
+                    <li t-att-class="'breadcrumb-item' + (item_last ? ' active' : '')"
+                        t-att-aria-current="item_last ? 'page' : false">
+                        <a t-if="!item_last" t-att-href="item.url">
+                            <t t-esc="item.label"/>
+                        </a>
+                        <t t-if="item_last" t-esc="item.label"/>
+                    </li>
+                </t>
+            </ol>
+        </nav>
+    </t>
+
+    <!-- Accessible Progress Bar -->
+    <t t-name="clinic_theme.AccessibleProgressBar">
+        <div class="progress" role="progressbar"
+             t-att-aria-label="label"
+             t-att-aria-valuenow="value"
+             t-att-aria-valuemin="min or 0"
+             t-att-aria-valuemax="max or 100">
+            <div class="progress-bar" t-att-style="'width: ' + value + '%'">
+                <span class="sr-only"><t t-esc="value"/>% Complete</span>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accessible Pagination -->
+    <t t-name="clinic_theme.AccessiblePagination">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li t-att-class="'page-item' + (current_page === 1 ? ' disabled' : '')">
+                    <a class="page-link" href="#" aria-label="Previous page">
+                        <span aria-hidden="true">‹</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                <t t-foreach="pages" t-as="page">
+                    <li t-att-class="'page-item' + (page === current_page ? ' active' : '')"
+                        t-att-aria-current="page === current_page ? 'page' : false">
+                        <a class="page-link" t-att-href="'#page-' + page">
+                            <t t-esc="page"/>
+                            <span t-if="page === current_page" class="sr-only">(current)</span>
+                        </a>
+                    </li>
+                </t>
+                <li t-att-class="'page-item' + (current_page === total_pages ? ' disabled' : '')">
+                    <a class="page-link" href="#" aria-label="Next page">
+                        <span aria-hidden="true">›</span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </t>
+
+    <!-- Focus Trap Helper -->
+    <t t-name="clinic_theme.FocusTrap">
+        <div class="focus-trap" tabindex="0" aria-hidden="true"/>
+    </t>
+
+    <!-- Live Region for Announcements -->
+    <t t-name="clinic_theme.LiveRegion">
+        <div class="live-region" aria-live="polite" aria-atomic="true">
+            <div class="toast-container">
+                <!-- Toasts will be dynamically inserted here -->
+            </div>
+        </div>
+    </t>
+
+</templates>

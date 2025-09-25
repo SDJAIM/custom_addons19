@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_clinic_api" model="ir.module.category">
+        <field name="name">Clinic API</field>
+        <field name="description">API Access Management</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <record id="group_clinic_api_user" model="res.groups">
+        <field name="name">API User</field>
+        <field name="category_id" ref="module_category_clinic_api"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_clinic_api_manager" model="res.groups">
+        <field name="name">API Manager</field>
+        <field name="category_id" ref="module_category_clinic_api"/>
+        <field name="implied_ids" eval="[(4, ref('group_clinic_api_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

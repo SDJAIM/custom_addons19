@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Prescription Lot Selection Wizard Views -->
+    <record id="view_prescription_lot_selection_wizard_form" model="ir.ui.view">
+        <field name="name">prescription.lot.selection.wizard.form</field>
+        <field name="model">clinic.prescription.lot.selection.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Select Lots (FEFO)">
+                <header>
+                    <button name="action_apply_fefo_suggestion"
+                            string="Apply FEFO Suggestion"
+                            type="object"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="medication_id" readonly="1" class="oe_inline"/>
+                        </h1>
+                        <h2>
+                            Required: <field name="required_quantity" readonly="1" class="oe_inline"/> units
+                        </h2>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="prescription_line_id" invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="stock_location_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_selected_quantity" readonly="1"/>
+                            <field name="remaining_quantity" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="FEFO Suggestion" name="fefo_suggestion">
+                            <group>
+                                <field name="fefo_suggestion" readonly="1" nolabel="1"
+                                       widget="text" placeholder="FEFO suggestion will appear here..."/>
+                            </group>
+                        </page>
+
+                        <page string="Available Lots" name="available_lots">
+                            <field name="line_ids" nolabel="1">
+                                <tree editable="bottom" decoration-danger="expiry_status == 'expired'"
+                                      decoration-warning="expiry_status in ['warning', 'critical']">
+                                    <field name="selected" widget="boolean_toggle"/>
+                                    <field name="lot_name"/>
+                                    <field name="available_quantity"/>
+                                    <field name="selected_quantity"
+                                           attrs="{'readonly': [('selected', '=', False)]}"/>
+                                    <field name="expiration_date"/>
+                                    <field name="days_to_expiry"/>
+                                    <field name="expiry_status" widget="badge"
+                                           decoration-success="expiry_status == 'ok'"
+                                           decoration-warning="expiry_status == 'warning'"
+                                           decoration-danger="expiry_status in ['critical', 'expired']"/>
+                                    <field name="lot_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <div class="alert alert-warning"
+                         attrs="{'invisible': [('has_expiring_lots', '=', False)]}">
+                        <strong>Expiry Warning:</strong>
+                        <field name="expiry_warning" nolabel="1"/>
+                        <field name="has_expiring_lots" invisible="1"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_selection"
+                            string="Confirm Selection"
+                            type="object"
+                            class="btn-primary"
+                            attrs="{'invisible': [('remaining_quantity', '>', 0)]}"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Prescription Dispense Wizard Views -->
+    <record id="view_prescription_dispense_wizard_form" model="ir.ui.view">
+        <field name="name">prescription.dispense.wizard.form</field>
+        <field name="model">clinic.prescription.dispense.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Dispense Medication">
+                <header>
+                    <button name="action_select_lots"
+                            string="Select Lots"
+                            type="object"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('needs_lot_selection', '=', False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="medication_id" readonly="1" class="oe_inline"/>
+                        </h1>
+                        <h2>
+                            Patient: <field name="patient_id" readonly="1" class="oe_inline"/>
+                        </h2>
+                    </div>
+
+                    <group>
+                        <group string="Quantities">
+                            <field name="quantity_prescribed" readonly="1"/>
+                            <field name="quantity_already_dispensed" readonly="1"/>
+                            <field name="quantity_remaining" readonly="1"/>
+                            <field name="quantity_to_dispense"/>
+                        </group>
+                        <group string="Locations">
+                            <field name="stock_location_id"/>
+                            <field name="dest_location_id"/>
+                        </group>
+                    </group>
+
+                    <group string="Stock Information">
+                        <group>
+                            <field name="prescription_line_id" invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="needs_lot_selection" readonly="1"/>
+                        </group>
+                        <group>
+                            <button name="action_view_stock_quants"
+                                    string="View Stock"
+                                    type="object"
+                                    class="btn-link"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Lot Selection" name="lot_selection"
+                              attrs="{'invisible': [('needs_lot_selection', '=', False)]}">
+                            <group>
+                                <field name="selected_lot_ids" widget="many2many_tags" readonly="1"/>
+                                <field name="lot_id"
+                                       attrs="{'invisible': [('selected_lot_ids', '!=', [])]}"/>
+                            </group>
+
+                            <group string="FEFO Suggestion">
+                                <field name="suggested_lots" readonly="1" nolabel="1"
+                                       widget="text" placeholder="FEFO suggestions will appear here..."/>
+                            </group>
+                        </page>
+
+                        <page string="Dispensing Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Add any dispensing notes..."/>
+                        </page>
+                    </notebook>
+
+                    <div class="alert alert-warning"
+                         attrs="{'invisible': [('has_expiring_lots', '=', False)]}">
+                        <strong>Expiry Warning:</strong>
+                        <field name="expiry_warning" nolabel="1"/>
+                        <field name="has_expiring_lots" invisible="1"/>
+                        <field name="force_expiry" string="Force dispense expiring lots"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_dispense"
+                            string="Dispense"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Enhanced Prescription Line Form View -->
+    <record id="view_prescription_line_form_enhanced" model="ir.ui.view">
+        <field name="name">prescription.line.form.enhanced</field>
+        <field name="model">clinic.prescription.line</field>
+        <field name="inherit_id" ref="clinic_prescription.view_prescription_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='stock_info']" position="after">
+                <group string="FEFO Stock Management" name="fefo_stock">
+                    <field name="needs_lot_selection" readonly="1"/>
+                    <field name="has_expiring_lots" readonly="1"/>
+                    <field name="stock_location_id"/>
+                    <field name="dest_location_id"/>
+                </group>
+
+                <group string="Selected Lots" name="selected_lots"
+                       attrs="{'invisible': [('needs_lot_selection', '=', False)]}">
+                    <field name="selected_lot_ids" widget="many2many_tags"/>
+                    <field name="lot_id"/>
+                    <button name="action_select_lots"
+                            string="Select Lots"
+                            type="object"
+                            class="btn-secondary"/>
+                </group>
+
+                <group string="FEFO Suggestions" name="fefo_suggestions"
+                       attrs="{'invisible': [('suggested_lots', '=', False)]}">
+                    <field name="suggested_lots" readonly="1" nolabel="1" widget="text"/>
+                </group>
+
+                <div class="alert alert-warning"
+                     attrs="{'invisible': [('expiry_warning', '=', False)]}">
+                    <strong>Expiry Warning:</strong>
+                    <field name="expiry_warning" nolabel="1"/>
+                </div>
+            </xpath>
+        </xpath>
+    </record>
+
+    <!-- Enhanced Prescription Line Tree View -->
+    <record id="view_prescription_line_tree_enhanced" model="ir.ui.view">
+        <field name="name">prescription.line.tree.enhanced</field>
+        <field name="model">clinic.prescription.line</field>
+        <field name="inherit_id" ref="clinic_prescription.view_prescription_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='quantity_dispensed']" position="after">
+                <field name="needs_lot_selection" optional="hide"/>
+                <field name="has_expiring_lots" optional="show"
+                       widget="boolean_toggle"
+                       decoration-warning="has_expiring_lots == True"/>
+                <field name="selected_lot_ids" optional="hide" widget="many2many_tags"/>
+            </xpath>
+        </xpath>
+    </record>
+
+    <!-- Enhanced Medication Form View -->
+    <record id="view_medication_form_enhanced" model="ir.ui.view">
+        <field name="name">medication.form.enhanced</field>
+        <field name="model">clinic.medication</field>
+        <field name="inherit_id" ref="clinic_prescription.view_medication_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='stock_integration']" position="replace">
+                <group string="Stock Integration (Enhanced)" name="stock_integration">
+                    <field name="product_id" required="1"/>
+                    <field name="track_inventory"/>
+                    <field name="qty_available" readonly="1"/>
+                    <field name="virtual_available" readonly="1"/>
+                    <field name="tracking" readonly="1"/>
+                </group>
+
+                <group string="Expiration Tracking" name="expiration_tracking"
+                       attrs="{'invisible': [('track_inventory', '=', False)]}">
+                    <field name="use_expiration_date"/>
+                    <field name="expiration_time"
+                           attrs="{'invisible': [('use_expiration_date', '=', False)]}"/>
+                    <field name="use_best_before_date"/>
+                    <field name="use_removal_date"/>
+                    <field name="use_alert_date"/>
+                    <field name="alert_time"
+                           attrs="{'invisible': [('use_alert_date', '=', False)]}"/>
+                </group>
+
+                <group string="Reorder Management" name="reorder_management"
+                       attrs="{'invisible': [('track_inventory', '=', False)]}">
+                    <field name="reorder_level"/>
+                    <field name="reorder_quantity"/>
+                </group>
+            </xpath>
+
+            <xpath expr="//page[@name='stock_info']" position="after">
+                <page string="FEFO Management" name="fefo_management"
+                      attrs="{'invisible': [('track_inventory', '=', False)]}">
+                    <group>
+                        <button name="action_view_stock"
+                                string="View Stock"
+                                type="object"
+                                class="btn-primary"/>
+                        <button name="check_expiring_lots"
+                                string="Check Expiring Lots"
+                                type="object"
+                                class="btn-secondary"/>
+                    </group>
+
+                    <group string="Available Lots">
+                        <!-- This would show available lots in a tree view -->
+                    </group>
+                </page>
+            </xpath>
+        </xpath>
+    </record>
+
+</odoo>

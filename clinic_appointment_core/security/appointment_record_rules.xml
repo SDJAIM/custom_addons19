@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Record Rules for Branch Isolation in Appointments -->
+
+    <!-- Appointment Branch Rule - Users see appointments from their branches -->
+    <record id="appointment_branch_rule" model="ir.rule">
+        <field name="name">Appointment: Branch Access</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="domain_force">['|',
+            ('branch_id', '=', False),
+            ('branch_id', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_appointment_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Appointment Manager Rule - Managers see all appointments -->
+    <record id="appointment_manager_rule" model="ir.rule">
+        <field name="name">Appointment: Manager All Access</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_appointment_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Doctor/Staff Own Appointments Rule -->
+    <record id="appointment_staff_own_rule" model="ir.rule">
+        <field name="name">Appointment: Staff Own Appointments</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="domain_force">[('staff_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('clinic_staff.group_clinic_staff_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Patient Portal Appointments Rule -->
+    <record id="appointment_portal_rule" model="ir.rule">
+        <field name="name">Appointment: Portal Patient Access</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Appointment Type Branch Rule -->
+    <record id="appointment_type_branch_rule" model="ir.rule">
+        <field name="name">Appointment Type: Branch Access</field>
+        <field name="model_id" ref="model_clinic_appointment_type"/>
+        <field name="domain_force">['|',
+            ('branch_ids', '=', False),
+            ('branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_appointment_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Waiting List Branch Rule -->
+    <record id="waiting_list_branch_rule" model="ir.rule">
+        <field name="name">Waiting List: Branch Access</field>
+        <field name="model_id" ref="model_clinic_waiting_list"/>
+        <field name="domain_force">['|',
+            ('branch_id', '=', False),
+            ('branch_id', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_appointment_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Appointment Slot Branch Rule -->
+    <record id="appointment_slot_branch_rule" model="ir.rule">
+        <field name="name">Appointment Slot: Branch Access</field>
+        <field name="model_id" ref="model_clinic_appointment_slot"/>
+        <field name="domain_force">['|',
+            ('staff_id.branch_ids', '=', False),
+            ('staff_id.branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="groups" eval="[(4, ref('group_appointment_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

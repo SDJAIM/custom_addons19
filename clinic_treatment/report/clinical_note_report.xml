@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Definition -->
+    <record id="report_clinical_note" model="ir.actions.report">
+        <field name="name">Clinical Note</field>
+        <field name="model">clinic.clinical.note</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">clinic_treatment.clinical_note_document</field>
+        <field name="report_file">clinic_treatment.clinical_note_document</field>
+        <field name="print_report_name">'Clinical Note - %s' % (object.date)</field>
+        <field name="binding_model_id" ref="model_clinic_clinical_note"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Report Template -->
+    <template id="clinical_note_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>CLINICAL NOTE</h2>
+                            <h4>Medical Record</h4>
+                        </div>
+
+                        <!-- Patient & Visit Information -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-6">
+                                <strong>Patient Information:</strong>
+                                <address t-field="doc.patient_id"
+                                    t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": true}'/>
+                                <t t-if="doc.patient_id.birth_date">
+                                    <strong>Date of Birth:</strong> <span t-field="doc.patient_id.birth_date"/><br/>
+                                </t>
+                            </div>
+                            <div class="col-6">
+                                <strong>Visit Details:</strong><br/>
+                                <span><strong>Date:</strong> <span t-field="doc.date"/></span><br/>
+                                <span><strong>Time:</strong> <span t-field="doc.time"/></span><br/>
+                                <span><strong>Doctor:</strong> <span t-field="doc.doctor_id.name"/></span><br/>
+                                <t t-if="doc.appointment_id">
+                                    <span><strong>Appointment:</strong> <span t-field="doc.appointment_id.name"/></span><br/>
+                                </t>
+                                <span><strong>Note Type:</strong> <span t-field="doc.note_type"/></span>
+                            </div>
+                        </div>
+
+                        <!-- Chief Complaint -->
+                        <t t-if="doc.chief_complaint">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Chief Complaint</h5>
+                                    <p t-field="doc.chief_complaint" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- History of Present Illness -->
+                        <t t-if="doc.history_present_illness">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>History of Present Illness</h5>
+                                    <p t-field="doc.history_present_illness" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Vital Signs -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h5>Vital Signs</h5>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <t t-if="doc.blood_pressure_systolic and doc.blood_pressure_diastolic">
+                                                <td><strong>Blood Pressure:</strong></td>
+                                                <td><span t-field="doc.blood_pressure_systolic"/>/<span t-field="doc.blood_pressure_diastolic"/> mmHg</td>
+                                            </t>
+                                            <t t-if="doc.temperature">
+                                                <td><strong>Temperature:</strong></td>
+                                                <td><span t-field="doc.temperature"/> °C</td>
+                                            </t>
+                                        </tr>
+                                        <tr>
+                                            <t t-if="doc.pulse">
+                                                <td><strong>Pulse:</strong></td>
+                                                <td><span t-field="doc.pulse"/> bpm</td>
+                                            </t>
+                                            <t t-if="doc.respiratory_rate">
+                                                <td><strong>Respiratory Rate:</strong></td>
+                                                <td><span t-field="doc.respiratory_rate"/> /min</td>
+                                            </t>
+                                        </tr>
+                                        <tr>
+                                            <t t-if="doc.weight">
+                                                <td><strong>Weight:</strong></td>
+                                                <td><span t-field="doc.weight"/> kg</td>
+                                            </t>
+                                            <t t-if="doc.height">
+                                                <td><strong>Height:</strong></td>
+                                                <td><span t-field="doc.height"/> cm</td>
+                                            </t>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Physical Examination -->
+                        <t t-if="doc.physical_examination">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Physical Examination</h5>
+                                    <p t-field="doc.physical_examination" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Assessment -->
+                        <t t-if="doc.assessment">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Assessment</h5>
+                                    <p t-field="doc.assessment" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Diagnosis -->
+                        <t t-if="doc.diagnosis_ids">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Diagnosis</h5>
+                                    <ul>
+                                        <li t-foreach="doc.diagnosis_ids" t-as="diagnosis">
+                                            <span t-field="diagnosis.name"/> (<span t-field="diagnosis.code"/>)
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Treatment Plan -->
+                        <t t-if="doc.treatment_plan">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Treatment Plan</h5>
+                                    <p t-field="doc.treatment_plan" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Medications Prescribed -->
+                        <t t-if="doc.medications_prescribed">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Medications Prescribed</h5>
+                                    <p t-field="doc.medications_prescribed" class="border p-2" style="white-space: pre-wrap;"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Follow-up -->
+                        <t t-if="doc.requires_follow_up">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Follow-up Required</h5>
+                                    <p>
+                                        <strong>Date:</strong> <span t-field="doc.follow_up_date"/><br/>
+                                        <t t-if="doc.follow_up_instructions">
+                                            <strong>Instructions:</strong><br/>
+                                            <span t-field="doc.follow_up_instructions" style="white-space: pre-wrap;"/>
+                                        </t>
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Attachments Note -->
+                        <t t-if="doc.attachment_ids">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5>Attachments</h5>
+                                    <p><em>This clinical note has <span t-esc="len(doc.attachment_ids)"/> attachment(s) on file.</em></p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    <strong>Healthcare Provider</strong><br/>
+                                    <span t-field="doc.doctor_id.name"/><br/>
+                                    <t t-if="doc.doctor_id.license_number">
+                                        License: <span t-field="doc.doctor_id.license_number"/><br/>
+                                    </t>
+                                    <t t-if="doc.doctor_id.specialization_id">
+                                        Specialty: <span t-field="doc.doctor_id.specialization_id.name"/><br/>
+                                    </t>
+                                    Date: <span t-field="doc.date"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confidentiality Notice -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <hr/>
+                                <small class="text-muted">
+                                    <strong>CONFIDENTIAL MEDICAL RECORD</strong><br/>
+                                    This document contains confidential medical information. Unauthorized disclosure is prohibited by law.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

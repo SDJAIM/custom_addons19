@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Prescription Sequence -->
+        <record id="sequence_clinic_prescription" model="ir.sequence">
+            <field name="name">Prescription</field>
+            <field name="code">clinic.prescription</field>
+            <field name="prefix">RX/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- E-Prescription Sequence -->
+        <record id="sequence_clinic_eprescription" model="ir.sequence">
+            <field name="name">E-Prescription</field>
+            <field name="code">clinic.eprescription</field>
+            <field name="prefix">ERX/%(year)s/</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

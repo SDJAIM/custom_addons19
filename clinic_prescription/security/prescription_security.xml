@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Module Category -->
+        <record id="module_category_clinic_prescription" model="ir.module.category">
+            <field name="name">Clinic Prescription</field>
+            <field name="description">Manage prescriptions and pharmacy</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <!-- Privilege for groups -->
+        <record id="privilege_clinic_prescription" model="res.groups.privilege">
+            <field name="name">Prescription Access</field>
+            <field name="description">Access level for prescription management</field>
+            <field name="placeholder">No access</field>
+            <field name="sequence">10</field>
+            <field name="category_id" ref="module_category_clinic_prescription"/>
+        </record>
+
+        <!-- Security Groups -->
+        <record id="group_prescription_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="privilege_clinic_prescription"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    
+        <record id="group_prescription_pharmacist" model="res.groups">
+            <field name="name">Pharmacist</field>
+            <field name="privilege_id" ref="privilege_clinic_prescription"/>
+        <field name="implied_ids" eval="[(4, ref('group_prescription_user'))]"/>
+    </record>
+    
+        <record id="group_prescription_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="privilege_id" ref="privilege_clinic_prescription"/>
+        <field name="implied_ids" eval="[(4, ref('group_prescription_pharmacist'))]"/>
+        </record>
+
+        <!-- Record Rules -->
+    
+    <!-- Prescription: Users can see their own, Pharmacists see confirmed, Managers see all -->
+    <record id="prescription_user_rule" model="ir.rule">
+        <field name="name">User: Own Prescriptions</field>
+        <field name="model_id" ref="model_clinic_prescription"/>
+        <field name="domain_force">[('doctor_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_user'))]"/>
+    </record>
+    
+    <record id="prescription_pharmacist_rule" model="ir.rule">
+        <field name="name">Pharmacist: Confirmed Prescriptions</field>
+        <field name="model_id" ref="model_clinic_prescription"/>
+        <field name="domain_force">[('state', 'in', ['confirmed', 'sent', 'dispensed'])]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_pharmacist'))]"/>
+    </record>
+    
+    <record id="prescription_manager_rule" model="ir.rule">
+        <field name="name">Manager: All Prescriptions</field>
+        <field name="model_id" ref="model_clinic_prescription"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_manager'))]"/>
+    </record>
+    
+    <!-- Medication Stock: Pharmacists and Managers can manage -->
+    <record id="medication_stock_pharmacist_rule" model="ir.rule">
+        <field name="name">Pharmacist: All Stock</field>
+        <field name="model_id" ref="model_clinic_medication_stock"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_pharmacist'))]"/>
+    </record>
+    
+    <!-- Templates: Only approved templates visible to users -->
+    <record id="template_user_rule" model="ir.rule">
+        <field name="name">User: Approved Templates</field>
+        <field name="model_id" ref="model_clinic_prescription_template"/>
+        <field name="domain_force">[('is_approved', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_user'))]"/>
+    </record>
+    
+    <record id="template_manager_rule" model="ir.rule">
+        <field name="name">Manager: All Templates</field>
+        <field name="model_id" ref="model_clinic_prescription_template"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_prescription_manager'))]"/>
+        </record>
+    </data>
+</odoo>

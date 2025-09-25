@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top Menu -->
+    <menuitem id="menu_clinic_treatment_root"
+              name="Treatments"
+              sequence="40"
+              web_icon="clinic_treatment,static/description/icon.png"
+              groups="group_treatment_user"/>
+    
+    <!-- Treatment Plans -->
+    <menuitem id="menu_clinic_treatment_plans"
+              name="Treatment Plans"
+              parent="menu_clinic_treatment_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_treatment_plan_list"
+              name="All Plans"
+              parent="menu_clinic_treatment_plans"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_treatment_plan_in_progress"
+              name="In Progress"
+              parent="menu_clinic_treatment_plans"
+              sequence="20"/>
+    
+    <!-- Clinical Notes -->
+    <menuitem id="menu_clinic_clinical_notes"
+              name="Clinical Notes"
+              parent="menu_clinic_treatment_root"
+              sequence="20"/>
+    
+    <menuitem id="menu_clinic_clinical_note_list"
+              name="All Notes"
+              parent="menu_clinic_clinical_notes"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_clinical_note_my"
+              name="My Notes"
+              parent="menu_clinic_clinical_notes"
+              sequence="20"/>
+    
+    <!-- Procedures -->
+    <menuitem id="menu_clinic_procedures"
+              name="Procedures"
+              parent="menu_clinic_treatment_root"
+              sequence="30"/>
+    
+    <menuitem id="menu_clinic_procedure_catalog"
+              name="Procedure Catalog"
+              parent="menu_clinic_procedures"
+              sequence="10"/>
+    
+    <!-- Templates -->
+    <menuitem id="menu_clinic_templates"
+              name="Templates"
+              parent="menu_clinic_treatment_root"
+              sequence="40"
+              groups="group_treatment_clinician"/>
+    
+    <menuitem id="menu_clinic_treatment_templates"
+              name="Treatment Templates"
+              parent="menu_clinic_templates"
+              sequence="10"/>
+    
+    <!-- Consent -->
+    <menuitem id="menu_clinic_consent"
+              name="Consent Forms"
+              parent="menu_clinic_treatment_root"
+              sequence="50"/>
+    
+    <menuitem id="menu_clinic_consent_forms"
+              name="All Consent Forms"
+              parent="menu_clinic_consent"
+              sequence="10"/>
+    
+    <!-- Configuration -->
+    <menuitem id="menu_clinic_treatment_config"
+              name="Configuration"
+              parent="menu_clinic_treatment_root"
+              sequence="100"
+              groups="group_treatment_manager"/>
+    
+    <menuitem id="menu_clinic_procedure_categories"
+              name="Procedure Categories"
+              parent="menu_clinic_treatment_config"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_diagnoses"
+              name="Diagnoses"
+              parent="menu_clinic_treatment_config"
+              sequence="20"/>
+    
+    <menuitem id="menu_clinic_teeth"
+              name="Teeth Configuration"
+              parent="menu_clinic_treatment_config"
+              sequence="30"/>
+</odoo>

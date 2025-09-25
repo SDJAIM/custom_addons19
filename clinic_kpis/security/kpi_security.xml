@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_clinic_kpis" model="ir.module.category">
+        <field name="name">Clinic KPIs</field>
+        <field name="description">Analytics and KPI Management</field>
+        <field name="sequence">90</field>
+    </record>
+
+    <record id="group_clinic_kpi_viewer" model="res.groups">
+        <field name="name">KPI Viewer</field>
+        <field name="category_id" ref="module_category_clinic_kpis"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_clinic_kpi_manager" model="res.groups">
+        <field name="name">KPI Manager</field>
+        <field name="category_id" ref="module_category_clinic_kpis"/>
+        <field name="implied_ids" eval="[(4, ref('group_clinic_kpi_viewer'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

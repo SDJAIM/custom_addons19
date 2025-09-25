@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default Telemedicine Configuration Parameters -->
+    <data noupdate="1">
+
+        <!-- Platform Configuration -->
+        <record id="config_telemed_platform" model="ir.config_parameter">
+            <field name="key">clinic.telemed.platform</field>
+            <field name="value">jitsi</field>
+        </record>
+
+        <!-- Jitsi Configuration (Default) -->
+        <record id="config_telemed_jitsi_domain" model="ir.config_parameter">
+            <field name="key">clinic.telemed.jitsi_domain</field>
+            <field name="value">meet.jit.si</field>
+        </record>
+
+        <!-- Session Configuration -->
+        <record id="config_telemed_default_duration" model="ir.config_parameter">
+            <field name="key">clinic.telemed.default_duration</field>
+            <field name="value">30</field>
+        </record>
+
+        <record id="config_telemed_waiting_room_enabled" model="ir.config_parameter">
+            <field name="key">clinic.telemed.waiting_room_enabled</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_telemed_recording_enabled" model="ir.config_parameter">
+            <field name="key">clinic.telemed.recording_enabled</field>
+            <field name="value">False</field>
+        </record>
+
+        <!-- Security Configuration -->
+        <record id="config_telemed_require_password" model="ir.config_parameter">
+            <field name="key">clinic.telemed.require_password</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_telemed_auto_generate_password" model="ir.config_parameter">
+            <field name="key">clinic.telemed.auto_generate_password</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Notification Configuration -->
+        <record id="config_telemed_send_email_invites" model="ir.config_parameter">
+            <field name="key">clinic.telemed.send_email_invites</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_telemed_send_sms_invites" model="ir.config_parameter">
+            <field name="key">clinic.telemed.send_sms_invites</field>
+            <field name="value">False</field>
+        </record>
+
+        <record id="config_telemed_reminder_time" model="ir.config_parameter">
+            <field name="key">clinic.telemed.reminder_time</field>
+            <field name="value">15</field>
+        </record>
+
+    </data>
+</odoo>

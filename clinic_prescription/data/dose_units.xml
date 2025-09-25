@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Weight Units -->
+        <record id="unit_mg" model="clinic.dose.unit">
+            <field name="name">Milligram</field>
+            <field name="abbreviation">mg</field>
+            <field name="unit_type">weight</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_g" model="clinic.dose.unit">
+            <field name="name">Gram</field>
+            <field name="abbreviation">g</field>
+            <field name="unit_type">weight</field>
+            <field name="conversion_factor">1000.0</field>
+            <field name="base_unit_id" ref="unit_mg"/>
+        </record>
+        
+        <record id="unit_mcg" model="clinic.dose.unit">
+            <field name="name">Microgram</field>
+            <field name="abbreviation">mcg</field>
+            <field name="unit_type">weight</field>
+            <field name="conversion_factor">0.001</field>
+            <field name="base_unit_id" ref="unit_mg"/>
+        </record>
+        
+        <!-- Volume Units -->
+        <record id="unit_ml" model="clinic.dose.unit">
+            <field name="name">Milliliter</field>
+            <field name="abbreviation">ml</field>
+            <field name="unit_type">volume</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_l" model="clinic.dose.unit">
+            <field name="name">Liter</field>
+            <field name="abbreviation">L</field>
+            <field name="unit_type">volume</field>
+            <field name="conversion_factor">1000.0</field>
+            <field name="base_unit_id" ref="unit_ml"/>
+        </record>
+        
+        <record id="unit_tsp" model="clinic.dose.unit">
+            <field name="name">Teaspoon</field>
+            <field name="abbreviation">tsp</field>
+            <field name="unit_type">volume</field>
+            <field name="conversion_factor">5.0</field>
+            <field name="base_unit_id" ref="unit_ml"/>
+        </record>
+        
+        <record id="unit_tbsp" model="clinic.dose.unit">
+            <field name="name">Tablespoon</field>
+            <field name="abbreviation">tbsp</field>
+            <field name="unit_type">volume</field>
+            <field name="conversion_factor">15.0</field>
+            <field name="base_unit_id" ref="unit_ml"/>
+        </record>
+        
+        <!-- Unit Based -->
+        <record id="unit_tablet" model="clinic.dose.unit">
+            <field name="name">Tablet</field>
+            <field name="abbreviation">tab</field>
+            <field name="unit_type">unit</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_capsule" model="clinic.dose.unit">
+            <field name="name">Capsule</field>
+            <field name="abbreviation">cap</field>
+            <field name="unit_type">unit</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_drop" model="clinic.dose.unit">
+            <field name="name">Drop</field>
+            <field name="abbreviation">gtt</field>
+            <field name="unit_type">unit</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_puff" model="clinic.dose.unit">
+            <field name="name">Puff</field>
+            <field name="abbreviation">puff</field>
+            <field name="unit_type">unit</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_spray" model="clinic.dose.unit">
+            <field name="name">Spray</field>
+            <field name="abbreviation">spray</field>
+            <field name="unit_type">unit</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <!-- International Units -->
+        <record id="unit_iu" model="clinic.dose.unit">
+            <field name="name">International Unit</field>
+            <field name="abbreviation">IU</field>
+            <field name="unit_type">international</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+        
+        <record id="unit_units" model="clinic.dose.unit">
+            <field name="name">Units</field>
+            <field name="abbreviation">units</field>
+            <field name="unit_type">international</field>
+            <field name="conversion_factor">1.0</field>
+        </record>
+    </data>
+</odoo>

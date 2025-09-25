@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Staff Tree View -->
+    <record id="view_clinic_staff_tree" model="ir.ui.view">
+        <field name="name">clinic.staff.list</field>
+        <field name="model">clinic.staff</field>
+        <field name="arch" type="xml">
+            <list string="Staff Members" 
+                  decoration-success="state=='active'"
+                  decoration-warning="state=='on_leave'"
+                  decoration-danger="state in ['suspended','resigned']">
+                <field name="staff_code"/>
+                <field name="name"/>
+                <field name="staff_type"/>
+                <field name="primary_specialization_id"/>
+                <field name="primary_branch_id"/>
+                <field name="mobile" widget="phone"/>
+                <field name="email" widget="email"/>
+                <field name="state"/>
+                <field name="average_rating" widget="priority"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Staff Form View -->
+    <record id="view_clinic_staff_form" model="ir.ui.view">
+        <field name="name">clinic.staff.form</field>
+        <field name="model">clinic.staff</field>
+        <field name="arch" type="xml">
+            <form string="Staff Member">
+                <header>
+                    <button name="action_activate" type="object" string="Activate" 
+                           class="btn-primary" invisible="state not in ['draft', 'suspended', 'on_leave']"/>
+                    <button name="action_set_on_leave" type="object" string="Set On Leave" 
+                           invisible="state != 'active'"/>
+                    <button name="action_deactivate" type="object" string="Suspend" 
+                           invisible="state != 'active'" class="btn-warning"/>
+                    <button name="send_credentials" type="object" string="Send Login Credentials"
+                           invisible="user_id == False" class="btn-info"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,on_leave"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_appointments" type="object" 
+                               class="oe_stat_button" icon="fa-calendar">
+                            <field name="total_appointments" widget="statinfo" string="Appointments"/>
+                        </button>
+                        <button name="action_view_schedule" type="object" 
+                               class="oe_stat_button" icon="fa-clock">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Schedule</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-star">
+                            <field name="average_rating" widget="statinfo" string="Rating"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-dollar-sign">
+                            <field name="total_revenue" widget="statinfo" string="Revenue"/>
+                        </button>
+                    </div>
+                    
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Staff Name"/>
+                        <h1>
+                            <field name="name" placeholder="Full Name" required="1"/>
+                        </h1>
+                        <field name="staff_code" readonly="1"/>
+                    </div>
+                    
+                    <group>
+                        <group string="Professional Information">
+                            <field name="staff_type" required="1"/>
+                            <field name="specialization_ids" widget="many2many_tags"/>
+                            <field name="primary_specialization_id"/>
+                            <field name="license_number"/>
+                            <field name="license_expiry"/>
+                            <field name="license_state"/>
+                            <field name="experience_years"/>
+                        </group>
+                        <group string="Work Information">
+                            <field name="branch_ids" widget="many2many_tags"/>
+                            <field name="primary_branch_id"/>
+                            <field name="department_id"/>
+                            <field name="working_hours"/>
+                            <field name="join_date"/>
+                            <field name="is_available_online" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Contact Information" name="contact">
+                            <group>
+                                <group string="Contact">
+                                    <field name="mobile" widget="phone" required="1"/>
+                                    <field name="phone" widget="phone"/>
+                                    <field name="email" widget="email" required="1"/>
+                                </group>
+                                <group string="Address">
+                                    <field name="street" placeholder="Street..."/>
+                                    <field name="street2" placeholder="Street 2..."/>
+                                    <field name="city" placeholder="City"/>
+                                    <field name="state_id" options="{'no_create': True}"/>
+                                    <field name="zip" placeholder="ZIP"/>
+                                    <field name="country_id" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Consultation Fees" name="fees">
+                            <group>
+                                <group string="Fee Structure">
+                                    <field name="consultation_fee"/>
+                                    <field name="follow_up_fee"/>
+                                    <field name="emergency_fee"/>
+                                    <field name="online_consultation_fee"/>
+                                </group>
+                                <group string="Appointment Settings">
+                                    <field name="appointment_duration"/>
+                                    <field name="max_appointments_per_day"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Schedule" name="schedule">
+                            <field name="schedule_ids">
+                                <list editable="bottom">
+                                    <field name="branch_id"/>
+                                    <field name="day_of_week"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                    <field name="break_start" widget="float_time" optional="show"/>
+                                    <field name="break_end" widget="float_time" optional="show"/>
+                                    <field name="is_available"/>
+                                    <field name="slot_duration" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Availability" name="availability">
+                            <field name="availability_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="availability_type"/>
+                                    <field name="reason" optional="show"/>
+                                    <field name="start_time" widget="float_time" invisible="availability_type != 'limited'"/>
+                                    <field name="end_time" widget="float_time" invisible="availability_type != 'limited'"/>
+                                    <field name="branch_id" optional="hide"/>
+                                    <field name="notes" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Qualifications" name="qualifications">
+                            <group>
+                                <field name="qualification"/>
+                                <field name="achievements"/>
+                                <field name="research_interests"/>
+                                <field name="publications"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Biography" name="bio">
+                            <field name="biography" widget="html"/>
+                            <group>
+                                <field name="languages"/>
+                            </group>
+                        </page>
+                        
+                        <page string="System Access" name="access">
+                            <group>
+                                <group string="User Account">
+                                    <field name="user_id"/>
+                                    <field name="employee_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Documents" name="documents">
+                            <group>
+                                <field name="resume" filename="resume_filename"/>
+                                <field name="certificates" filename="certificates_filename"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Staff Kanban View -->
+    <record id="view_clinic_staff_kanban" model="ir.ui.view">
+        <field name="name">clinic.staff.kanban</field>
+        <field name="model">clinic.staff</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="staff_code"/>
+                <field name="staff_type"/>
+                <field name="primary_specialization_id"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="state"/>
+                <field name="color"/>
+                <field name="image_128"/>
+                <field name="average_rating"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            <div class="o_kanban_image_fill_left d-none d-md-block"
+                                 t-attf-style="background-image:url('#{kanban_image('clinic.staff', 'image_128', record.id.raw_value)}')">
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="display_name"/>
+                                </strong>
+                                <div class="o_kanban_tags_section">
+                                    <field name="staff_type"/>
+                                    <field name="state"/>
+                                </div>
+                                <ul>
+                                    <li t-if="record.primary_specialization_id.value">
+                                        <i class="fa fa-stethoscope"/> <field name="primary_specialization_id"/>
+                                    </li>
+                                    <li><i class="fa fa-phone"/> <field name="mobile"/></li>
+                                    <li t-if="record.email.value">
+                                        <i class="fa fa-envelope"/> <field name="email"/>
+                                    </li>
+                                    <li>
+                                        <field name="average_rating" widget="priority"/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Staff Calendar View -->
+    <record id="view_clinic_staff_calendar" model="ir.ui.view">
+        <field name="name">clinic.staff.calendar</field>
+        <field name="model">clinic.staff</field>
+        <field name="arch" type="xml">
+            <calendar string="Staff Calendar" 
+                     date_start="create_date" 
+                     color="color" 
+                     mode="month">
+                <field name="name"/>
+                <field name="staff_type"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Staff Search View -->
+    <record id="view_clinic_staff_search" model="ir.ui.view">
+        <field name="name">clinic.staff.search</field>
+        <field name="model">clinic.staff</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('staff_code', 'ilike', self)]"/>
+                <field name="staff_code"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="specialization_ids"/>
+                
+                <filter name="active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="on_leave" string="On Leave" domain="[('state', '=', 'on_leave')]"/>
+                <separator/>
+                
+                <filter name="doctors" string="Doctors" domain="[('staff_type', '=', 'doctor')]"/>
+                <filter name="dentists" string="Dentists" domain="[('staff_type', '=', 'dentist')]"/>
+                <filter name="nurses" string="Nurses" domain="[('staff_type', '=', 'nurse')]"/>
+                <separator/>
+                
+                <filter name="online_available" string="Online Consultation" 
+                       domain="[('is_available_online', '=', True)]"/>
+                
+                <separator string="Group By"/>
+                <filter name="group_type" string="Staff Type" context="{'group_by': 'staff_type'}"/>
+                <filter name="group_branch" string="Branch" context="{'group_by': 'primary_branch_id'}"/>
+                <filter name="group_specialization" string="Specialization"
+                       context="{'group_by': 'primary_specialization_id'}"/>
+                <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                
+                <searchpanel>
+                    <field name="staff_type" enable_counters="1"/>
+                    <field name="primary_branch_id" enable_counters="1"/>
+                    <field name="state" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- Staff Action -->
+    <record id="action_clinic_staff" model="ir.actions.act_window">
+        <field name="name">Staff Members</field>
+        <field name="res_model">clinic.staff</field>
+        <field name="view_mode">list,kanban,form,calendar</field>
+        <field name="search_view_id" ref="view_clinic_staff_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No staff members found. Let's add your first staff member!
+            </p>
+            <p>
+                Manage your clinic's doctors, dentists, nurses, and other staff members.
+            </p>
+        </field>
+    </record>
+</odoo>

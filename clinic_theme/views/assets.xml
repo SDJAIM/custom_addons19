@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Theme Assets Template -->
+        <!-- This file defines custom assets for the clinic theme -->
+        
+        <!-- Backend Assets -->
+        <template id="assets_backend" inherit_id="web.assets_backend" name="Clinic Theme Backend Assets">
+            <!-- Custom SCSS Files -->
+            <xpath expr="//link[last()]" position="after">
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/variables.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/base.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/components.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/forms.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/buttons.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/cards.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/animations.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/responsive.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/dark_mode.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/accessibility.scss"/>
+            </xpath>
+        </template>
+
+        <!-- Frontend Assets -->
+        <template id="assets_frontend" inherit_id="web.assets_frontend" name="Clinic Theme Frontend Assets">
+            <!-- Website SCSS -->
+            <xpath expr="//link[last()]" position="after">
+                <link rel="stylesheet" type="text/scss" href="/clinic_theme/static/src/scss/website.scss"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>

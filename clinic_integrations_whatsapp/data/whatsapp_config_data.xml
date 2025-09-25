@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default WhatsApp Configuration Parameters -->
+    <data noupdate="1">
+
+        <!-- API Configuration -->
+        <record id="config_whatsapp_api_url" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.api_url</field>
+            <field name="value">https://graph.facebook.com/v18.0</field>
+        </record>
+
+        <!-- Message Configuration -->
+        <record id="config_whatsapp_default_country_code" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.default_country_code</field>
+            <field name="value">+1</field>
+        </record>
+
+        <record id="config_whatsapp_max_retries" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.max_retries</field>
+            <field name="value">3</field>
+        </record>
+
+        <record id="config_whatsapp_retry_delay" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.retry_delay</field>
+            <field name="value">5</field>
+        </record>
+
+        <!-- Feature Toggles -->
+        <record id="config_whatsapp_enable_reminders" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.enable_reminders</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_whatsapp_enable_confirmations" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.enable_confirmations</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_whatsapp_enable_prescription_reminders" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.enable_prescription_reminders</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_whatsapp_enable_auto_responses" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.enable_auto_responses</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Security Settings -->
+        <record id="config_whatsapp_require_opt_in" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.require_opt_in</field>
+            <field name="value">True</field>
+        </record>
+
+        <record id="config_whatsapp_webhook_enabled" model="ir.config_parameter">
+            <field name="key">clinic.whatsapp.webhook_enabled</field>
+            <field name="value">True</field>
+        </record>
+
+    </data>
+</odoo>

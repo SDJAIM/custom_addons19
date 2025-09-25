@@ -1,0 +1,185 @@
+# English translation for clinic_installer module  
+# This file contains the english translations for clinic installer
+msgid ""
+msgstr ""
+"Project-Id-Version: clinic_installer 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-03 12:00+0000\n"
+"PO-Revision-Date: 2025-09-03 12:00+0000\n"
+"Last-Translator: Your Name <your@email.com>\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__current_step
+msgid "Current Step"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__current_step
+msgid "Description of the current installation step"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__progress
+msgid "Progress (%)"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__progress
+msgid "Installation progress percentage (0-100)"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__log_messages
+msgid "Installation Log"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__log_messages
+msgid "Detailed log of installation process"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__state
+msgid "Installation State"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__state
+msgid "Current state of the installation process"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__load_demo_data
+msgid "Load Demo Data"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__load_demo_data
+msgid "Load sample patients, appointments, and test data for evaluation"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__install_optional_modules
+msgid "Install Optional Modules"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__install_optional_modules
+msgid "Install WhatsApp, Telemedicine, and API modules"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,field_description:clinic_installer.field_clinic_installer__create_admin_user
+msgid "Create Clinic Admin User"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.model.fields,help:clinic_installer.field_clinic_installer__create_admin_user
+msgid "Create a dedicated clinic administrator user"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Start"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Checking Dependencies"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Installing Modules"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Configuring System"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Installation Complete"
+msgstr ""
+
+#. module: clinic_installer
+#: selection:clinic.installer,state:0
+msgid "Installation Error"
+msgstr ""
+
+#. module: clinic_installer
+#: code:addons/clinic_installer/models/clinic_installer.py:63
+#, python-format
+msgid "Only clinic installer administrators can create installation records"
+msgstr ""
+
+#. module: clinic_installer
+#: code:addons/clinic_installer/models/clinic_installer.py:81
+#, python-format
+msgid "Invalid state transition from %s to %s"
+msgstr ""
+
+#. module: clinic_installer
+#: code:addons/clinic_installer/models/clinic_installer.py:108
+#, python-format
+msgid "Installing batch %s: %s"
+msgstr ""
+
+#. module: clinic_installer
+#: code:addons/clinic_installer/models/clinic_installer.py:115
+#, python-format
+msgid "✓ Installed %s"
+msgstr ""
+
+#. module: clinic_installer
+#: code:addons/clinic_installer/models/clinic_installer.py:117
+#, python-format
+msgid "✗ Batch installation failed: %s"
+msgstr ""
+
+#. module: clinic_installer
+#: model:res.groups,name:clinic_installer.group_clinic_installer_admin
+msgid "Clinic Installer Administrator"
+msgstr ""
+
+#. module: clinic_installer
+#: model:res.groups,name:clinic_installer.group_clinic_installer_user
+msgid "Clinic Installer User"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.ui.view,arch_db:clinic_installer.view_clinic_installer_form
+msgid "Clinic System Installer"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.ui.view,arch_db:clinic_installer.view_clinic_installer_form
+msgid "Start Installation"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.ui.view,arch_db:clinic_installer.view_clinic_installer_form
+msgid "Close"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.actions.act_window,name:clinic_installer.action_clinic_installer
+msgid "Clinic System Installer"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.ui.menu,name:clinic_installer.menu_clinic_installer_root
+msgid "🏥 Clinic Installer"
+msgstr ""
+
+#. module: clinic_installer
+#: model:ir.ui.menu,name:clinic_installer.menu_clinic_installer
+msgid "Run Installation"
+msgstr ""

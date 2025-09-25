@@ -1,0 +1,236 @@
+/* Clinic Installer Custom Styles */
+
+.o_clinic_installer_header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.o_clinic_installer_title {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+.o_clinic_installer_title i {
+    margin-right: 10px;
+}
+
+.o_clinic_progress_circle {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 15px;
+    display: inline-block;
+}
+
+.o_clinic_current_step {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #007bff;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #007bff;
+    border-radius: 4px;
+}
+
+.o_clinic_installation_log {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.o_clinic_installation_log p {
+    margin: 0.2em 0;
+}
+
+.o_clinic_installation_log p:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Progress Bar Enhancements */
+.o_field_progressbar {
+    height: 20px;
+    border-radius: 10px;
+}
+
+.o_field_progressbar .progress-bar {
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 10px;
+}
+
+/* Status Bar Enhancements */
+.o_statusbar_status button.btn-secondary {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.o_statusbar_status button.btn-secondary.btn_pressed {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-color: #0056b3;
+    color: white;
+    font-weight: 600;
+}
+
+/* Alert Boxes - Scoped to clinic installer */
+.o_clinic_installer .alert-success {
+    border-left: 4px solid #28a745;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.o_clinic_installer .alert-danger {
+    border-left: 4px solid #dc3545;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Button Enhancements - Scoped to clinic installer */
+.o_clinic_installer .btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.o_clinic_installer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.o_clinic_installer .btn-success {
+    background: linear-gradient(135deg, #28a745, #20a744);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.o_clinic_installer .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.o_clinic_installer .btn-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    color: #212529;
+}
+
+.o_clinic_installer .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+}
+
+/* List View Enhancements */
+.o_list_view .table-striped tbody tr:nth-child(odd) {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.o_list_view .o_data_row:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Field Decorations */
+.o_field_widget.text-success {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+.o_field_widget.text-danger {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+.o_field_widget.text-info {
+    color: #17a2b8 !important;
+    font-weight: 600;
+}
+
+/* Module Information Lists */
+.list-unstyled li {
+    padding: 5px 0;
+    font-size: 0.95em;
+}
+
+.list-unstyled li i.fa-check {
+    margin-right: 8px;
+}
+
+/* Form Sheet Enhancements */
+.o_form_sheet {
+    padding: 20px;
+}
+
+.o_form_sheet .o_group {
+    margin-bottom: 15px;
+}
+
+/* Notebook Enhancements */
+.o_notebook .nav-tabs {
+    border-bottom: 2px solid #007bff;
+}
+
+.o_notebook .nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.o_notebook .nav-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    background: none;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .o_clinic_installer_header .row {
+        text-align: center;
+    }
+    
+    .o_clinic_installer_header .col-6 {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .o_clinic_installer_title {
+        font-size: 1.4em;
+    }
+}
+
+/* Animation for Progress */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.o_field_progressbar .progress-bar.progress-bar-animated {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Loading Spinner for Active States */
+.o_clinic_current_step::before {
+    content: "⏳ ";
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

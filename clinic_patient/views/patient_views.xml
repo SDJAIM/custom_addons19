@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Patient Tree View -->
+    <record id="view_clinic_patient_tree" model="ir.ui.view">
+        <field name="name">clinic.patient.list</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <list string="Patients" 
+                  decoration-info="patient_type=='vip'"
+                  decoration-warning="not privacy_consent">
+                <field name="patient_id"/>
+                <field name="name"/>
+                <field name="age"/>
+                <field name="gender"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="patient_type"/>
+                <field name="last_visit_date"/>
+                <field name="active" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Patient Form View -->
+    <record id="view_clinic_patient_form" model="ir.ui.view">
+        <field name="name">clinic.patient.form</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <form string="Patient">
+                <header>
+                    <button name="action_create_portal_user" 
+                            type="object" 
+                            string="Create Portal Access" 
+                            class="btn-primary"
+                            invisible="portal_access == True"/>
+                    <field name="patient_type"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_appointments" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-calendar">
+                            <field name="appointment_count" widget="statinfo" string="Appointments"/>
+                        </button>
+                        <button name="action_view_prescriptions" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-file-medical">
+                            <field name="prescription_count" widget="statinfo" string="Prescriptions"/>
+                        </button>
+                        <button name="action_view_invoices" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-dollar-sign">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Patient Name"/>
+                        <h1>
+                            <field name="name" placeholder="Full Name" required="1"/>
+                        </h1>
+                        <field name="patient_id" readonly="1"/>
+                    </div>
+                    
+                    <group>
+                        <group string="Personal Information">
+                            <field name="first_name"/>
+                            <field name="last_name"/>
+                            <field name="date_of_birth" required="1"/>
+                            <field name="age"/>
+                            <field name="age_group"/>
+                            <field name="gender"/>
+                            <field name="blood_group"/>
+                            <field name="marital_status"/>
+                        </group>
+                        <group string="Contact Information">
+                            <field name="mobile" required="1" widget="phone"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="whatsapp" widget="phone"/>
+                            <field name="preferred_contact"/>
+                            <field name="portal_access" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Medical Information" name="medical">
+                            <group>
+                                <group string="Medical History">
+                                    <field name="medical_history"/>
+                                    <field name="surgical_history"/>
+                                    <field name="chronic_conditions"/>
+                                </group>
+                                <group string="Current Status">
+                                    <field name="medications"/>
+                                    <field name="allergies" 
+                                           placeholder="List all known allergies..."/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Dental History" name="dental">
+                            <group>
+                                <group string="Dental Status">
+                                    <field name="dental_history"/>
+                                    <field name="periodontal_status"/>
+                                    <field name="last_dental_visit"/>
+                                </group>
+                                <group string="Oral Hygiene">
+                                    <field name="brushing_frequency"/>
+                                    <field name="flossing_frequency"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Lifestyle" name="lifestyle">
+                            <group>
+                                <group string="Habits">
+                                    <field name="smoking"/>
+                                    <field name="alcohol_consumption"/>
+                                    <field name="exercise_frequency"/>
+                                </group>
+                                <group string="Occupation">
+                                    <field name="occupation"/>
+                                    <field name="employer"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Address" name="address">
+                            <group>
+                                <group string="Address">
+                                    <field name="street" placeholder="Street..."/>
+                                    <field name="street2" placeholder="Street 2..."/>
+                                    <field name="city" placeholder="City"/>
+                                    <field name="state_id" options="{'no_create': True}"/>
+                                    <field name="zip" placeholder="ZIP"/>
+                                    <field name="country_id" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Emergency Contact" name="emergency">
+                            <group>
+                                <group string="Emergency Contact Details">
+                                    <field name="emergency_contact_name"/>
+                                    <field name="emergency_contact_phone" widget="phone"/>
+                                    <field name="emergency_contact_email" widget="email"/>
+                                    <field name="emergency_contact_relation"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Family Members" name="family">
+                            <field name="family_member_ids"/>
+                        </page>
+                        
+                        <page string="Insurance" name="insurance">
+                            <field name="insurance_ids"/>
+                        </page>
+                        
+                        <page string="Settings" name="settings">
+                            <group>
+                                <group string="Privacy">
+                                    <field name="privacy_consent"/>
+                                    <field name="marketing_consent"/>
+                                </group>
+                                <group string="Administrative">
+                                    <field name="registration_date" readonly="1"/>
+                                    <field name="partner_id"/>
+                                    <field name="active"/>
+                                </group>
+                            </group>
+                            <group string="Internal Notes">
+                                <field name="notes" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Patient Kanban View -->
+    <record id="view_clinic_patient_kanban" model="ir.ui.view">
+        <field name="name">clinic.patient.kanban</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="display_name"/>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="age"/>
+                <field name="gender"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="patient_type"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            <div class="o_kanban_image_fill_left d-none d-md-block"
+                                 t-attf-style="background-image:url('#{kanban_image('clinic.patient', 'image_128', record.id.raw_value)}')">
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="display_name"/>
+                                </strong>
+                                <div class="o_kanban_tags_section">
+                                    <field name="patient_type" widget="badge"/>
+                                </div>
+                                <ul>
+                                    <li>Age: <field name="age"/> years</li>
+                                    <li>Gender: <field name="gender"/></li>
+                                    <li><i class="fa fa-phone" title="Mobile"/> <field name="mobile"/></li>
+                                    <li t-if="record.email.value">
+                                        <i class="fa fa-envelope" title="Email"/> <field name="email"/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Patient Search View -->
+    <record id="view_clinic_patient_search" model="ir.ui.view">
+        <field name="name">clinic.patient.search</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('patient_id', 'ilike', self)]"/>
+                <field name="patient_id"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                
+                <filter name="active" string="Active" domain="[('active', '=', True)]" />
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                
+                <filter name="vip" string="VIP" domain="[('patient_type', '=', 'vip')]"/>
+                <filter name="insurance" string="Insurance" domain="[('patient_type', '=', 'insurance')]"/>
+                <separator/>
+                
+                <filter name="male" string="Male" domain="[('gender', '=', 'male')]"/>
+                <filter name="female" string="Female" domain="[('gender', '=', 'female')]"/>
+                <separator/>
+                
+                <filter name="has_portal" string="Portal Access" domain="[('portal_access', '=', True)]"/>
+                <filter name="no_consent" string="No Privacy Consent" domain="[('privacy_consent', '=', False)]"/>
+                
+                <separator string="Group By"/>
+                <filter name="group_gender" string="Gender" context="{'group_by': 'gender'}"/>
+                <filter name="group_age_group" string="Age Group" context="{'group_by': 'age_group'}"/>
+                <filter name="group_patient_type" string="Patient Type" context="{'group_by': 'patient_type'}"/>
+                <filter name="group_blood_group" string="Blood Group" context="{'group_by': 'blood_group'}"/>
+                <filter name="group_registration" string="Registration Date" context="{'group_by': 'registration_date:month'}"/>
+                
+                <searchpanel>
+                    <field name="patient_type" enable_counters="1"/>
+                    <field name="age_group" enable_counters="1"/>
+                    <field name="gender" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- Patient Action -->
+    <record id="action_clinic_patient" model="ir.actions.act_window">
+        <field name="name">Patients</field>
+        <field name="res_model">clinic.patient</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_clinic_patient_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No patients found. Let's create your first patient!
+            </p>
+            <p>
+                Start managing your clinic's patient records, medical history, and appointments.
+            </p>
+        </field>
+    </record>
+
+    <!-- Insurance Company Views -->
+    <record id="view_clinic_insurance_company_tree" model="ir.ui.view">
+        <field name="name">clinic.insurance.company.list</field>
+        <field name="model">clinic.insurance.company</field>
+        <field name="arch" type="xml">
+            <list string="Insurance Companies">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_insurance_company_form" model="ir.ui.view">
+        <field name="name">clinic.insurance.company.form</field>
+        <field name="model">clinic.insurance.company</field>
+        <field name="arch" type="xml">
+            <form string="Insurance Company">
+                <sheet>
+                    <group>
+                        <group string="Company Information">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Contact Information">
+                            <field name="phone"/>
+                            <field name="fax"/>
+                            <field name="email"/>
+                            <field name="website"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Address">
+                            <field name="street"/>
+                            <field name="street2"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="country_id"/>
+                            <field name="zip"/>
+                        </group>
+                        <group string="Provider Services">
+                            <field name="provider_portal_url"/>
+                            <field name="eligibility_check_url"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_insurance_company" model="ir.actions.act_window">
+        <field name="name">Insurance Companies</field>
+        <field name="res_model">clinic.insurance.company</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Patient Family Views -->
+    <record id="view_clinic_patient_family_tree" model="ir.ui.view">
+        <field name="name">clinic.patient.family.list</field>
+        <field name="model">clinic.patient.family</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="member_name"/>
+                <field name="relationship"/>
+                <field name="age"/>
+                <field name="phone"/>
+                <field name="is_emergency_contact"/>
+                <field name="is_patient"/>
+                <field name="related_patient_id" column_invisible="not is_patient"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Patient Insurance Views -->
+    <record id="view_clinic_patient_insurance_tree" model="ir.ui.view">
+        <field name="name">clinic.patient.insurance.list</field>
+        <field name="model">clinic.patient.insurance</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="insurance_company_id"/>
+                <field name="policy_number"/>
+                <field name="policy_type"/>
+                <field name="is_primary"/>
+                <field name="effective_date"/>
+                <field name="expiry_date"/>
+                <field name="verification_status"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+</odoo>

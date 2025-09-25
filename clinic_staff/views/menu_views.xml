@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top Menu -->
+    <menuitem id="menu_clinic_staff_root"
+              name="Staff"
+              sequence="20"
+              web_icon="clinic_staff,static/description/icon.png"
+              groups="group_clinic_staff_user"/>
+    
+    <!-- Staff Management -->
+    <menuitem id="menu_clinic_staff_main"
+              name="Staff Management"
+              parent="menu_clinic_staff_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_staff_list"
+              name="Staff Members"
+              parent="menu_clinic_staff_main"
+              action="action_clinic_staff"
+              sequence="10"/>
+    
+    <!-- Schedule and Availability -->
+    <menuitem id="menu_clinic_schedule"
+              name="Schedule &amp; Availability"
+              parent="menu_clinic_staff_root"
+              sequence="20"/>
+    
+    <!-- Configuration -->
+    <menuitem id="menu_clinic_staff_config"
+              name="Configuration"
+              parent="menu_clinic_staff_root"
+              sequence="100"
+              groups="group_clinic_staff_admin"/>
+    
+    <menuitem id="menu_clinic_branches"
+              name="Branches"
+              parent="menu_clinic_staff_config"
+              sequence="10"/>
+    
+    <menuitem id="menu_clinic_rooms"
+              name="Rooms"
+              parent="menu_clinic_staff_config"
+              action="action_clinic_room"
+              sequence="20"/>
+
+    <menuitem id="menu_clinic_specializations"
+              name="Specializations"
+              parent="menu_clinic_staff_config"
+              sequence="30"/>
+</odoo>

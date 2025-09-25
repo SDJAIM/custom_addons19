@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Top Menu -->
+        <menuitem id="menu_clinic_appointment_root"
+                  name="Appointments"
+                  sequence="30"
+                  web_icon="clinic_appointment_core,static/description/icon.png"/>
+
+        <!-- Main Appointment Menu -->
+        <menuitem id="menu_clinic_appointment_main"
+                  name="Appointments"
+                  parent="menu_clinic_appointment_root"
+                  sequence="10"/>
+
+        <menuitem id="menu_clinic_appointment_list"
+                  name="All Appointments"
+                  parent="menu_clinic_appointment_main"
+                  action="action_clinic_appointment"
+                  sequence="10"/>
+
+
+        <!-- Scheduling -->
+        <menuitem id="menu_clinic_scheduling"
+                  name="Scheduling"
+                  parent="menu_clinic_appointment_root"
+                  sequence="20"/>
+
+
+
+
+        <!-- Calendar View -->
+
+        <!-- Configuration -->
+        <menuitem id="menu_clinic_appointment_config"
+                  name="Configuration"
+                  parent="menu_clinic_appointment_root"
+                  sequence="100"
+                  groups="base.group_system"/>
+
+        <menuitem id="menu_clinic_appointment_types"
+                  name="Appointment Types"
+                  parent="menu_clinic_appointment_config"
+                  sequence="10"/>
+    </data>
+</odoo>

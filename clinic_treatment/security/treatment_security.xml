@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Module Category -->
+        <record id="module_category_clinic_treatment" model="ir.module.category">
+            <field name="name">Clinic Treatment</field>
+            <field name="description">Manage treatments and clinical notes</field>
+            <field name="sequence">4</field>
+        </record>
+        
+        <!-- Privilege for groups -->
+        <record id="privilege_clinic_treatment" model="res.groups.privilege">
+            <field name="name">Treatment Access</field>
+            <field name="description">Access level for treatment management</field>
+            <field name="placeholder">No access</field>
+            <field name="sequence">10</field>
+            <field name="category_id" ref="module_category_clinic_treatment"/>
+        </record>
+
+        <!-- Groups -->
+        <record id="group_treatment_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="privilege_clinic_treatment"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">Can view treatments and clinical notes</field>
+        </record>
+        
+        <record id="group_treatment_clinician" model="res.groups">
+            <field name="name">Clinician</field>
+            <field name="privilege_id" ref="privilege_clinic_treatment"/>
+            <field name="implied_ids" eval="[(4, ref('group_treatment_user'))]"/>
+            <field name="comment">Can create and manage treatments and clinical notes</field>
+        </record>
+        
+        <record id="group_treatment_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="privilege_id" ref="privilege_clinic_treatment"/>
+            <field name="implied_ids" eval="[(4, ref('group_treatment_clinician'))]"/>
+            <field name="comment">Full access to treatment management</field>
+        </record>
+        
+        <!-- Special group for confidential clinical notes -->
+        <record id="group_clinical_confidential" model="res.groups">
+            <field name="name">Access Confidential Notes</field>
+            <field name="privilege_id" ref="privilege_clinic_treatment"/>
+            <field name="comment">Can access confidential clinical notes</field>
+        </record>
+        
+        <!-- Record Rules -->
+        
+        <!-- Portal users can see their own treatment plans -->
+        <record id="treatment_plan_portal_rule" model="ir.rule">
+            <field name="name">Portal: Own Treatment Plans</field>
+            <field name="model_id" ref="model_clinic_treatment_plan"/>
+            <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        
+        <!-- Portal users can see their non-confidential clinical notes -->
+        <record id="clinical_note_portal_rule" model="ir.rule">
+            <field name="name">Portal: Own Clinical Notes (Non-Confidential)</field>
+            <field name="model_id" ref="model_clinic_clinical_note"/>
+            <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id), ('is_confidential', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        
+        <!-- Clinicians can see all non-confidential notes and their own confidential notes -->
+        <record id="clinical_note_clinician_rule" model="ir.rule">
+            <field name="name">Clinician: Clinical Notes Access</field>
+            <field name="model_id" ref="model_clinic_clinical_note"/>
+            <field name="domain_force">['|', ('is_confidential', '=', False), '|', ('doctor_id.user_id', '=', user.id), ('authorized_user_ids', 'in', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_treatment_clinician'))]"/>
+        </record>
+        
+        <!-- Managers and confidential group can see all notes -->
+        <record id="clinical_note_manager_rule" model="ir.rule">
+            <field name="name">Manager: All Clinical Notes</field>
+            <field name="model_id" ref="model_clinic_clinical_note"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_treatment_manager')), (4, ref('group_clinical_confidential'))]"/>
+        </record>
+        
+        <!-- Consent forms - patients can see their own -->
+        <record id="consent_portal_rule" model="ir.rule">
+            <field name="name">Portal: Own Consent Forms</field>
+            <field name="model_id" ref="model_clinic_treatment_consent"/>
+            <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>

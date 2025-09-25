@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clinic_api_key_user,access_clinic_api_key_user,model_clinic_api_key,base.group_user,1,0,0,0
+access_clinic_api_key_manager,access_clinic_api_key_manager,model_clinic_api_key,base.group_system,1,1,1,1
+access_clinic_api_log_user,access_clinic_api_log_user,model_clinic_api_log,base.group_user,1,0,0,0
+access_clinic_api_log_manager,access_clinic_api_log_manager,model_clinic_api_log,base.group_system,1,1,1,1
+access_clinic_api_jwt_blacklist_system,access_clinic_api_jwt_blacklist_system,model_clinic_api_jwt_blacklist,base.group_system,1,1,1,1
+access_clinic_api_jwt_blacklist_public,access_clinic_api_jwt_blacklist_public,model_clinic_api_jwt_blacklist,base.group_public,0,0,0,0
