@@ -169,10 +169,11 @@ class MedicationStock(models.Model):
         tracking=True
     )
     
-    purchase_order_id = fields.Many2one(
-        'purchase.order',
-        string='Purchase Order'
-    )
+    # Commented out - purchase module not available in Community Edition
+    # purchase_order_id = fields.Many2one(
+    #     'purchase.order',
+    #     string='Purchase Order'
+    # )
     
     invoice_number = fields.Char(
         string='Invoice Number'
@@ -233,11 +234,12 @@ class MedicationStock(models.Model):
     )
     
     # Movement History
-    stock_move_ids = fields.One2many(
-        'stock.move',
-        'medication_stock_id',
-        string='Stock Movements'
-    )
+    # Commented out - requires custom field in stock.move
+    # stock_move_ids = fields.One2many(
+    #     'stock.move',
+    #     'medication_stock_id',
+    #     string='Stock Movements'
+    # )
     
     dispensing_ids = fields.One2many(
         'clinic.medication.dispensing',

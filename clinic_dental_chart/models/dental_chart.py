@@ -98,7 +98,7 @@ class DentalChart(models.Model):
     )
     
     treatment_ids = fields.One2many(
-        'clinic.treatment.line',
+        'clinic.treatment.plan.line',
         compute='_compute_treatments',
         string='Treatments'
     )
@@ -176,7 +176,7 @@ class DentalChart(models.Model):
     
     def _compute_treatments(self):
         for chart in self:
-            chart.treatment_ids = self.env['clinic.treatment.line'].search([
+            chart.treatment_ids = self.env['clinic.treatment.plan.line'].search([
                 ('patient_id', '=', chart.patient_id.id),
                 ('tooth_ids', '!=', False)
             ])

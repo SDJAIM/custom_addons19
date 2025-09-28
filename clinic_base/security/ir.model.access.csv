@@ -8,3 +8,8 @@ access_clinic_batch_processor_admin,access_clinic_batch_processor_admin,model_cl
 access_clinic_cache_manager_user,access_clinic_cache_manager_user,model_clinic_cache_manager,group_clinic_base_user,1,0,0,0
 access_clinic_cache_manager_manager,access_clinic_cache_manager_manager,model_clinic_cache_manager,group_clinic_base_manager,1,1,1,0
 access_clinic_cache_manager_admin,access_clinic_cache_manager_admin,model_clinic_cache_manager,group_clinic_base_admin,1,1,1,1
+access_clinic_audited_model,clinic.audited.model,model_clinic_audited_model,base.group_system,1,0,0,0
+access_clinic_cached_model,clinic.cached.model,model_clinic_cached_model,base.group_system,1,1,1,1
+access_clinic_data_validator,clinic.data.validator,model_clinic_data_validator,base.group_system,1,1,1,1
+access_clinic_performance_monitor,clinic.performance.monitor,model_clinic_performance_monitor,base.group_system,1,0,0,0
+access_clinic_utils,clinic.utils,model_clinic_utils,base.group_user,1,0,0,0

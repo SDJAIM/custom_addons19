@@ -2,4 +2,6 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_clinic_kpi_metric_user,access_clinic_kpi_metric_user,model_clinic_kpi_metric,base.group_user,1,0,0,0
 access_clinic_kpi_metric_manager,access_clinic_kpi_metric_manager,model_clinic_kpi_metric,base.group_system,1,1,1,1
 access_clinic_kpi_dashboard_user,access_clinic_kpi_dashboard_user,model_clinic_kpi_dashboard,base.group_user,1,0,0,0
-access_clinic_kpi_dashboard_manager,access_clinic_kpi_dashboard_manager,model_clinic_kpi_dashboard,base.group_system,1,1,1,1
+access_clinic_kpi_dashboard_manager,access_clinic_kpi_dashboard_manager,model_clinic_kpi_dashboard,base.group_system,1,1,1,1access_appointment_analytics,clinic.appointment.analytics,model_clinic_appointment_analytics,base.group_user,1,0,0,0
+access_patient_analytics,clinic.patient.analytics,model_clinic_patient_analytics,base.group_user,1,0,0,0
+access_revenue_analytics,clinic.revenue.analytics,model_clinic_revenue_analytics,base.group_user,1,0,0,0

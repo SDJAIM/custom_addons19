@@ -21,4 +21,4 @@ access_clinic_revenue_analysis_manager,clinic.revenue.analysis.manager,model_cli
 access_clinic_invoice_user,clinic.invoice.user,model_clinic_invoice,group_billing_user,1,1,1,0
 access_clinic_invoice_manager,clinic.invoice.manager,model_clinic_invoice,group_billing_manager,1,1,1,1
 access_clinic_invoice_service_line_user,clinic.invoice.service.line.user,model_clinic_invoice_service_line,group_billing_user,1,1,1,0
-access_clinic_invoice_service_line_manager,clinic.invoice.service.line.manager,model_clinic_invoice_service_line,group_billing_manager,1,1,1,1
+access_clinic_invoice_service_line_manager,clinic.invoice.service.line.manager,model_clinic_invoice_service_line,group_billing_manager,1,1,1,1access_clinic_payment_manager,clinic.payment manager,model_clinic_payment,account.group_account_manager,1,1,1,1

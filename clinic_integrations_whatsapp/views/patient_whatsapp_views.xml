@@ -23,12 +23,12 @@
                     </group>
                     <group string="WhatsApp Messages" attrs="{'invisible': [('whatsapp_opt_in', '=', False)]}">
                         <field name="whatsapp_message_ids" nolabel="1" readonly="1">
-                            <tree decoration-success="status == 'sent'" decoration-danger="status == 'failed'">
+                            <list decoration-success="status == 'sent'" decoration-danger="status == 'failed'">
                                 <field name="create_date" string="Date"/>
                                 <field name="message_type"/>
                                 <field name="status"/>
                                 <field name="direction"/>
-                            </tree>
+                            </list>
                         </field>
                     </group>
                 </page>

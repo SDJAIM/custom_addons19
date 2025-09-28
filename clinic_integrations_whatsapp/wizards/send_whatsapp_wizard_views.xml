@@ -19,10 +19,10 @@
                 </group>
                 <group string="Template Variables" attrs="{'invisible': [('template_id', '=', False)]}">
                     <field name="template_variables" nolabel="1">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="variable_name"/>
                             <field name="variable_value"/>
-                        </tree>
+                        </list>
                     </field>
                 </group>
                 <footer>

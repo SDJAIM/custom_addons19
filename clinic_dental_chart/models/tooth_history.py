@@ -84,7 +84,7 @@ class ToothHistory(models.Model):
     )
     
     treatment_id = fields.Many2one(
-        'clinic.treatment.line',
+        'clinic.treatment.plan.line',
         string='Treatment'
     )
     

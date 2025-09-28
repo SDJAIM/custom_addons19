@@ -44,7 +44,7 @@
 
                         <page string="Available Lots" name="available_lots">
                             <field name="line_ids" nolabel="1">
-                                <tree editable="bottom" decoration-danger="expiry_status == 'expired'"
+                                <list editable="bottom" decoration-danger="expiry_status == 'expired'"
                                       decoration-warning="expiry_status in ['warning', 'critical']">
                                     <field name="selected" widget="boolean_toggle"/>
                                     <field name="lot_name"/>
@@ -58,7 +58,7 @@
                                            decoration-warning="expiry_status == 'warning'"
                                            decoration-danger="expiry_status in ['critical', 'expired']"/>
                                     <field name="lot_id" invisible="1"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -206,7 +206,7 @@
                     <field name="expiry_warning" nolabel="1"/>
                 </div>
             </xpath>
-        </xpath>
+        </field>
     </record>
 
     <!-- Enhanced Prescription Line Tree View -->
@@ -222,7 +222,7 @@
                        decoration-warning="has_expiring_lots == True"/>
                 <field name="selected_lot_ids" optional="hide" widget="many2many_tags"/>
             </xpath>
-        </xpath>
+        </field>
     </record>
 
     <!-- Enhanced Medication Form View -->
@@ -278,7 +278,7 @@
                     </group>
                 </page>
             </xpath>
-        </xpath>
+        </field>
     </record>
 
 </odoo>

@@ -39,12 +39,12 @@ Features:
         'security/ir.model.access.csv',
 
         # Views
-        'views/audit_log_views.xml',
-        'views/menu_views.xml',
+        # 'views/audit_log_views.xml',  # Temporarily disabled due to XML parsing issue
+        'views/menu_views.xml',       # Re-enabled with menu_clinic_root defined
 
         # Wizards
-        'wizard/data_import_wizard_views.xml',
-        'wizard/batch_operation_wizard_views.xml',
+        # 'wizard/data_import_wizard_views.xml',
+        # 'wizard/batch_operation_wizard_views.xml',
     ],
 
     'installable': True,

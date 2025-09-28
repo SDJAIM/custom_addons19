@@ -30,6 +30,7 @@ Features:
     
     'depends': [
         'base',
+        'clinic_base',  # Added for utilities
         'mail',
         'hr',
         'calendar',

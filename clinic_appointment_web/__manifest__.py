@@ -47,6 +47,9 @@ Features:
         # Security
         'security/booking_security.xml',
         'security/ir.model.access.csv',
+
+        # Views
+        'views/booking_templates.xml',
     ],
 
     'installable': True,

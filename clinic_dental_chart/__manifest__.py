@@ -36,6 +36,7 @@ Features:
         'base',
         'mail',
         'web',
+        'clinic_base',  # Required for menu_clinic_root
         'clinic_patient',
         'clinic_staff',
         'clinic_appointment_core',
@@ -46,6 +47,9 @@ Features:
         # Security
         'security/dental_security.xml',
         'security/ir.model.access.csv',
+
+        # Views
+        'views/dental_chart_views.xml',
     ],
     
     'installable': True,

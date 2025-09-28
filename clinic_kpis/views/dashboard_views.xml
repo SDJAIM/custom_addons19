@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- KPI Dashboard -->
+    <record id="view_kpi_dashboard" model="ir.ui.view">
+        <field name="name">clinic.kpi.dashboard</field>
+        <field name="model">clinic.kpi.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Clinic Dashboard">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Clinic Performance Dashboard</h1>
+                    </div>
+                    <group>
+                        <group string="Today's Statistics">
+                            <field name="today_appointments"/>
+                            <field name="today_patients"/>
+                            <field name="today_revenue"/>
+                        </group>
+                        <group string="Monthly Statistics">
+                            <field name="monthly_appointments"/>
+                            <field name="monthly_new_patients"/>
+                            <field name="monthly_revenue"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Appointments">
+                            <group>
+                                <field name="appointment_completion_rate" widget="percentage"/>
+                                <field name="no_show_rate" widget="percentage"/>
+                                <field name="avg_wait_time"/>
+                            </group>
+                        </page>
+                        <page string="Financial">
+                            <group>
+                                <field name="pending_claims"/>
+                                <field name="approved_claims"/>
+                                <field name="collection_rate" widget="percentage"/>
+                            </group>
+                        </page>
+                        <page string="Staff Performance">
+                            <field name="staff_utilization">
+                                <list>
+                                    <field name="staff_id"/>
+                                    <field name="appointments_count"/>
+                                    <field name="utilization_rate" widget="percentage"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_kpi_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">clinic.kpi.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_kpi_dashboard"/>
+    </record>
+
+    <!-- Main Menu -->
+    <menuitem id="menu_kpi_root"
+        name="Analytics"
+        web_icon="clinic_kpis,static/description/icon.png"
+        sequence="100"/>
+
+    <menuitem id="menu_kpi_dashboard"
+        name="Dashboard"
+        parent="menu_kpi_root"
+        action="action_kpi_dashboard"
+        sequence="1"/>
+</odoo>

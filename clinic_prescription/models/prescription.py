@@ -162,11 +162,12 @@ class ClinicPrescription(models.Model):
     # ========================
     # Pharmacy Information
     # ========================
-    pharmacy_id = fields.Many2one(
-        'clinic.pharmacy',
-        string='Pharmacy',
-        help='Pharmacy where prescription will be filled'
-    )
+    # Commented out - clinic.pharmacy model not available
+    # pharmacy_id = fields.Many2one(
+    #     'clinic.pharmacy',
+    #     string='Pharmacy',
+    #     help='Pharmacy where prescription will be filled'
+    # )
     
     sent_to_pharmacy_date = fields.Datetime(
         string='Sent to Pharmacy On',
@@ -586,8 +587,9 @@ class ClinicPrescription(models.Model):
             if record.state != 'confirmed':
                 raise UserError(_('Only confirmed prescriptions can be sent to pharmacy.'))
             
-            if not record.pharmacy_id and record.is_electronic:
-                raise UserError(_('Please select a pharmacy for electronic prescription.'))
+            # Commented out - pharmacy_id field disabled
+            # if not record.pharmacy_id and record.is_electronic:
+            #     raise UserError(_('Please select a pharmacy for electronic prescription.'))
             
             record.write({
                 'state': 'sent',

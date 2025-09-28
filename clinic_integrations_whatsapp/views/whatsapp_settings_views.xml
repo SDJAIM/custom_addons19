@@ -120,7 +120,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Security & Privacy" class="col-lg-3 o_light_label"/>
+                                <label string="Security and Privacy" class="col-lg-3 o_light_label"/>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure security and privacy settings
@@ -180,12 +180,12 @@
                     </div>
                     <div class="alert alert-warning" role="alert"
                          attrs="{'invisible': [('migrated_to_config_params', '=', True)]}">
-                        <strong>⚠️ Security Notice:</strong> This configuration method is deprecated.
+                        <strong>Security Notice:</strong> This configuration method is deprecated.
                         Please migrate to secure storage using the button above, then delete this record.
                     </div>
                     <div class="alert alert-success" role="alert"
                          attrs="{'invisible': [('migrated_to_config_params', '=', False)]}">
-                        <strong>✅ Migration Complete:</strong> This configuration has been migrated to secure storage.
+                        <strong>Migration Complete:</strong> This configuration has been migrated to secure storage.
                         You can now safely delete this record.
                     </div>
                     <group>
@@ -208,7 +208,7 @@
         <field name="name">WhatsApp Configuration Tree</field>
         <field name="model">clinic.whatsapp.config</field>
         <field name="arch" type="xml">
-            <tree string="WhatsApp Configurations (Deprecated)">
+            <list string="WhatsApp Configurations (Deprecated)">
                 <field name="name"/>
                 <field name="api_url"/>
                 <field name="phone_number"/>
@@ -216,7 +216,7 @@
                        decoration-success="migrated_to_config_params == True"
                        decoration-warning="migrated_to_config_params == False"/>
                 <field name="create_date"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -225,7 +225,7 @@
         <field name="name">WhatsApp Configuration Migration</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">clinic.whatsapp.config</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_whatsapp_config_tree"/>
         <field name="help">These are old WhatsApp configurations that should be migrated to secure storage.</field>
     </record>

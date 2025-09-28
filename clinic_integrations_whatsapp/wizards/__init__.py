@@ -1,3 +1,4 @@
 # -*- coding: utf-8 -*-
 
-# Wizards will be added as needed
+from . import send_whatsapp_wizard
+from . import broadcast_wizard
