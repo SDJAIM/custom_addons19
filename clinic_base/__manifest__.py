@@ -2,7 +2,7 @@
 {
     'name': "Clinic Base",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Core',
+    'category': 'Services',
     'summary': 'Base module with core utilities for clinic system',
     'sequence': 1,
 
@@ -28,6 +28,9 @@ Features:
     'depends': [
         'base',
         'mail',
+        'account',
+        'product',
+        'resource',
     ],
 
     'data': [

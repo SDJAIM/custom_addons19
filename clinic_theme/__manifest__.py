@@ -2,7 +2,7 @@
 {
     'name': "Clinic Theme & Design System",
     'version': '19.0.1.0.0',
-    'category': 'Theme/Healthcare',
+    'category': 'Website/Website',
     'summary': 'Modern healthcare theme with accessibility and mobile-first design',
     'sequence': 13,
     

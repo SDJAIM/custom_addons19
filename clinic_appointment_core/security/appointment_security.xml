@@ -11,10 +11,8 @@
         <!-- Privilege for groups -->
         <record id="privilege_clinic_appointment" model="res.groups.privilege">
             <field name="name">Appointment Access</field>
-            <field name="description">Access level for appointment management</field>
-            <field name="placeholder">No access</field>
-            <field name="sequence">10</field>
             <field name="category_id" ref="module_category_clinic_appointment"/>
+            <field name="sequence">10</field>
         </record>
 
         <!-- Groups -->

@@ -11,10 +11,8 @@
         <!-- Privilege for groups -->
         <record id="privilege_clinic_prescription" model="res.groups.privilege">
             <field name="name">Prescription Access</field>
-            <field name="description">Access level for prescription management</field>
-            <field name="placeholder">No access</field>
-            <field name="sequence">10</field>
             <field name="category_id" ref="module_category_clinic_prescription"/>
+            <field name="sequence">10</field>
         </record>
 
         <!-- Security Groups -->

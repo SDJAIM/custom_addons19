@@ -2,7 +2,7 @@
 {
     'name': "Clinic Telemedicine Integration",
     'version': '19.0.1.1.0',
-    'category': 'Healthcare/Telemedicine',
+    'category': 'Services',
     'summary': 'Telemedicine and video consultation integration',
     'sequence': 12,
     

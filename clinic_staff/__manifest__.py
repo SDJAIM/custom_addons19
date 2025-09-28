@@ -2,7 +2,7 @@
 {
     'name': "Clinic Staff Management",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Staff',
+    'category': 'Human Resources',
     'summary': 'Comprehensive staff and practitioner management for medical and dental clinics',
     'sequence': 2,
     

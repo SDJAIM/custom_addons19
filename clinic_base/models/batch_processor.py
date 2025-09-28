@@ -45,7 +45,7 @@ class ClinicBatchProcessor(models.Model):
         ('completed', 'Completed'),
         ('failed', 'Failed'),
         ('cancelled', 'Cancelled')
-    ], string='Status', default='draft', tracking=True)
+    ], string='Status', default='draft')
 
     # Scheduling
     scheduled_date = fields.Datetime(

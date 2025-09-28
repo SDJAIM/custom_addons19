@@ -1,7 +1,7 @@
 {
     'name': '🏥 Clinic System Complete',
     'version': '19.0.1.0.0',
-    'category': 'Healthcare',
+    'category': 'Services',
     'summary': 'Complete Clinic Management System - Auto-installs all modules',
     'author': 'Clinic System',
     'website': 'https://github.com/clinic-system',

@@ -2,7 +2,7 @@
 {
     'name': "Clinic WhatsApp Integration",
     'version': '19.0.1.1.0',
-    'category': 'Healthcare/Communication',
+    'category': 'Marketing',
     'summary': 'WhatsApp messaging integration for appointment reminders and notifications',
     'sequence': 10,
     

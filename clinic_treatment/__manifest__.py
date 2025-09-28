@@ -2,7 +2,7 @@
 {
     'name': "Clinic Treatment Management",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Treatment',
+    'category': 'Services',
     'summary': 'Complete treatment plans, procedures, and clinical notes management with confidentiality',
     'sequence': 4,
     

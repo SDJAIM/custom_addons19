@@ -2,7 +2,7 @@
 {
     'name': "Clinic Finance Management",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Finance',
+    'category': 'Accounting',
     'summary': 'Comprehensive billing, insurance claims, and financial management for clinics',
     'sequence': 6,
     

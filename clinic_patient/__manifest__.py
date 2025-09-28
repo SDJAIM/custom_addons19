@@ -2,7 +2,7 @@
 {
     'name': "Clinic Patient Management",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Patient',
+    'category': 'Services',
     'summary': 'Comprehensive patient management system for medical and dental clinics',
     'sequence': 1,
     

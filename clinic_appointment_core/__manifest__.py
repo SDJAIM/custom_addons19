@@ -2,7 +2,7 @@
 {
     'name': "Clinic Appointment Core",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Appointments',
+    'category': 'Services',
     'summary': 'Advanced appointment management system with slot booking and multi-view support',
     'sequence': 3,
     

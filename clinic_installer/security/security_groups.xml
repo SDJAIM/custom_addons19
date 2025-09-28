@@ -11,10 +11,8 @@
         <!-- Privilege for groups -->
         <record id="privilege_clinic_installer" model="res.groups.privilege">
             <field name="name">Installer Access</field>
-            <field name="description">Access level for installer management</field>
-            <field name="placeholder">No access</field>
-            <field name="sequence">10</field>
             <field name="category_id" ref="module_category_clinic_installer"/>
+            <field name="sequence">10</field>
         </record>
 
         <!-- Clinic Installer Security Groups -->

@@ -2,7 +2,7 @@
 {
     'name': "Clinic REST API",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/API',
+    'category': 'Services',
     'summary': 'REST API with JWT authentication for clinic system',
     'sequence': 9,
     

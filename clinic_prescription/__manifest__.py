@@ -2,7 +2,7 @@
 {
     'name': "Clinic Prescription Management",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Prescription',
+    'category': 'Services',
     'summary': 'Advanced prescription management with workflow, FEFO stock tracking, and QWeb printing',
     'sequence': 5,
     

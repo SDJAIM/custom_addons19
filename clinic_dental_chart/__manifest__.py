@@ -2,7 +2,7 @@
 {
     'name': "Clinic Dental Chart",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Dental',
+    'category': 'Services',
     'summary': 'Interactive dental chart with per-tooth procedure tracking and history',
     'sequence': 7,
     

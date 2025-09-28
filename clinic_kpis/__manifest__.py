@@ -2,7 +2,7 @@
 {
     'name': "Clinic KPIs & Analytics Dashboard",
     'version': '19.0.1.0.0',
-    'category': 'Healthcare/Analytics',
+    'category': 'Productivity',
     'summary': 'KPI dashboard component - Install via Clinic System Installer',
     'sequence': 99,
     
