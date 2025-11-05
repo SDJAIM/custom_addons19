@@ -97,7 +97,7 @@ class ClinicPayment(models.Model):
     # Card Information (for card payments)
     card_last_digits = fields.Char(
         string='Card Last 4 Digits',
-        size=4
+        help='Last 4 digits of the card (max 4 characters)'
     )
 
     card_holder_name = fields.Char(

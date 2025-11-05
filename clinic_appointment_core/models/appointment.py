@@ -8,14 +8,44 @@ import pytz
 
 class ClinicAppointment(models.Model):
     """
-    Medical Appointment with calendar-like functionality
-    Independent model with appointment-specific features
+    Medical Appointment - Delegates to Odoo Calendar Event
+
+    Uses _inherits (delegation pattern) to link to calendar.event.
+    This creates a clinic.appointment record with its own table,
+    while delegating calendar functionality to a linked calendar.event.
+
+    Benefits:
+    - Appears in Odoo Calendar app
+    - Google Calendar / Outlook sync
+    - Automatic reminders (calendar.alarm)
+    - Free/busy calculation
+    - Recurring appointments support
+    - Clean separation: clinic fields in clinic table, calendar fields in calendar table
+
+    Technical Note:
+    - _inherits creates delegation (composition pattern)
+    - Creates calendar_event_id Many2one link
+    - All calendar.event fields are accessible via delegation
+    - No Many2many field conflicts
     """
     _name = 'clinic.appointment'
     _description = 'Medical Appointment'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherits = {'calendar.event': 'calendar_event_id'}  # Delegation pattern
+    _inherit = ['mail.thread', 'mail.activity.mixin']    # Mixin inheritance
     _rec_name = 'appointment_number'
     _order = 'start desc'
+
+    # ========================
+    # Delegation Link (Required for _inherits)
+    # ========================
+    calendar_event_id = fields.Many2one(
+        'calendar.event',
+        string='Calendar Event',
+        required=True,
+        ondelete='cascade',
+        auto_join=True,
+        help='Link to Odoo calendar event for sync and calendar features'
+    )
 
     # ========================
     # Medical Identification
@@ -30,46 +60,29 @@ class ClinicAppointment(models.Model):
         tracking=True
     )
 
-    # Override name to auto-generate from patient and service
-    name = fields.Char(
-        string='Subject',
-        compute='_compute_name',
-        store=True,
-        readonly=False
-    )
+    # Note: 'name' field comes from calendar.event via _inherits
+    # We set it in the create() method instead of using compute
+    # to avoid conflicts with delegated fields
 
     # ========================
-    # Date and Time Fields
+    # Delegated Fields from calendar.event (via _inherits)
     # ========================
-    start = fields.Datetime(
-        string='Start',
-        required=True,
-        tracking=True,
-        index=True,
-        help='Appointment start date and time'
-    )
-
-    stop = fields.Datetime(
-        string='End',
-        required=True,
-        tracking=True,
-        help='Appointment end date and time'
-    )
-
-    duration = fields.Float(
-        string='Duration',
-        compute='_compute_duration',
-        store=True,
-        help='Duration in hours'
-    )
-
-    allday = fields.Boolean(
-        string='All Day',
-        default=False
-    )
+    # These fields are accessible directly but stored in calendar.event:
+    # - start, stop, duration, allday (date/time management)
+    # - categ_ids (categories/tags)
+    # - partner_ids (attendees)
+    # - alarm_ids (reminders)
+    # - recurrency, rrule (recurring appointments)
+    # - location, videocall_location
+    # - description, privacy
+    # - user_id (organizer)
+    #
+    # With _inherits, you can read/write these fields as if they were local,
+    # but they're stored in the linked calendar.event record.
+    # This prevents table conflicts and keeps data normalized.
 
     # ========================
-    # Medical Relationships
+    # Medical Relationships (NEW fields specific to clinic)
     # ========================
     patient_id = fields.Many2one(
         'clinic.patient',
@@ -343,14 +356,12 @@ class ClinicAppointment(models.Model):
     # ========================
     # Computed Fields
     # ========================
-    @api.depends('patient_id', 'service_type')
-    def _compute_name(self):
-        for record in self:
-            if record.patient_id:
-                service = dict(self._fields['service_type'].selection).get(record.service_type, '')
-                record.name = f"{record.patient_id.name} - {service}"
-            else:
-                record.name = _('New Appointment')
+    def _get_appointment_name(self):
+        """Helper method to generate appointment name"""
+        if self.patient_id:
+            service = dict(self._fields['service_type'].selection).get(self.service_type, '')
+            return f"{self.patient_id.name} - {service}"
+        return _('New Appointment')
 
     @api.depends('staff_id')
     def _compute_resource_id(self):
@@ -393,16 +404,24 @@ class ClinicAppointment(models.Model):
                 record.consultation_duration = 0
 
     # ========================
-    # Override Calendar Methods
+    # Onchange Methods (Calendar Integration)
     # ========================
-    @api.depends('start', 'stop')
-    def _compute_duration(self):
-        for appointment in self:
-            if appointment.start and appointment.stop:
-                delta = appointment.stop - appointment.start
-                appointment.duration = delta.total_seconds() / 3600.0
-            else:
-                appointment.duration = 0.0
+    @api.onchange('patient_id', 'appointment_type_id', 'service_type')
+    def _onchange_update_name(self):
+        """Update calendar subject when patient or type changes"""
+        self.name = self._get_appointment_name()
+
+    @api.onchange('staff_id')
+    def _onchange_staff_user(self):
+        """Link calendar event to staff user for calendar ownership"""
+        if self.staff_id and self.staff_id.user_id:
+            self.user_id = self.staff_id.user_id
+
+    # ========================
+    # Calendar Integration Methods
+    # ========================
+    # duration is automatically computed by calendar.event from start/stop
+    # No need to override _compute_duration
 
     @api.model
     def search_read_with_prefetch(self, domain=None, fields=None, offset=0, limit=None, order=None):
@@ -425,15 +444,52 @@ class ClinicAppointment(models.Model):
 
     @api.model
     def create(self, vals):
-        """Override to generate appointment number and set attendees"""
+        """
+        Override to generate appointment number and create linked calendar event.
+
+        With _inherits, Odoo automatically creates the calendar.event record
+        when we create clinic.appointment. We just need to set up additional
+        relationships.
+        """
         if vals.get('appointment_number', _('New')) == _('New'):
             vals['appointment_number'] = self.env['ir.sequence'].next_by_code(
                 'clinic.appointment') or _('New')
 
-        # Note: Calendar attendees and alarms removed since we're not inheriting calendar.event
-        # These features can be re-implemented with custom fields if needed
+        # Set name if not provided (will be stored in calendar.event via _inherits)
+        if not vals.get('name'):
+            # Get patient and service_type to generate name
+            patient_id = vals.get('patient_id')
+            service_type = vals.get('service_type', 'medical')
+            if patient_id:
+                patient = self.env['clinic.patient'].browse(patient_id)
+                service = dict(self._fields['service_type'].selection).get(service_type, '')
+                vals['name'] = f"{patient.name} - {service}"
+            else:
+                vals['name'] = _('New Appointment')
 
-        return super().create(vals)
+        # Create appointment (this will auto-create calendar.event via _inherits)
+        appointment = super().create(vals)
+
+        # Add patient as calendar attendee (for email notifications and calendar sync)
+        if appointment.patient_id and appointment.patient_id.partner_id:
+            appointment.partner_ids = [(4, appointment.patient_id.partner_id.id)]
+
+        # Add staff user as organizer if not already set
+        if appointment.staff_id and appointment.staff_id.user_id and not appointment.user_id:
+            appointment.user_id = appointment.staff_id.user_id
+
+        return appointment
+
+    def write(self, vals):
+        """Override write to update name when patient or service_type changes"""
+        result = super().write(vals)
+
+        # Update name if patient_id or service_type changed
+        if 'patient_id' in vals or 'service_type' in vals:
+            for appointment in self:
+                appointment.name = appointment._get_appointment_name()
+
+        return result
 
     @api.constrains('start', 'stop', 'staff_id')
     def _check_appointment_overlap(self):

@@ -50,13 +50,7 @@ class DoseUnit(models.Model):
         string='Active',
         default=True
     )
-    
-    medication_form_ids = fields.Many2many(
-        'clinic.medication.form',
-        string='Applicable Forms',
-        help='Medication forms this unit applies to'
-    )
-    
+
     @api.constrains('abbreviation')
     def _check_abbreviation_unique(self):
         for record in self:

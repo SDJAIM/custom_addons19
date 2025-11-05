@@ -42,13 +42,7 @@ class MedicationRoute(models.Model):
         string='Active',
         default=True
     )
-    
-    medication_form_ids = fields.Many2many(
-        'clinic.medication.form',
-        string='Compatible Forms',
-        help='Medication forms compatible with this route'
-    )
-    
+
     instructions = fields.Text(
         string='Administration Instructions',
         translate=True,
