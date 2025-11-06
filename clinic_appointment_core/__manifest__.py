@@ -63,6 +63,7 @@ Features:
         'views/waiting_list_views.xml',
         'views/slot_views.xml',
         'views/menu_views.xml',
+        'views/sms_config_views.xml',
 
         # Views - Website (Phase 2)
         'views/website/booking_templates.xml',

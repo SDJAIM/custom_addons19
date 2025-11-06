@@ -565,6 +565,7 @@ class ClinicAppointment(models.Model):
         if confirmed_stage:
             self.stage_id = confirmed_stage
             self._send_confirmation_email()
+            self._send_confirmation_sms()
 
     def action_done(self):
         """Complete appointment"""
@@ -587,6 +588,7 @@ class ClinicAppointment(models.Model):
         if cancelled_stage:
             self.stage_id = cancelled_stage
             self._send_cancellation_email()
+            self._send_cancellation_sms()
 
     def action_no_show(self):
         """Mark as no-show"""
@@ -718,6 +720,24 @@ class ClinicAppointment(models.Model):
                     })
 
     # ========================
+    # SMS Notifications
+    # ========================
+    def _send_confirmation_sms(self):
+        """Send confirmation SMS"""
+        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
+        return sms_manager.send_appointment_confirmation_sms(self)
+
+    def _send_reminder_sms(self):
+        """Send reminder SMS"""
+        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
+        return sms_manager.send_appointment_reminder_sms(self)
+
+    def _send_cancellation_sms(self):
+        """Send cancellation SMS"""
+        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
+        return sms_manager.send_appointment_cancelled_sms(self)
+
+    # ========================
     # Cron
     # ========================
     @api.model
@@ -736,6 +756,7 @@ class ClinicAppointment(models.Model):
 
         for appointment in appointments:
             appointment._send_reminder_email()
+            appointment._send_reminder_sms()
             appointment.write({
                 'reminder_sent': True,
                 'reminder_sent_date': fields.Datetime.now()
