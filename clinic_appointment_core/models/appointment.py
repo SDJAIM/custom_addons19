@@ -43,7 +43,6 @@ class ClinicAppointment(models.Model):
         string='Calendar Event',
         required=True,
         ondelete='cascade',
-        auto_join=True,
         help='Link to Odoo calendar event for sync and calendar features'
     )
 

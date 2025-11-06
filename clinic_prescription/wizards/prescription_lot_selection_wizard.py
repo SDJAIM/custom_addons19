@@ -192,8 +192,8 @@ class PrescriptionLotSelectionWizard(models.TransientModel):
             lines_data.append({
                 'lot_id': lot.id,
                 'available_quantity': lot_data['quantity'],
-                'expiration_date': lot.expiration_date,
-                'manufacturing_date': lot.use_date,
+                # expiration_date will be set via related field (lot_id.life_date)
+                'manufacturing_date': lot.use_date,  # use_date = "best before" date
             })
 
         self.line_ids = [(0, 0, data) for data in lines_data]
@@ -276,7 +276,7 @@ class PrescriptionLotSelectionLine(models.TransientModel):
     )
 
     lot_id = fields.Many2one(
-        'stock.lot',
+        'stock.lot',  # In Odoo 19, this is stock.lot (formerly stock.production.lot)
         string='Lot',
         required=True
     )
@@ -304,8 +304,9 @@ class PrescriptionLotSelectionLine(models.TransientModel):
 
     expiration_date = fields.Date(
         string='Expiration Date',
-        related='lot_id.expiration_date',
-        readonly=True
+        related='lot_id.life_date',  # In Odoo 19: life_date is the expiration date
+        readonly=True,
+        store=True
     )
 
     manufacturing_date = fields.Date(

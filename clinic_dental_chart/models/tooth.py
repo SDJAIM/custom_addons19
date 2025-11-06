@@ -6,6 +6,7 @@ from odoo.exceptions import ValidationError
 class Tooth(models.Model):
     _name = 'clinic.tooth'
     _description = 'Individual Tooth'
+    _inherit = ['mail.thread', 'mail.activity.mixin']  # Required for tracking=True
     _order = 'chart_id, sequence'
     _rec_name = 'display_name'
     
