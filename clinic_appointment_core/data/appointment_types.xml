@@ -1,85 +1,183 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
-        <!-- Medical Appointment Types -->
+    <data noupdate="1">
+        <!-- ======================== -->
+        <!-- Demo Appointment Types -->
+        <!-- ======================== -->
+
+        <!-- General Consultation -->
         <record id="appointment_type_consultation" model="clinic.appointment.type">
             <field name="name">General Consultation</field>
-            <field name="code">GC</field>
-            <field name="service_type">medical</field>
-            <field name="duration">0.5</field>
+            <field name="sequence">10</field>
+            <field name="description">&lt;p&gt;General medical consultation for routine checkups and non-urgent health concerns.&lt;/p&gt;</field>
             <field name="color">1</field>
-            <field name="price">100</field>
+
+            <!-- Duration & Scheduling -->
+            <field name="default_duration">0.5</field>
+            <field name="buffer_before">0.0</field>
+            <field name="buffer_after">0.083333</field><!-- 5 min -->
+
+            <!-- Online Booking -->
+            <field name="allow_online_booking" eval="True"/>
+            <field name="min_notice_hours">24</field>
+            <field name="max_days_ahead">30</field>
+
+            <!-- Capacity -->
+            <field name="capacity_per_slot">1</field>
+
+            <!-- Staff Assignment -->
+            <field name="assign_mode">customer_choice</field>
+
+            <!-- Meeting Mode -->
+            <field name="meeting_mode">onsite</field>
+
+            <!-- Reschedule & Cancel -->
+            <field name="allow_reschedule" eval="True"/>
+            <field name="reschedule_limit_hours">24</field>
+            <field name="allow_cancel" eval="True"/>
+            <field name="cancel_limit_hours">24</field>
+
+            <!-- Reminders -->
+            <field name="reminder_hours_before">24</field>
+            <field name="send_confirmation_email" eval="True"/>
         </record>
-        
+
+        <!-- Follow-up Appointment -->
         <record id="appointment_type_follow_up" model="clinic.appointment.type">
-            <field name="name">Follow-up</field>
-            <field name="code">FU</field>
-            <field name="service_type">all</field>
-            <field name="duration">0.25</field>
+            <field name="name">Follow-up Visit</field>
+            <field name="sequence">20</field>
+            <field name="description">&lt;p&gt;Follow-up appointment for ongoing treatment monitoring.&lt;/p&gt;</field>
             <field name="color">2</field>
-            <field name="price">50</field>
+
+            <field name="default_duration">0.25</field>
+            <field name="buffer_before">0</field>
+            <field name="buffer_after">0</field>
+
+            <field name="allow_online_booking" eval="True"/>
+            <field name="min_notice_hours">12</field>
+            <field name="max_days_ahead">60</field>
+
+            <field name="capacity_per_slot">1</field>
+            <field name="assign_mode">customer_choice</field>
+            <field name="meeting_mode">onsite</field>
+
+            <field name="allow_reschedule" eval="True"/>
+            <field name="reschedule_limit_hours">12</field>
+            <field name="allow_cancel" eval="True"/>
+            <field name="cancel_limit_hours">12</field>
+
+            <field name="reminder_hours_before">24</field>
+            <field name="send_confirmation_email" eval="True"/>
         </record>
-        
-        <record id="appointment_type_checkup" model="clinic.appointment.type">
-            <field name="name">Annual Check-up</field>
-            <field name="code">AC</field>
-            <field name="service_type">medical</field>
-            <field name="duration">1.0</field>
-            <field name="color">3</field>
-            <field name="price">150</field>
-        </record>
-        
-        <!-- Dental Appointment Types -->
-        <record id="appointment_type_dental_exam" model="clinic.appointment.type">
-            <field name="name">Dental Examination</field>
-            <field name="code">DE</field>
-            <field name="service_type">dental</field>
-            <field name="duration">0.5</field>
-            <field name="color">4</field>
-            <field name="price">80</field>
-        </record>
-        
-        <record id="appointment_type_cleaning" model="clinic.appointment.type">
-            <field name="name">Teeth Cleaning</field>
-            <field name="code">TC</field>
-            <field name="service_type">dental</field>
-            <field name="duration">0.75</field>
-            <field name="color">5</field>
-            <field name="price">120</field>
-        </record>
-        
-        <record id="appointment_type_filling" model="clinic.appointment.type">
-            <field name="name">Filling</field>
-            <field name="code">FIL</field>
-            <field name="service_type">dental</field>
-            <field name="duration">1.0</field>
-            <field name="color">6</field>
-            <field name="price">200</field>
-            <field name="requires_special_room">True</field>
-            <field name="room_type_required">surgery</field>
-        </record>
-        
-        <!-- Telemedicine -->
+
+        <!-- Telemedicine Consultation -->
         <record id="appointment_type_telemed" model="clinic.appointment.type">
             <field name="name">Telemedicine Consultation</field>
-            <field name="code">TM</field>
-            <field name="service_type">telemed</field>
-            <field name="duration">0.5</field>
+            <field name="sequence">30</field>
+            <field name="description">&lt;p&gt;Online video consultation for non-urgent medical concerns.&lt;/p&gt;</field>
             <field name="color">7</field>
-            <field name="price">75</field>
+
+            <field name="default_duration">0.5</field>
+            <field name="buffer_before">0</field>
+            <field name="buffer_after">0</field>
+
+            <field name="allow_online_booking" eval="True"/>
+            <field name="min_notice_hours">2</field>
+            <field name="max_days_ahead">14</field>
+
+            <field name="capacity_per_slot">1</field>
+            <field name="assign_mode">round_robin</field>
+            <field name="meeting_mode">online</field>
+
+            <field name="allow_reschedule" eval="True"/>
+            <field name="reschedule_limit_hours">2</field>
+            <field name="allow_cancel" eval="True"/>
+            <field name="cancel_limit_hours">2</field>
+
+            <field name="reminder_hours_before">2</field>
+            <field name="send_confirmation_email" eval="True"/>
         </record>
-        
-        <!-- Emergency -->
+
+        <!-- Dental Examination -->
+        <record id="appointment_type_dental_exam" model="clinic.appointment.type">
+            <field name="name">Dental Examination</field>
+            <field name="sequence">40</field>
+            <field name="description">&lt;p&gt;Comprehensive dental examination and cleaning.&lt;/p&gt;</field>
+            <field name="color">4</field>
+
+            <field name="default_duration">0.75</field>
+            <field name="buffer_before">0.083333</field><!-- 5 min -->
+            <field name="buffer_after">0.166667</field><!-- 10 min -->
+
+            <field name="allow_online_booking" eval="True"/>
+            <field name="min_notice_hours">48</field>
+            <field name="max_days_ahead">90</field>
+
+            <field name="capacity_per_slot">1</field>
+            <field name="assign_mode">customer_choice</field>
+            <field name="meeting_mode">onsite</field>
+
+            <field name="allow_reschedule" eval="True"/>
+            <field name="reschedule_limit_hours">48</field>
+            <field name="allow_cancel" eval="True"/>
+            <field name="cancel_limit_hours">48</field>
+
+            <field name="reminder_hours_before">48</field>
+            <field name="send_confirmation_email" eval="True"/>
+        </record>
+
+        <!-- Emergency (No Online Booking) -->
         <record id="appointment_type_emergency" model="clinic.appointment.type">
             <field name="name">Emergency</field>
-            <field name="code">EM</field>
-            <field name="service_type">emergency</field>
-            <field name="duration">1.0</field>
+            <field name="sequence">50</field>
+            <field name="description">&lt;p&gt;Emergency appointment - Staff booking only.&lt;/p&gt;</field>
             <field name="color">9</field>
-            <field name="is_emergency">True</field>
-            <field name="priority">urgent</field>
-            <field name="min_advance_hours">0</field>
-            <field name="allow_online_booking">False</field>
+
+            <field name="default_duration">1.0</field>
+            <field name="buffer_before">0</field>
+            <field name="buffer_after">0</field>
+
+            <field name="allow_online_booking" eval="False"/>
+            <field name="min_notice_hours">0</field>
+            <field name="max_days_ahead">7</field>
+
+            <field name="capacity_per_slot">1</field>
+            <field name="assign_mode">random</field>
+            <field name="meeting_mode">onsite</field>
+
+            <field name="allow_reschedule" eval="False"/>
+            <field name="allow_cancel" eval="False"/>
+
+            <field name="reminder_hours_before">1</field>
+            <field name="send_confirmation_email" eval="True"/>
+        </record>
+
+        <!-- Group Workshop (Multiple Capacity) -->
+        <record id="appointment_type_workshop" model="clinic.appointment.type">
+            <field name="name">Health Workshop</field>
+            <field name="sequence">60</field>
+            <field name="description">&lt;p&gt;Group health and wellness workshop (max 10 participants).&lt;/p&gt;</field>
+            <field name="color">3</field>
+
+            <field name="default_duration">2.0</field>
+            <field name="buffer_before">0.25</field>
+            <field name="buffer_after">0.25</field>
+
+            <field name="allow_online_booking" eval="True"/>
+            <field name="min_notice_hours">72</field>
+            <field name="max_days_ahead">60</field>
+
+            <field name="capacity_per_slot">10</field>
+            <field name="assign_mode">by_skill</field>
+            <field name="meeting_mode">onsite</field>
+
+            <field name="allow_reschedule" eval="True"/>
+            <field name="reschedule_limit_hours">72</field>
+            <field name="allow_cancel" eval="True"/>
+            <field name="cancel_limit_hours">72</field>
+
+            <field name="reminder_hours_before">72</field>
+            <field name="send_confirmation_email" eval="True"/>
         </record>
     </data>
 </odoo>

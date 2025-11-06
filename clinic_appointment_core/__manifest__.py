@@ -52,6 +52,7 @@ Features:
         'data/appointment_types.xml',
         'data/appointment_stages.xml',
         'data/email_templates.xml',
+        'data/cron_jobs.xml',
 
         # Wizards
         'wizards/appointment_reschedule_views.xml',
