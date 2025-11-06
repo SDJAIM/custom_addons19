@@ -1,52 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- KPI Dashboard -->
+    <!-- KPI Dashboard Configuration -->
     <record id="view_kpi_dashboard" model="ir.ui.view">
         <field name="name">clinic.kpi.dashboard</field>
         <field name="model">clinic.kpi.dashboard</field>
         <field name="arch" type="xml">
-            <form string="Clinic Dashboard">
+            <form string="Dashboard Configuration">
                 <sheet>
                     <div class="oe_title">
-                        <h1>Clinic Performance Dashboard</h1>
+                        <h1><field name="name" placeholder="Dashboard Name"/></h1>
                     </div>
                     <group>
-                        <group string="Today's Statistics">
-                            <field name="today_appointments"/>
-                            <field name="today_patients"/>
-                            <field name="today_revenue"/>
+                        <group string="Settings">
+                            <field name="user_id"/>
+                            <field name="is_default"/>
+                            <field name="auto_refresh"/>
+                            <field name="refresh_interval" invisible="not auto_refresh"/>
+                            <field name="last_refresh" readonly="1"/>
                         </group>
-                        <group string="Monthly Statistics">
-                            <field name="monthly_appointments"/>
-                            <field name="monthly_new_patients"/>
-                            <field name="monthly_revenue"/>
+                        <group string="Visible Widgets">
+                            <field name="show_appointments_today"/>
+                            <field name="show_revenue_mtd"/>
+                            <field name="show_new_patients"/>
+                            <field name="show_no_show_rate"/>
+                            <field name="show_avg_wait_time"/>
+                            <field name="show_claim_status"/>
+                            <field name="show_top_procedures"/>
+                            <field name="show_staff_utilization"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Appointments">
-                            <group>
-                                <field name="appointment_completion_rate" widget="percentage"/>
-                                <field name="no_show_rate" widget="percentage"/>
-                                <field name="avg_wait_time"/>
-                            </group>
-                        </page>
-                        <page string="Financial">
-                            <group>
-                                <field name="pending_claims"/>
-                                <field name="approved_claims"/>
-                                <field name="collection_rate" widget="percentage"/>
-                            </group>
-                        </page>
-                        <page string="Staff Performance">
-                            <field name="staff_utilization">
-                                <list>
-                                    <field name="staff_id"/>
-                                    <field name="appointments_count"/>
-                                    <field name="utilization_rate" widget="percentage"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
                 </sheet>
             </form>
         </field>

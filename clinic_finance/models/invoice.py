@@ -8,9 +8,19 @@ _logger = logging.getLogger(__name__)
 
 class ClinicInvoice(models.Model):
     _name = 'clinic.invoice'
-    _inherit = 'account.move'
     _description = 'Clinic Invoice'
+    _inherits = {'account.move': 'move_id'}
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'name desc, id desc'
+
+    # Link to account.move (delegation pattern)
+    move_id = fields.Many2one(
+        'account.move',
+        string='Journal Entry',
+        required=True,
+        ondelete='cascade',
+        help='Link to accounting move'
+    )
 
     # Medical-specific fields
     patient_id = fields.Many2one(
@@ -18,6 +28,7 @@ class ClinicInvoice(models.Model):
         string='Patient',
         required=True,
         tracking=True,
+        index=True,
         help='Patient for whom this invoice is generated'
     )
 
@@ -35,14 +46,15 @@ class ClinicInvoice(models.Model):
     )
 
     doctor_id = fields.Many2one(
-        'clinic.doctor',
+        'clinic.staff',
         string='Doctor',
         tracking=True,
+        domain=[('is_practitioner', '=', True)],
         help='Primary doctor for the services'
     )
 
     clinic_location_id = fields.Many2one(
-        'clinic.location',
+        'stock.location',
         string='Clinic Location',
         help='Location where services were provided'
     )
@@ -127,6 +139,26 @@ class ClinicInvoice(models.Model):
         compute='_compute_primary_diagnosis',
         store=True
     )
+
+    @api.model
+    def create(self, vals):
+        """Create account.move automatically if not provided"""
+        if not vals.get('move_id'):
+            # Get partner from patient
+            partner_id = False
+            if vals.get('patient_id'):
+                patient = self.env['clinic.patient'].browse(vals['patient_id'])
+                partner_id = patient.partner_id.id if patient.partner_id else False
+
+            # Create account.move
+            move_vals = {
+                'move_type': 'out_invoice',
+                'partner_id': partner_id,
+            }
+            move = self.env['account.move'].create(move_vals)
+            vals['move_id'] = move.id
+
+        return super().create(vals)
 
     @api.depends('insurance_policy_id')
     def _compute_copay_amount(self):
@@ -222,15 +254,33 @@ class ClinicInvoice(models.Model):
             self.partner_id = self.insurance_policy_id.insurance_company_id.partner_id
 
     def action_post(self):
-        """Override to create insurance claim after posting"""
-        res = super().action_post()
+        """Post the invoice with validation and create insurance claim"""
+        # Validate before posting
+        for invoice in self:
+            invoice.validate_invoice()
 
+        # Delegate to account.move
+        self.mapped('move_id').action_post()
+
+        # Create insurance claims after posting
         for invoice in self:
             if invoice.billing_type in ['insurance', 'insurance_cash'] and invoice.insurance_policy_id:
                 if not invoice.claim_ids:
                     invoice._create_insurance_claim()
 
-        return res
+        return True
+
+    def action_register_payment(self):
+        """Register payment - delegate to account.move"""
+        return self.mapped('move_id').action_register_payment()
+
+    def button_cancel(self):
+        """Cancel invoice - delegate to account.move"""
+        return self.mapped('move_id').button_cancel()
+
+    def button_draft(self):
+        """Reset to draft - delegate to account.move"""
+        return self.mapped('move_id').button_draft()
 
     def _create_insurance_claim(self):
         """Create insurance claim for invoice"""
@@ -414,12 +464,6 @@ class ClinicInvoice(models.Model):
 
         return True
 
-    def action_post(self):
-        """Override to add validation before posting"""
-        for invoice in self:
-            invoice.validate_invoice()
-        return super(ClinicInvoice, self).action_post()
-
     def action_collect_copay(self):
         """Mark copay as collected and create payment"""
         self.ensure_one()
@@ -484,16 +528,18 @@ class ClinicInvoiceServiceLine(models.Model):
     )
 
     service_id = fields.Many2one(
-        'clinic.service',
+        'product.product',
         string='Service',
-        required=True
+        required=True,
+        domain=[('type', '=', 'service')]
     )
 
     product_id = fields.Many2one(
         'product.product',
         string='Product',
-        related='service_id.product_id',
-        store=True
+        related='service_id',
+        store=True,
+        readonly=True
     )
 
     name = fields.Text(
@@ -538,8 +584,9 @@ class ClinicInvoiceServiceLine(models.Model):
     )
 
     doctor_id = fields.Many2one(
-        'clinic.doctor',
+        'clinic.staff',
         string='Doctor',
+        domain=[('is_practitioner', '=', True)],
         help='Doctor who provided this service'
     )
 

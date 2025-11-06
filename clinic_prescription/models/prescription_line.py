@@ -358,10 +358,10 @@ class PrescriptionLine(models.Model):
             else:
                 line.quantity = line.dose
     
-    @api.depends('refills_authorized', 'prescription_id.refill_count')
+    @api.depends('refills_authorized', 'prescription_id.refills_used')
     def _compute_refills_remaining(self):
         for line in self:
-            line.refills_remaining = max(0, line.refills_authorized - line.prescription_id.refill_count)
+            line.refills_remaining = max(0, line.refills_authorized - line.prescription_id.refills_used)
     
     @api.depends('start_date', 'duration')
     def _compute_end_date(self):
@@ -417,22 +417,23 @@ class PrescriptionLine(models.Model):
                 line.has_interaction = False
                 line.interaction_warning = False
     
-    @api.depends('medication_id', 'patient_id.allergy_ids')
+    @api.depends('medication_id', 'patient_id')
     def _compute_has_allergy(self):
         for line in self:
             if not line.medication_id or not line.patient_id:
                 line.has_allergy_alert = False
                 line.allergy_warning = False
                 continue
-            
-            # Check patient allergies
+
+            # Check patient allergies (if allergy_ids field exists)
             allergies = []
-            for allergy in line.patient_id.allergy_ids:
-                if allergy.type == 'medication':
-                    # Check if medication contains allergen
-                    if self._check_medication_allergy(line.medication_id, allergy):
-                        allergies.append(f"Patient allergic to {allergy.name}")
-            
+            if hasattr(line.patient_id, 'allergy_ids'):
+                for allergy in line.patient_id.allergy_ids:
+                    if hasattr(allergy, 'type') and allergy.type == 'medication':
+                        # Check if medication contains allergen
+                        if self._check_medication_allergy(line.medication_id, allergy):
+                            allergies.append(f"Patient allergic to {allergy.name}")
+
             if allergies:
                 line.has_allergy_alert = True
                 line.allergy_warning = '\n'.join(allergies)
@@ -575,13 +576,13 @@ class PrescriptionLine(models.Model):
         if self.allow_substitution:
             self.substitution_reason = False
     
-    @api.depends('medication_id', 'medication_id.product_id', 'medication_id.tracking')
+    @api.depends('medication_id', 'medication_id.product_id', 'medication_id.product_id.tracking')
     def _compute_needs_lot_selection(self):
         for line in self:
             line.needs_lot_selection = (
                 line.medication_id and
                 line.medication_id.product_id and
-                line.medication_id.tracking in ['lot', 'serial']
+                line.medication_id.product_id.tracking in ['lot', 'serial']
             )
 
     @api.depends('medication_id', 'quantity', 'stock_location_id')
@@ -611,8 +612,17 @@ class PrescriptionLine(models.Model):
             except Exception as e:
                 line.suggested_lots = f"Error: {str(e)}"
 
-    @api.depends('selected_lot_ids', 'selected_lot_ids.expiration_date')
+    @api.depends('selected_lot_ids')
     def _compute_has_expiring_lots(self):
+        """
+        Check if selected lots are expiring or expired.
+
+        Uses fallback to get expiration date from lot fields in priority order:
+        1. life_date (end of life)
+        2. use_date (best before)
+        3. removal_date (remove from stock)
+        4. alert_date (alert date)
+        """
         for line in self:
             warnings = []
             has_expiring = False
@@ -621,16 +631,45 @@ class PrescriptionLine(models.Model):
             warning_date = fields.Date.today() + timedelta(days=alert_days)
 
             for lot in line.selected_lot_ids:
-                if lot.expiration_date:
-                    if lot.expiration_date <= fields.Date.today():
-                        warnings.append(f"❌ Lot {lot.name} is EXPIRED (expired {lot.expiration_date})")
+                # Get expiration date with fallback
+                expiration_date = self._get_lot_expiration_date(lot)
+
+                if expiration_date:
+                    if expiration_date <= fields.Date.today():
+                        warnings.append(f"❌ Lot {lot.name} is EXPIRED (expired {expiration_date})")
                         has_expiring = True
-                    elif lot.expiration_date <= warning_date:
-                        warnings.append(f"⚠️ Lot {lot.name} expires soon ({lot.expiration_date})")
+                    elif expiration_date <= warning_date:
+                        warnings.append(f"⚠️ Lot {lot.name} expires soon ({expiration_date})")
                         has_expiring = True
 
             line.has_expiring_lots = has_expiring
             line.expiry_warning = "\n".join(warnings) if warnings else False
+
+    def _get_lot_expiration_date(self, lot):
+        """
+        Get expiration date from lot with fallback.
+
+        Tries fields in priority order:
+        1. life_date (end of life)
+        2. use_date (best before)
+        3. removal_date (remove from stock)
+        4. alert_date (alert date)
+
+        Returns: Date object or False
+        """
+        if not lot:
+            return False
+
+        preferred_fields = ('life_date', 'use_date', 'removal_date', 'alert_date')
+
+        for field_name in preferred_fields:
+            if field_name in lot._fields:
+                field_value = getattr(lot, field_name, False)
+                if field_value:
+                    # Convert Datetime to Date if needed
+                    return fields.Date.to_date(field_value) if field_value else False
+
+        return False
 
     def action_dispense(self):
         """Dispense medication and update stock"""

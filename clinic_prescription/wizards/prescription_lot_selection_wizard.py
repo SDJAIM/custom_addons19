@@ -192,7 +192,7 @@ class PrescriptionLotSelectionWizard(models.TransientModel):
             lines_data.append({
                 'lot_id': lot.id,
                 'available_quantity': lot_data['quantity'],
-                # expiration_date will be set via related field (lot_id.life_date)
+                # expiration_date will be computed from lot fields (life_date, use_date, etc.)
                 'manufacturing_date': lot.use_date,  # use_date = "best before" date
             })
 

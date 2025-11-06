@@ -25,9 +25,7 @@ for medication in model.search([('track_inventory', '=', True), ('use_expiration
             </field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
             <field name="active">True</field>
-            <field name="doall">False</field>
         </record>
 
         <!-- Cron job to check medication reorder levels -->
@@ -38,9 +36,7 @@ for medication in model.search([('track_inventory', '=', True), ('use_expiration
             <field name="code">model.check_reorder_levels()</field>
             <field name="interval_number">6</field>
             <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
             <field name="active">True</field>
-            <field name="doall">False</field>
         </record>
 
         <!-- Cron job to mark expired prescriptions -->
@@ -51,9 +47,7 @@ for medication in model.search([('track_inventory', '=', True), ('use_expiration
             <field name="code">model.check_expired_prescriptions()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
             <field name="active">True</field>
-            <field name="doall">False</field>
         </record>
 
         <!-- Cron job to send refill reminders -->
@@ -64,9 +58,7 @@ for medication in model.search([('track_inventory', '=', True), ('use_expiration
             <field name="code">model.check_refill_reminders()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
             <field name="active">True</field>
-            <field name="doall">False</field>
         </record>
 
     </data>

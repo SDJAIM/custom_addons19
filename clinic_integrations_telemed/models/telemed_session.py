@@ -44,7 +44,7 @@ class TelemedicineSession(models.Model):
     doctor_id = fields.Many2one(
         'clinic.staff',
         string='Doctor',
-        related='appointment_id.doctor_id',
+        related='appointment_id.staff_id',
         store=True,
         readonly=True
     )

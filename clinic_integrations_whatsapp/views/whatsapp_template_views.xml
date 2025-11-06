@@ -7,10 +7,9 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="template_name"/>
                 <field name="template_type"/>
-                <field name="language"/>
-                <field name="category"/>
-                <field name="status"/>
+                <field name="language_code"/>
                 <field name="active"/>
             </list>
         </field>
@@ -35,49 +34,14 @@
                     </div>
                     <group>
                         <group string="Template Configuration">
+                            <field name="template_name" placeholder="WhatsApp Template ID"/>
                             <field name="template_type"/>
-                            <field name="category"/>
-                            <field name="language"/>
-                            <field name="whatsapp_template_id" placeholder="WhatsApp Template ID"/>
-                        </group>
-                        <group string="Status">
-                            <field name="status"/>
-                            <field name="approved_date" attrs="{'invisible': [('status', '!=', 'approved')]}"/>
-                            <field name="rejection_reason" attrs="{'invisible': [('status', '!=', 'rejected')]}"/>
+                            <field name="language_code"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Header">
-                            <group>
-                                <field name="header_type"/>
-                                <field name="header_text" attrs="{'invisible': [('header_type', '!=', 'text')]}"/>
-                                <field name="header_media_url" attrs="{'invisible': [('header_type', 'not in', ['image', 'video', 'document'])]}"/>
-                            </group>
-                        </page>
-                        <page string="Body">
-                            <field name="body_text" placeholder="Message body with {{variables}}"/>
-                            <separator string="Variables"/>
-                            <field name="variables">
-                                <list editable="bottom">
-                                    <field name="name"/>
-                                    <field name="example_value"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Footer">
-                            <field name="footer_text" placeholder="Optional footer text"/>
-                        </page>
-                        <page string="Buttons">
-                            <field name="buttons">
-                                <list editable="bottom">
-                                    <field name="button_type"/>
-                                    <field name="text"/>
-                                    <field name="url" attrs="{'invisible': [('button_type', '!=', 'url')]}"/>
-                                    <field name="phone_number" attrs="{'invisible': [('button_type', '!=', 'phone_number')]}"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
+                    <group string="Message">
+                        <field name="message_body" nolabel="1" placeholder="Message template"/>
+                    </group>
                 </sheet>
             </form>
         </field>

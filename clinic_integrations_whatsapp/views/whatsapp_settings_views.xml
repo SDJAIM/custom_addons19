@@ -14,7 +14,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="WhatsApp API Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">WhatsApp API Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure your WhatsApp Business API credentials
@@ -60,7 +60,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Message Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Message Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure message handling and retry settings
@@ -88,7 +88,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Feature Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Feature Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Enable or disable WhatsApp features
@@ -120,7 +120,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Security and Privacy" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Security and Privacy</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure security and privacy settings
@@ -148,7 +148,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">clinic.whatsapp.settings</field>
         <field name="view_mode">form</field>
-        <field name="target">inline</field>
+        <field name="target">current</field>
         <field name="context">{'module': 'clinic_integrations_whatsapp'}</field>
     </record>
 
@@ -171,7 +171,7 @@
                             string="Migrate to Secure Storage"
                             type="object"
                             class="btn-primary"
-                            attrs="{'invisible': [('migrated_to_config_params', '=', True)]}"/>
+                            invisible="migrated_to_config_params == True"/>
                     <field name="migrated_to_config_params" widget="badge"
                            decoration-success="migrated_to_config_params == True"/>
                 </header>
@@ -179,12 +179,12 @@
                     <div class="oe_button_box" name="button_box">
                     </div>
                     <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible': [('migrated_to_config_params', '=', True)]}">
+                         invisible="migrated_to_config_params == True">
                         <strong>Security Notice:</strong> This configuration method is deprecated.
                         Please migrate to secure storage using the button above, then delete this record.
                     </div>
                     <div class="alert alert-success" role="alert"
-                         attrs="{'invisible': [('migrated_to_config_params', '=', False)]}">
+                         invisible="migrated_to_config_params == False">
                         <strong>Migration Complete:</strong> This configuration has been migrated to secure storage.
                         You can now safely delete this record.
                     </div>

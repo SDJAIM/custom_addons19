@@ -65,10 +65,6 @@ Features:
         'views/whatsapp_template_views.xml',
         'views/patient_whatsapp_views.xml',
         'views/menu_views.xml',
-
-        # Wizards
-        'wizards/send_whatsapp_wizard_views.xml',
-        'wizards/broadcast_wizard_views.xml',
     ],
     
     'installable': True,

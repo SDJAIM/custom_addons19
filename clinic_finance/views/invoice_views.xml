@@ -31,16 +31,16 @@
             <form string="Clinic Invoice">
                 <header>
                     <button name="action_post" string="Post" type="object"
-                            states="draft" class="btn-primary"
+                            invisible="state != 'draft'" class="btn-primary"
                             confirm="Are you sure you want to post this invoice?"/>
-                    <button name="action_cancel" string="Cancel" type="object"
-                            states="draft,posted"/>
-                    <button name="action_draft" string="Reset to Draft" type="object"
-                            states="cancel"/>
+                    <button name="button_cancel" string="Cancel" type="object"
+                            invisible="state not in ('draft', 'posted')"/>
+                    <button name="button_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancel'"/>
                     <button name="action_view_claims" string="View Claims" type="object"
-                            class="btn-secondary" attrs="{'invisible': [('claim_count', '=', 0)]}"/>
+                            class="btn-secondary" invisible="claim_count == 0"/>
                     <button name="action_collect_copay" string="Collect Copay" type="object"
-                            class="btn-warning" attrs="{'invisible': ['|', ('copay_amount', '=', 0), ('copay_collected', '=', True)]}"/>
+                            class="btn-warning" invisible="copay_amount == 0 or copay_collected"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,paid"/>
                 </header>
                 <sheet>
@@ -68,14 +68,14 @@
                         <group name="billing_info">
                             <field name="billing_type"/>
                             <field name="insurance_policy_id"
-                                   attrs="{'invisible': [('billing_type', 'not in', ['insurance', 'insurance_cash'])],
-                                           'required': [('billing_type', 'in', ['insurance', 'insurance_cash'])]}"/>
+                                   invisible="billing_type not in ('insurance', 'insurance_cash')"
+                                   required="billing_type in ('insurance', 'insurance_cash')"/>
                             <field name="prior_authorization"
-                                   attrs="{'invisible': [('billing_type', 'not in', ['insurance', 'insurance_cash'])]}"/>
+                                   invisible="billing_type not in ('insurance', 'insurance_cash')"/>
                             <field name="copay_amount"
-                                   attrs="{'invisible': [('billing_type', '!=', 'insurance_cash')]}"/>
+                                   invisible="billing_type != 'insurance_cash'"/>
                             <field name="copay_collected"
-                                   attrs="{'invisible': [('copay_amount', '=', 0)]}"/>
+                                   invisible="copay_amount == 0"/>
                         </group>
                     </group>
 
@@ -90,7 +90,7 @@
                             <field name="amount_total" widget="monetary"/>
                             <field name="patient_amount" widget="monetary"/>
                             <field name="insurance_amount" widget="monetary"
-                                   attrs="{'invisible': [('insurance_amount', '=', 0)]}"/>
+                                   invisible="insurance_amount == 0"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
@@ -135,7 +135,7 @@
                                 <list>
                                     <field name="code"/>
                                     <field name="name"/>
-                                    <field name="category_id"/>
+                                    <field name="category"/>
                                 </list>
                             </field>
                         </page>
@@ -167,7 +167,6 @@
                 <field name="doctor_id" string="Doctor"/>
                 <field name="partner_id" string="Customer"/>
                 <field name="insurance_policy_id" string="Insurance Policy"/>
-                <separator/>
                 <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
                 <filter name="paid" string="Paid" domain="[('state', '=', 'paid')]"/>
@@ -178,13 +177,11 @@
                 <filter name="this_month" string="This Month"
                         domain="[('invoice_date', '&gt;=', (context_today().replace(day=1)).strftime('%Y-%m-%d')),
                                  ('invoice_date', '&lt;', ((context_today().replace(day=1) + relativedelta(months=1)).strftime('%Y-%m-%d')))]"/>
-                <group expand="0" string="Group By">
-                    <filter name="group_patient" string="Patient" context="{'group_by': 'patient_id'}"/>
-                    <filter name="group_doctor" string="Doctor" context="{'group_by': 'doctor_id'}"/>
-                    <filter name="group_billing_type" string="Billing Type" context="{'group_by': 'billing_type'}"/>
-                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
-                    <filter name="group_date" string="Invoice Date" context="{'group_by': 'invoice_date:month'}"/>
-                </group>
+                <filter name="group_patient" string="Patient" context="{'group_by': 'patient_id'}"/>
+                <filter name="group_doctor" string="Doctor" context="{'group_by': 'doctor_id'}"/>
+                <filter name="group_billing_type" string="Billing Type" context="{'group_by': 'billing_type'}"/>
+                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                <filter name="group_date" string="Invoice Date" context="{'group_by': 'invoice_date:month'}"/>
             </search>
         </field>
     </record>

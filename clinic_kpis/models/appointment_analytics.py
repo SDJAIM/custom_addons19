@@ -93,132 +93,104 @@ class AppointmentAnalytics(models.Model):
 
     @api.model
     def init(self):
-        """Initialize the SQL view for appointment analytics"""
+        """Initialize the SQL view for appointment analytics
+
+        NOTE: Uses only fields that exist in clinic.appointment:
+        - start (from calendar.event via _inherits)
+        - duration (from calendar.event via _inherits)
+        - consultation_start_time, consultation_end_time (actual consultation times)
+        - waiting_time (in minutes, converted to hours)
+        - parent_appointment_id (for rescheduling tracking)
+        """
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
                     row_number() OVER () AS id,
                     a.id AS appointment_id,
-                    a.appointment_date AS appointment_date,
-                    DATE(a.appointment_date) AS appointment_day,
-                    TO_CHAR(a.appointment_date, 'YYYY-WW') AS appointment_week,
-                    TO_CHAR(a.appointment_date, 'YYYY-MM') AS appointment_month,
-                    EXTRACT(YEAR FROM a.appointment_date) AS appointment_year,
-                    EXTRACT(DOW FROM a.appointment_date)::text AS day_of_week,
-                    EXTRACT(HOUR FROM a.appointment_date) AS hour_of_day,
+                    ce.start AS appointment_date,
+                    DATE(ce.start) AS appointment_day,
+                    TO_CHAR(ce.start, 'YYYY-WW') AS appointment_week,
+                    TO_CHAR(ce.start, 'YYYY-MM') AS appointment_month,
+                    EXTRACT(YEAR FROM ce.start) AS appointment_year,
+                    EXTRACT(DOW FROM ce.start)::text AS day_of_week,
+                    EXTRACT(HOUR FROM ce.start) AS hour_of_day,
                     CASE
-                        WHEN EXTRACT(DOW FROM a.appointment_date) IN (0, 6) THEN TRUE
+                        WHEN EXTRACT(DOW FROM ce.start) IN (0, 6) THEN TRUE
                         ELSE FALSE
                     END AS is_weekend,
                     a.patient_id AS patient_id,
-                    DATE_PART('year', AGE(p.birth_date)) AS patient_age,
+                    DATE_PART('year', AGE(p.date_of_birth)) AS patient_age,
                     p.gender AS patient_gender,
                     CASE
-                        WHEN a.appointment_date = (
-                            SELECT MIN(appointment_date)
-                            FROM clinic_appointment
-                            WHERE patient_id = a.patient_id AND state != 'cancelled'
+                        WHEN ce.start = (
+                            SELECT MIN(ce2.start)
+                            FROM clinic_appointment a2
+                            JOIN calendar_event ce2 ON ce2.id = a2.calendar_event_id
+                            WHERE a2.patient_id = a.patient_id AND a2.state != 'cancelled'
                         ) THEN TRUE
                         ELSE FALSE
                     END AS is_new_patient,
-                    a.doctor_id AS doctor_id,
-                    s.specialization_id AS doctor_specialty,
+                    a.staff_id AS doctor_id,
+                    s.primary_specialization_id AS doctor_specialty,
                     a.branch_id AS branch_id,
                     a.room_id AS room_id,
                     a.service_type AS service_type,
-                    a.appointment_type AS appointment_type,
+                    NULL::varchar AS appointment_type,
                     a.state AS state,
-                    a.duration AS scheduled_duration,
+                    ce.duration AS scheduled_duration,
                     CASE
-                        WHEN a.check_out_time IS NOT NULL AND a.check_in_time IS NOT NULL THEN
-                            EXTRACT(EPOCH FROM (a.check_out_time - a.check_in_time)) / 3600
-                        ELSE a.duration
+                        WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
+                            EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
+                        ELSE ce.duration
                     END AS actual_duration,
-                    a.waiting_time AS waiting_time,
-                    DATE_PART('day', a.appointment_date - a.create_date) AS lead_time,
-                    COALESCE((
-                        SELECT SUM(asl.subtotal)
-                        FROM clinic_appointment_service_line asl
-                        WHERE asl.appointment_id = a.id
-                    ), 0) AS total_amount,
-                    COALESCE((
-                        SELECT SUM(asl.insurance_coverage)
-                        FROM clinic_appointment_service_line asl
-                        WHERE asl.appointment_id = a.id
-                    ), 0) AS insurance_amount,
-                    COALESCE((
-                        SELECT SUM(asl.patient_share)
-                        FROM clinic_appointment_service_line asl
-                        WHERE asl.appointment_id = a.id
-                    ), 0) AS patient_amount,
-                    CASE
-                        WHEN EXISTS(
-                            SELECT 1
-                            FROM account_move am
-                            WHERE am.appointment_id = a.id
-                                AND am.payment_state = 'paid'
-                                AND am.state = 'posted'
-                        ) THEN TRUE
-                        ELSE FALSE
-                    END AS is_paid,
+                    (a.waiting_time / 60.0) AS waiting_time,
+                    DATE_PART('day', ce.start - a.create_date) AS lead_time,
+                    0::numeric AS total_amount,
+                    0::numeric AS insurance_amount,
+                    0::numeric AS patient_amount,
+                    FALSE AS is_paid,
+                    0 AS service_count,
+                    FALSE AS has_lab_tests,
                     (
-                        SELECT COUNT(*)
-                        FROM clinic_appointment_service_line
-                        WHERE appointment_id = a.id
-                    ) AS service_count,
-                    EXISTS(
-                        SELECT 1
-                        FROM clinic_lab_test lt
-                        WHERE lt.appointment_id = a.id
-                    ) AS has_lab_tests,
-                    EXISTS(
-                        SELECT 1
+                        SELECT COUNT(*) > 0
                         FROM clinic_prescription pr
                         WHERE pr.appointment_id = a.id
                     ) AS has_prescriptions,
-                    EXISTS(
-                        SELECT 1
-                        FROM clinic_appointment_service_line asl
-                        JOIN clinic_service cs ON cs.id = asl.service_id
-                        WHERE asl.appointment_id = a.id
-                            AND cs.is_procedure = TRUE
-                    ) AS has_procedures,
-                    a.cancellation_reason AS cancellation_reason,
-                    CASE
-                        WHEN a.state = 'cancelled' AND a.cancellation_date IS NOT NULL THEN
-                            DATE_PART('day', a.appointment_date - a.cancellation_date)
-                        ELSE NULL
-                    END AS days_before_cancelled,
+                    FALSE AS has_procedures,
+                    NULL::varchar AS cancellation_reason,
+                    NULL::integer AS days_before_cancelled,
                     CASE
                         WHEN a.parent_appointment_id IS NOT NULL THEN TRUE
                         ELSE FALSE
                     END AS is_rescheduled,
                     CASE
-                        WHEN a.duration > 0 AND a.state = 'done' THEN
+                        WHEN ce.duration > 0 AND a.state = 'done' THEN
                             (CASE
-                                WHEN a.check_out_time IS NOT NULL AND a.check_in_time IS NOT NULL THEN
-                                    EXTRACT(EPOCH FROM (a.check_out_time - a.check_in_time)) / 3600
-                                ELSE a.duration
-                            END / a.duration) * 100
+                                WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
+                                    EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
+                                ELSE ce.duration
+                            END / ce.duration) * 100
                         ELSE 0
                     END AS utilization_rate,
                     CASE
                         WHEN (
                             SELECT COUNT(*)
                             FROM clinic_appointment ca2
-                            WHERE ca2.doctor_id = a.doctor_id
-                                AND ca2.appointment_date::date = a.appointment_date::date
-                                AND ca2.appointment_date::time >= a.appointment_date::time
-                                AND ca2.appointment_date::time < (a.appointment_date + (a.duration || ' hours')::interval)::time
+                            JOIN calendar_event ce3 ON ce3.id = ca2.calendar_event_id
+                            WHERE ca2.staff_id = a.staff_id
+                                AND ce3.start::date = ce.start::date
+                                AND ce3.start::time >= ce.start::time
+                                AND ce3.start::time < (ce.start + (ce.duration || ' hours')::interval)::time
                                 AND ca2.id != a.id
                                 AND ca2.state NOT IN ('cancelled', 'no_show')
                         ) > 0 THEN TRUE
                         ELSE FALSE
                     END AS overbooking
                 FROM clinic_appointment a
+                JOIN calendar_event ce ON ce.id = a.calendar_event_id
                 LEFT JOIN clinic_patient p ON p.id = a.patient_id
-                LEFT JOIN clinic_staff s ON s.id = a.doctor_id
+                LEFT JOIN clinic_staff s ON s.id = a.staff_id
             )
         """ % self._table)
 

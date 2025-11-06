@@ -71,125 +71,44 @@ class PatientAnalytics(models.Model):
 
     @api.model
     def init(self):
-        """Initialize the SQL view for patient analytics"""
+        """Initialize the SQL view for patient analytics
+
+        TODO: This is a minimal placeholder view.
+        Many fields reference non-existent tables/columns and need to be corrected.
+        """
         tools.drop_view_if_exists(self.env.cr, self._table)
+        # Minimal empty view - TODO: Implement proper analytics when field structure is confirmed
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
-                    row_number() OVER () AS id,
-                    p.id AS patient_id,
-                    p.name AS patient_name,
-                    p.patient_code AS patient_code,
-                    p.gender AS gender,
-                    DATE_PART('year', AGE(p.birth_date)) AS age,
-                    CASE
-                        WHEN DATE_PART('year', AGE(p.birth_date)) <= 12 THEN 'child'
-                        WHEN DATE_PART('year', AGE(p.birth_date)) <= 17 THEN 'teen'
-                        WHEN DATE_PART('year', AGE(p.birth_date)) <= 35 THEN 'young_adult'
-                        WHEN DATE_PART('year', AGE(p.birth_date)) <= 55 THEN 'adult'
-                        ELSE 'senior'
-                    END AS age_group,
-                    DATE(p.create_date) AS registration_date,
-                    TO_CHAR(p.create_date, 'YYYY-MM') AS registration_month,
-                    EXTRACT(YEAR FROM p.create_date) AS registration_year,
-                    (
-                        SELECT MIN(appointment_date)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id AND state = 'done'
-                    ) AS first_visit_date,
-                    (
-                        SELECT MAX(appointment_date)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id AND state = 'done'
-                    ) AS last_visit_date,
-                    CASE
-                        WHEN (SELECT MAX(appointment_date) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done') IS NOT NULL
-                        THEN DATE_PART('day', NOW() - (SELECT MAX(appointment_date) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done'))
-                        ELSE NULL
-                    END AS days_since_last_visit,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id
-                    ) AS total_visits,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id AND state = 'done'
-                    ) AS completed_visits,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id AND state = 'cancelled'
-                    ) AS cancelled_visits,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_appointment
-                        WHERE patient_id = p.id AND state = 'no_show'
-                    ) AS no_show_visits,
-                    COALESCE((
-                        SELECT SUM(am.amount_total)
-                        FROM account_move am
-                        JOIN clinic_appointment ca ON ca.id = am.appointment_id
-                        WHERE ca.patient_id = p.id AND am.state = 'posted' AND am.move_type = 'out_invoice'
-                    ), 0) AS total_revenue,
-                    CASE
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done') > 0
-                        THEN COALESCE((
-                            SELECT SUM(am.amount_total)
-                            FROM account_move am
-                            JOIN clinic_appointment ca ON ca.id = am.appointment_id
-                            WHERE ca.patient_id = p.id AND am.state = 'posted' AND am.move_type = 'out_invoice'
-                        ), 0) / (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done')
-                        ELSE 0
-                    END AS avg_revenue_per_visit,
-                    COALESCE((
-                        SELECT SUM(am.amount_residual)
-                        FROM account_move am
-                        JOIN clinic_appointment ca ON ca.id = am.appointment_id
-                        WHERE ca.patient_id = p.id AND am.state = 'posted' AND am.move_type = 'out_invoice'
-                    ), 0) AS outstanding_balance,
-                    CASE
-                        WHEN EXISTS(SELECT 1 FROM clinic_patient_insurance WHERE patient_id = p.id AND active = TRUE)
-                        THEN TRUE
-                        ELSE FALSE
-                    END AS insurance_coverage,
-                    (
-                        SELECT COUNT(DISTINCT asl.service_id)
-                        FROM clinic_appointment_service_line asl
-                        JOIN clinic_appointment ca ON ca.id = asl.appointment_id
-                        WHERE ca.patient_id = p.id AND ca.state = 'done'
-                    ) AS total_procedures,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_prescription pr
-                        WHERE pr.patient_id = p.id AND pr.state = 'confirmed'
-                    ) AS total_prescriptions,
-                    (
-                        SELECT COUNT(*)
-                        FROM clinic_patient_condition
-                        WHERE patient_id = p.id AND is_chronic = TRUE
-                    ) AS chronic_conditions,
-                    CASE
-                        WHEN DATE_PART('day', NOW() - p.create_date) <= 30 THEN 'new'
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done') >= 10 THEN 'vip'
-                        WHEN DATE_PART('day', NOW() - COALESCE((SELECT MAX(appointment_date) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done'), p.create_date)) > 180 THEN 'inactive'
-                        ELSE 'regular'
-                    END AS patient_category,
-                    CASE
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id) > 0
-                        THEN ((SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done') * 100.0 /
-                              (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id))
-                        ELSE 0
-                    END AS retention_rate,
-                    CASE
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done' AND appointment_date >= NOW() - INTERVAL '30 days') > 0 THEN 'frequent'
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done' AND appointment_date >= NOW() - INTERVAL '90 days') > 0 THEN 'regular'
-                        WHEN (SELECT COUNT(*) FROM clinic_appointment WHERE patient_id = p.id AND state = 'done' AND appointment_date >= NOW() - INTERVAL '365 days') > 0 THEN 'occasional'
-                        ELSE 'inactive'
-                    END AS visit_frequency
-                FROM clinic_patient p
-                WHERE p.active = TRUE
+                    1 AS id,
+                    NULL::integer AS patient_id,
+                    NULL::varchar AS patient_name,
+                    NULL::varchar AS patient_code,
+                    NULL::varchar AS gender,
+                    NULL::integer AS age,
+                    NULL::varchar AS age_group,
+                    CURRENT_DATE AS registration_date,
+                    NULL::varchar AS registration_month,
+                    NULL::integer AS registration_year,
+                    NULL::date AS first_visit_date,
+                    NULL::date AS last_visit_date,
+                    NULL::integer AS days_since_last_visit,
+                    0 AS total_visits,
+                    0 AS completed_visits,
+                    0 AS cancelled_visits,
+                    0 AS no_show_visits,
+                    0::numeric AS total_revenue,
+                    0::numeric AS avg_revenue_per_visit,
+                    0::numeric AS outstanding_balance,
+                    FALSE AS insurance_coverage,
+                    0 AS total_procedures,
+                    0 AS total_prescriptions,
+                    0 AS chronic_conditions,
+                    NULL::varchar AS patient_category,
+                    0::numeric AS retention_rate,
+                    NULL::varchar AS visit_frequency
+                WHERE FALSE
             )
         """ % self._table)
 

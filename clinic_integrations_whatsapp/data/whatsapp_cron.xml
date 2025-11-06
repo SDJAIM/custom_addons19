@@ -9,10 +9,7 @@
             <field name="code">model.send_pending_messages()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">5</field>
-            <field name="interval_type">minutes</field>
-            <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="True"/>
+            <field name="interval_type">minutes</field>            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for appointment reminders -->
@@ -23,10 +20,7 @@
             <field name="code">model.send_appointment_reminders()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="True"/>
+            <field name="interval_type">hours</field>            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for retry failed messages -->
@@ -37,10 +31,7 @@
             <field name="code">model.retry_failed_messages()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">30</field>
-            <field name="interval_type">minutes</field>
-            <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="True"/>
+            <field name="interval_type">minutes</field>            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for cleaning old messages -->
@@ -51,11 +42,7 @@
             <field name="code">model.clean_old_messages(days=90)</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
-            <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="True"/>
+            <field name="interval_type">days</field>            <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for syncing template status -->
@@ -66,10 +53,7 @@
             <field name="code">model.sync_template_status()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">6</field>
-            <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
-            <field name="doall" eval="False"/>
-            <field name="active" eval="False"/>
+            <field name="interval_type">hours</field>            <field name="active" eval="False"/>
         </record>
     </data>
 </odoo>

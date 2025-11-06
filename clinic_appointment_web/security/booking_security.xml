@@ -3,7 +3,7 @@
     <record id="booking_request_portal_rule" model="ir.rule">
         <field name="name">Portal User: Own Booking Requests</field>
         <field name="model_id" ref="model_clinic_booking_request"/>
-        <field name="domain_force">[('email', '=', user.email)]</field>
+        <field name="domain_force">[('patient_email', '=', user.email)]</field>
         <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -11,13 +11,14 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Public users can create booking requests but not read/modify existing ones -->
     <record id="booking_request_public_rule" model="ir.rule">
-        <field name="name">Public User: Own Session Bookings</field>
+        <field name="name">Public User: Can Create Only</field>
         <field name="model_id" ref="model_clinic_booking_request"/>
-        <field name="domain_force">[('session_id', '=', session_id)]</field>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('base.group_public'))]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="False"/>
     </record>

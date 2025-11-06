@@ -89,9 +89,9 @@ class BookingRequest(models.Model):
     ], string='Service Type', required=True, tracking=True)
     
     service_id = fields.Many2one(
-        'clinic.service',
+        'product.product',
         string='Specific Service',
-        domain="[('service_type', '=', service_type)]"
+        domain="[('type', '=', 'service')]"
     )
     
     # Provider Selection

@@ -26,7 +26,7 @@ class WhatsAppBroadcastWizard(models.TransientModel):
     )
     message = fields.Text(
         string='Message',
-        related='template_id.body',
+        related='template_id.message_body',
         readonly=False
     )
 

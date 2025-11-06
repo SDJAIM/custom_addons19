@@ -543,16 +543,18 @@ class AppointmentServiceLine(models.Model):
     )
     
     service_id = fields.Many2one(
-        'clinic.service',
+        'product.product',
         string='Service',
-        required=True
+        required=True,
+        domain=[('type', '=', 'service')]
     )
     
     product_id = fields.Many2one(
         'product.product',
         string='Product',
-        related='service_id.product_id',
-        store=True
+        related='service_id',
+        store=True,
+        readonly=True
     )
     
     description = fields.Text(

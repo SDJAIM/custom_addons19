@@ -23,8 +23,9 @@ class ClaimLine(models.Model):
     
     # Service Information
     service_id = fields.Many2one(
-        'clinic.service',
-        string='Service'
+        'product.product',
+        string='Service',
+        domain=[('type', '=', 'service')]
     )
     
     procedure_code = fields.Char(
@@ -158,9 +159,11 @@ class ClaimLine(models.Model):
     @api.onchange('service_id')
     def _onchange_service_id(self):
         if self.service_id:
-            self.description = self.service_id.description
+            self.description = self.service_id.name
             self.unit_price = self.service_id.list_price
-            self.procedure_code = self.service_id.procedure_code
+            # procedure_code would need to be a custom field on product.product
+            if hasattr(self.service_id, 'procedure_code'):
+                self.procedure_code = self.service_id.procedure_code
     
     @api.onchange('is_denied')
     def _onchange_is_denied(self):

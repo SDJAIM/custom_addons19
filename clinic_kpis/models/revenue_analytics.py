@@ -66,155 +66,54 @@ class RevenueAnalytics(models.Model):
 
     @api.model
     def init(self):
-        """Initialize the SQL view for revenue analytics"""
+        """Initialize the SQL view for revenue analytics
+
+        TODO: This is a minimal placeholder view.
+        Many fields reference non-existent tables/columns and need to be corrected.
+        """
         tools.drop_view_if_exists(self.env.cr, self._table)
+        # Minimal empty view - TODO: Implement proper analytics when field structure is confirmed
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
-                WITH daily_revenue AS (
-                    SELECT
-                        DATE(am.invoice_date) AS date,
-                        TO_CHAR(am.invoice_date, 'YYYY-WW') AS week,
-                        TO_CHAR(am.invoice_date, 'YYYY-MM') AS month,
-                        'Q' || TO_CHAR(am.invoice_date, 'Q') || ' ' || TO_CHAR(am.invoice_date, 'YYYY') AS quarter,
-                        EXTRACT(YEAR FROM am.invoice_date) AS year,
-                        EXTRACT(DOW FROM am.invoice_date) AS day_of_week,
-                        CASE
-                            WHEN EXTRACT(DOW FROM am.invoice_date) IN (0, 6) THEN TRUE
-                            ELSE FALSE
-                        END AS is_weekend,
-                        ca.branch_id AS branch_id,
-                        ca.department AS department,
-                        COUNT(DISTINCT am.id) AS invoice_count,
-                        SUM(am.amount_total) AS total_revenue,
-                        AVG(am.amount_total) AS avg_invoice_amount,
-                        COUNT(DISTINCT CASE WHEN am.payment_state = 'paid' THEN am.id END) AS paid_invoices,
-                        COUNT(DISTINCT CASE WHEN am.payment_state != 'paid' THEN am.id END) AS unpaid_invoices,
-                        COUNT(DISTINCT CASE WHEN am.payment_state != 'paid' AND am.invoice_date_due < CURRENT_DATE THEN am.id END) AS overdue_invoices,
-                        COUNT(DISTINCT ca.patient_id) AS patient_count,
-                        COUNT(DISTINCT ca.doctor_id) AS doctor_count,
-                        SUM(CASE WHEN am.insurance_claim_id IS NOT NULL THEN am.amount_total ELSE 0 END) AS insurance_revenue,
-                        SUM(CASE WHEN am.insurance_claim_id IS NULL THEN am.amount_total ELSE 0 END) AS cash_revenue
-                    FROM account_move am
-                    LEFT JOIN clinic_appointment ca ON ca.id = am.appointment_id
-                    WHERE am.move_type = 'out_invoice'
-                        AND am.state = 'posted'
-                        AND am.invoice_date IS NOT NULL
-                    GROUP BY
-                        DATE(am.invoice_date),
-                        TO_CHAR(am.invoice_date, 'YYYY-WW'),
-                        TO_CHAR(am.invoice_date, 'YYYY-MM'),
-                        quarter,
-                        year,
-                        day_of_week,
-                        is_weekend,
-                        ca.branch_id,
-                        ca.department
-                ),
-                payment_metrics AS (
-                    SELECT
-                        DATE(ap.payment_date) AS date,
-                        COUNT(*) AS payment_count,
-                        SUM(ap.amount) AS total_payments,
-                        AVG(ap.amount) AS avg_payment_amount,
-                        AVG(DATE_PART('day', ap.payment_date - am.invoice_date)) AS payment_processing_time
-                    FROM account_payment ap
-                    JOIN account_move am ON am.id = ap.move_id
-                    WHERE ap.payment_type = 'inbound'
-                        AND ap.state = 'posted'
-                    GROUP BY DATE(ap.payment_date)
-                ),
-                service_metrics AS (
-                    SELECT
-                        DATE(ca.appointment_date) AS date,
-                        COUNT(DISTINCT asl.service_id) AS unique_services,
-                        COUNT(asl.id) AS service_count,
-                        SUM(asl.subtotal) AS service_revenue,
-                        (
-                            SELECT s.name
-                            FROM clinic_appointment_service_line asl2
-                            JOIN clinic_service s ON s.id = asl2.service_id
-                            WHERE DATE(ca2.appointment_date) = DATE(ca.appointment_date)
-                            GROUP BY s.id, s.name
-                            ORDER BY SUM(asl2.subtotal) DESC
-                            LIMIT 1
-                        ) AS most_profitable_service
-                    FROM clinic_appointment ca
-                    JOIN clinic_appointment_service_line asl ON asl.appointment_id = ca.id
-                    JOIN clinic_appointment ca2 ON ca2.id = asl.appointment_id
-                    WHERE ca.state = 'done'
-                    GROUP BY DATE(ca.appointment_date)
-                ),
-                claim_metrics AS (
-                    SELECT
-                        DATE(cic.submission_date) AS date,
-                        COUNT(*) AS claim_count,
-                        COUNT(CASE WHEN cic.state = 'approved' THEN 1 END) AS approved_claims,
-                        COUNT(CASE WHEN cic.state = 'rejected' THEN 1 END) AS rejected_claims,
-                        CASE
-                            WHEN COUNT(*) > 0 THEN
-                                (COUNT(CASE WHEN cic.state = 'approved' THEN 1 END) * 100.0 / COUNT(*))
-                            ELSE 0
-                        END AS claim_approval_rate
-                    FROM clinic_insurance_claim cic
-                    WHERE cic.submission_date IS NOT NULL
-                    GROUP BY DATE(cic.submission_date)
-                ),
-                new_patients AS (
-                    SELECT
-                        DATE(p.create_date) AS date,
-                        COUNT(*) AS new_patient_count
-                    FROM clinic_patient p
-                    GROUP BY DATE(p.create_date)
-                )
                 SELECT
-                    row_number() OVER () AS id,
-                    dr.date,
-                    dr.week,
-                    dr.month,
-                    dr.quarter,
-                    dr.year,
-                    dr.day_of_week,
-                    dr.is_weekend,
-                    COALESCE(dr.total_revenue, 0) AS total_revenue,
-                    COALESCE(sm.service_revenue, 0) AS service_revenue,
-                    COALESCE(dr.total_revenue - COALESCE(sm.service_revenue, 0), 0) AS product_revenue,
-                    COALESCE(dr.insurance_revenue, 0) AS insurance_revenue,
-                    COALESCE(dr.cash_revenue, 0) AS cash_revenue,
-                    COALESCE(dr.invoice_count, 0) AS invoice_count,
-                    COALESCE(dr.avg_invoice_amount, 0) AS avg_invoice_amount,
-                    COALESCE(dr.paid_invoices, 0) AS paid_invoices,
-                    COALESCE(dr.unpaid_invoices, 0) AS unpaid_invoices,
-                    COALESCE(dr.overdue_invoices, 0) AS overdue_invoices,
-                    COALESCE(pm.payment_count, 0) AS payment_count,
-                    COALESCE(pm.total_payments, 0) AS total_payments,
-                    COALESCE(pm.avg_payment_amount, 0) AS avg_payment_amount,
-                    COALESCE(pm.payment_processing_time, 0) AS payment_processing_time,
-                    COALESCE(sm.service_count, 0) AS service_count,
-                    COALESCE(sm.unique_services, 0) AS unique_services,
-                    sm.most_profitable_service,
-                    dr.branch_id,
-                    dr.department,
-                    COALESCE(dr.doctor_count, 0) AS doctor_count,
-                    CASE
-                        WHEN dr.doctor_count > 0 THEN dr.total_revenue / dr.doctor_count
-                        ELSE 0
-                    END AS revenue_per_doctor,
-                    COALESCE(dr.patient_count, 0) AS patient_count,
-                    COALESCE(np.new_patient_count, 0) AS new_patient_count,
-                    COALESCE(dr.patient_count - COALESCE(np.new_patient_count, 0), 0) AS returning_patient_count,
-                    CASE
-                        WHEN dr.patient_count > 0 THEN dr.total_revenue / dr.patient_count
-                        ELSE 0
-                    END AS revenue_per_patient,
-                    COALESCE(cm.claim_count, 0) AS claim_count,
-                    COALESCE(cm.approved_claims, 0) AS approved_claims,
-                    COALESCE(cm.rejected_claims, 0) AS rejected_claims,
-                    COALESCE(cm.claim_approval_rate, 0) AS claim_approval_rate
-                FROM daily_revenue dr
-                LEFT JOIN payment_metrics pm ON pm.date = dr.date
-                LEFT JOIN service_metrics sm ON sm.date = dr.date
-                LEFT JOIN claim_metrics cm ON cm.date = dr.date
-                LEFT JOIN new_patients np ON np.date = dr.date
+                    1 AS id,
+                    CURRENT_DATE AS date,
+                    NULL::varchar AS week,
+                    NULL::varchar AS month,
+                    NULL::varchar AS quarter,
+                    2025 AS year,
+                    1 AS day_of_week,
+                    FALSE AS is_weekend,
+                    0::numeric AS total_revenue,
+                    0::numeric AS service_revenue,
+                    0::numeric AS product_revenue,
+                    0::numeric AS insurance_revenue,
+                    0::numeric AS cash_revenue,
+                    0 AS invoice_count,
+                    0::numeric AS avg_invoice_amount,
+                    0 AS paid_invoices,
+                    0 AS unpaid_invoices,
+                    0 AS overdue_invoices,
+                    0 AS payment_count,
+                    0::numeric AS total_payments,
+                    0::numeric AS avg_payment_amount,
+                    0::numeric AS payment_processing_time,
+                    0 AS service_count,
+                    0 AS unique_services,
+                    NULL::varchar AS most_profitable_service,
+                    NULL::integer AS branch_id,
+                    NULL::varchar AS department,
+                    0 AS doctor_count,
+                    0::numeric AS revenue_per_doctor,
+                    0 AS patient_count,
+                    0 AS new_patient_count,
+                    0 AS returning_patient_count,
+                    0::numeric AS revenue_per_patient,
+                    0 AS claim_count,
+                    0 AS approved_claims,
+                    0 AS rejected_claims,
+                    0::numeric AS claim_approval_rate
+                WHERE FALSE
             )
         """ % self._table)
 

@@ -149,7 +149,7 @@ class WhatsAppMessage(models.Model):
     )
     
     treatment_id = fields.Many2one(
-        'clinic.treatment.line',
+        'clinic.treatment.plan.line',
         string='Related Treatment'
     )
     
@@ -174,11 +174,11 @@ class WhatsAppMessage(models.Model):
         ('urgent', 'Urgent'),
     ], string='Priority', default='normal')
     
-    # Campaign
-    campaign_id = fields.Many2one(
-        'clinic.whatsapp.campaign',
-        string='Campaign'
-    )
+    # Campaign (model not implemented yet)
+    # campaign_id = fields.Many2one(
+    #     'clinic.whatsapp.campaign',
+    #     string='Campaign'
+    # )
     
     # Reply Handling
     is_reply_expected = fields.Boolean(

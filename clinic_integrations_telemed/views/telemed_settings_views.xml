@@ -14,7 +14,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Video Platform" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Video Platform</span>
                                 <div class="col-lg-9">
                                     <field name="telemed_platform" widget="radio"/>
                                     <div class="text-muted">
@@ -32,12 +32,12 @@
                     </div>
 
                     <!-- Zoom Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('telemed_platform', '!=', 'zoom')]}">
+                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'zoom'">
                         <div class="o_setting_left_pane">
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Zoom Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Zoom Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure your Zoom API credentials
@@ -60,12 +60,12 @@
                     </div>
 
                     <!-- Google Meet Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('telemed_platform', '!=', 'google_meet')]}">
+                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'google_meet'">
                         <div class="o_setting_left_pane">
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Google Meet Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Google Meet Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure your Google OAuth credentials
@@ -88,12 +88,12 @@
                     </div>
 
                     <!-- Microsoft Teams Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('telemed_platform', '!=', 'teams')]}">
+                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'teams'">
                         <div class="o_setting_left_pane">
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Microsoft Teams Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Microsoft Teams Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure your Microsoft Teams app credentials
@@ -116,12 +116,12 @@
                     </div>
 
                     <!-- Jitsi Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('telemed_platform', '!=', 'jitsi')]}">
+                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'jitsi'">
                         <div class="o_setting_left_pane">
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Jitsi Meet Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Jitsi Meet Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure Jitsi Meet domain and authentication (optional)
@@ -144,12 +144,12 @@
                     </div>
 
                     <!-- Custom Platform Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('telemed_platform', '!=', 'custom')]}">
+                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'custom'">
                         <div class="o_setting_left_pane">
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Custom Platform Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Custom Platform Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure your custom video platform API
@@ -177,7 +177,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Session Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Session Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure default session settings
@@ -205,7 +205,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Security Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Security Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure security and access settings
@@ -229,7 +229,7 @@
                         </div>
                         <div class="o_setting_right_pane">
                             <div class="row">
-                                <label string="Notification Configuration" class="col-lg-3 o_light_label"/>
+                                <span class="col-lg-3 o_form_label">Notification Configuration</span>
                                 <div class="col-lg-9">
                                     <div class="text-muted">
                                         Configure invitation and reminder settings
@@ -261,7 +261,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">clinic.telemed.settings</field>
         <field name="view_mode">form</field>
-        <field name="target">inline</field>
+        <field name="target">current</field>
         <field name="context">{'module': 'clinic_integrations_telemed'}</field>
     </record>
 

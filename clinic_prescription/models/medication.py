@@ -472,20 +472,115 @@ class Medication(models.Model):
     def get_fefo_lot(self, quantity):
         """Get the lot to use based on FEFO (First Expired, First Out)"""
         self.ensure_one()
-        
+
         if not self.product_id:
             return False
-        
-        # Get all lots with available quantity, ordered by expiry date
+
+        # Get all lots with available quantity
         lots = self.env['stock.lot'].search([
             ('product_id', '=', self.product_id.id),
             ('product_qty', '>', 0),
-        ]).sorted('expiration_date')
-        
+        ])
+
+        # Sort by expiration date using fallback (life_date, use_date, removal_date, alert_date)
+        lots_with_dates = []
         for lot in lots:
+            exp_date = self._get_lot_expiration_date(lot)
+            if exp_date:
+                lots_with_dates.append((lot, exp_date))
+
+        # Sort by expiration date (FEFO - First Expired, First Out)
+        lots_with_dates.sort(key=lambda x: x[1])
+
+        for lot, exp_date in lots_with_dates:
             if lot.product_qty >= quantity:
                 return lot
-        
+
+        return False
+
+    def get_fefo_lots(self, required_quantity, location_id=None):
+        """
+        Get FEFO lots for dispensing (can span multiple lots if needed).
+
+        Args:
+            required_quantity: Total quantity needed
+            location_id: Optional location ID to filter lots
+
+        Returns:
+            List of dicts with 'lot_id', 'quantity', and 'expiration_date'
+        """
+        self.ensure_one()
+
+        if not self.product_id:
+            return []
+
+        # Build domain
+        domain = [
+            ('product_id', '=', self.product_id.id),
+            ('product_qty', '>', 0),
+        ]
+
+        if location_id:
+            domain.append(('location_id', '=', location_id))
+
+        # Get all lots with available quantity
+        lots = self.env['stock.lot'].search(domain)
+
+        # Sort by expiration date using fallback
+        lots_with_dates = []
+        for lot in lots:
+            exp_date = self._get_lot_expiration_date(lot)
+            if exp_date:
+                lots_with_dates.append((lot, exp_date))
+
+        # Sort by expiration date (FEFO - First Expired, First Out)
+        lots_with_dates.sort(key=lambda x: x[1])
+
+        # Allocate quantity across lots
+        result = []
+        remaining = required_quantity
+
+        for lot, exp_date in lots_with_dates:
+            if remaining <= 0:
+                break
+
+            available = lot.product_qty
+            take_qty = min(remaining, available)
+
+            if take_qty > 0:
+                result.append({
+                    'lot_id': lot,
+                    'quantity': take_qty,
+                    'expiration_date': exp_date,
+                })
+                remaining -= take_qty
+
+        return result
+
+    def _get_lot_expiration_date(self, lot):
+        """
+        Get expiration date from lot with fallback.
+
+        Tries fields in priority order:
+        1. life_date (end of life)
+        2. use_date (best before)
+        3. removal_date (remove from stock)
+        4. alert_date (alert date)
+
+        Returns: Date object or False
+        """
+        if not lot:
+            return False
+
+        preferred_fields = ('life_date', 'use_date', 'removal_date', 'alert_date')
+
+        for field_name in preferred_fields:
+            if field_name in lot._fields:
+                field_value = getattr(lot, field_name, False)
+                if field_value:
+                    # Convert Datetime to Date if needed
+                    return fields.Date.to_date(field_value) if field_value else False
+
         return False
     
     @api.model

@@ -4,12 +4,8 @@
         <!-- Appointment Reminder Template -->
         <record id="whatsapp_template_appointment_reminder" model="clinic.whatsapp.template">
             <field name="name">Appointment Reminder</field>
-            <field name="template_type">appointment_reminder</field>
-            <field name="category">UTILITY</field>
-            <field name="language">en_US</field>
-            <field name="header_type">text</field>
-            <field name="header_text">Appointment Reminder</field>
-            <field name="body_text">Hi {{1}},
+            <field name="template_type">appointment_reminder</field>            <field name="language_code">en_US</field>
+            <field name="message_body">Hi {{1}},
 
 This is a reminder about your appointment at {{2}} on {{3}} at {{4}}.
 
@@ -19,20 +15,14 @@ Location: {{6}}
 Please arrive 10 minutes early for check-in.
 
 Reply CONFIRM to confirm or CANCEL to cancel your appointment.</field>
-            <field name="footer_text">Thank you for choosing our clinic</field>
-            <field name="status">draft</field>
             <field name="active">True</field>
         </record>
 
         <!-- Appointment Confirmation Template -->
         <record id="whatsapp_template_appointment_confirmation" model="clinic.whatsapp.template">
             <field name="name">Appointment Confirmation</field>
-            <field name="template_type">appointment_confirmation</field>
-            <field name="category">UTILITY</field>
-            <field name="language">en_US</field>
-            <field name="header_type">text</field>
-            <field name="header_text">Appointment Confirmed</field>
-            <field name="body_text">Dear {{1}},
+            <field name="template_type">appointment_confirmation</field>            <field name="language_code">en_US</field>
+            <field name="message_body">Dear {{1}},
 
 Your appointment has been confirmed:
 
@@ -44,20 +34,14 @@ Department: {{5}}
 Please bring your insurance card and any relevant medical records.
 
 If you need to reschedule, please call us at {{6}}.</field>
-            <field name="footer_text">We look forward to seeing you</field>
-            <field name="status">draft</field>
             <field name="active">True</field>
         </record>
 
         <!-- Prescription Reminder Template -->
         <record id="whatsapp_template_prescription_reminder" model="clinic.whatsapp.template">
             <field name="name">Prescription Reminder</field>
-            <field name="template_type">prescription_reminder</field>
-            <field name="category">UTILITY</field>
-            <field name="language">en_US</field>
-            <field name="header_type">text</field>
-            <field name="header_text">Medication Reminder</field>
-            <field name="body_text">Hi {{1}},
+            <field name="template_type">prescription_reminder</field>            <field name="language_code">en_US</field>
+            <field name="message_body">Hi {{1}},
 
 This is a reminder to take your medication:
 
@@ -68,20 +52,14 @@ Frequency: {{4}}
 Please follow the prescribed schedule for best results.
 
 If you experience any side effects, contact your doctor immediately.</field>
-            <field name="footer_text">Stay healthy!</field>
-            <field name="status">draft</field>
             <field name="active">True</field>
         </record>
 
         <!-- Lab Results Ready Template -->
         <record id="whatsapp_template_lab_results" model="clinic.whatsapp.template">
             <field name="name">Lab Results Ready</field>
-            <field name="template_type">lab_results</field>
-            <field name="category">UTILITY</field>
-            <field name="language">en_US</field>
-            <field name="header_type">text</field>
-            <field name="header_text">Lab Results Available</field>
-            <field name="body_text">Dear {{1}},
+            <field name="template_type">general</field>            <field name="language_code">en_US</field>
+            <field name="message_body">Dear {{1}},
 
 Your lab results from {{2}} are now available.
 
@@ -94,20 +72,14 @@ You can:
 - Schedule a follow-up appointment to discuss results
 
 For questions, please contact us at {{5}}.</field>
-            <field name="footer_text">Your health is our priority</field>
-            <field name="status">draft</field>
             <field name="active">True</field>
         </record>
 
         <!-- Welcome Message Template -->
         <record id="whatsapp_template_welcome" model="clinic.whatsapp.template">
             <field name="name">Welcome Message</field>
-            <field name="template_type">welcome</field>
-            <field name="category">MARKETING</field>
-            <field name="language">en_US</field>
-            <field name="header_type">text</field>
-            <field name="header_text">Welcome to Our Clinic</field>
-            <field name="body_text">Dear {{1}},
+            <field name="template_type">general</field>            <field name="language_code">en_US</field>
+            <field name="message_body">Dear {{1}},
 
 Welcome to {{2}}!
 
@@ -120,8 +92,6 @@ You can now:
 ✓ Get prescription refill notifications
 
 For assistance, reply HELP or call us at {{3}}.</field>
-            <field name="footer_text">Your trusted healthcare partner</field>
-            <field name="status">draft</field>
             <field name="active">True</field>
         </record>
     </data>

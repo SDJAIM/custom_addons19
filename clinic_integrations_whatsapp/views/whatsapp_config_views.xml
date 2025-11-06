@@ -7,10 +7,9 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="account_id"/>
-                <field name="api_key"/>
-                <field name="webhook_url"/>
-                <field name="active"/>
+                <field name="api_url"/>
+                <field name="phone_number"/>
+                <field name="migrated_to_config_params"/>
             </list>
         </field>
     </record>
@@ -29,35 +28,14 @@
                     </div>
                     <group>
                         <group string="API Configuration">
-                            <field name="account_id" placeholder="WhatsApp Business Account ID"/>
-                            <field name="api_key" password="True"/>
-                            <field name="api_base_url"/>
-                            <field name="webhook_url"/>
-                            <field name="webhook_token" password="True"/>
+                            <field name="api_url"/>
+                            <field name="api_token" password="True"/>
+                            <field name="phone_number"/>
                         </group>
                         <group string="Settings">
-                            <field name="active"/>
-                            <field name="default_country_code"/>
-                            <field name="retry_attempts"/>
-                            <field name="retry_delay"/>
+                            <field name="migrated_to_config_params"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Rate Limiting">
-                            <group>
-                                <field name="rate_limit_enabled"/>
-                                <field name="rate_limit_messages" attrs="{'invisible': [('rate_limit_enabled', '=', False)]}"/>
-                                <field name="rate_limit_window" attrs="{'invisible': [('rate_limit_enabled', '=', False)]}"/>
-                            </group>
-                        </page>
-                        <page string="Logging">
-                            <group>
-                                <field name="log_messages"/>
-                                <field name="log_errors"/>
-                                <field name="debug_mode"/>
-                            </group>
-                        </page>
-                    </notebook>
                 </sheet>
             </form>
         </field>

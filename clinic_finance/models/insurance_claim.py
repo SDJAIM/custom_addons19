@@ -31,18 +31,18 @@ class InsuranceClaim(models.Model):
         required=True,
         tracking=True,
         index=True,
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)], 
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        readonly=True,
+        states={'draft': [('readonly', False)]}
     )
-    
+
     policy_id = fields.Many2one(
         'clinic.insurance.policy',
         string='Insurance Policy',
         required=True,
         tracking=True,
         domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]",
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        readonly=True,
+        states={'draft': [('readonly', False)]}
     )
     
     insurance_company_id = fields.Many2one(
@@ -73,28 +73,28 @@ class InsuranceClaim(models.Model):
         'clinic.appointment',
         string='Appointment',
         tracking=True,
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        readonly=True,
+        states={'draft': [('readonly', False)]}
     )
-    
+
     invoice_id = fields.Many2one(
         'clinic.invoice',
         string='Invoice',
         tracking=True
     )
-    
+
     treatment_ids = fields.Many2many(
-        'clinic.treatment.line',
+        'clinic.treatment.plan.line',
         string='Treatments',
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        readonly=True,
+        states={'draft': [('readonly', False)]}
     )
-    
+
     prescription_ids = fields.Many2many(
         'clinic.prescription',
         string='Prescriptions',
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        readonly=True,
+        states={'draft': [('readonly', False)]}
     )
     
     # Service Information

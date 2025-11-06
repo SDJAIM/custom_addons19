@@ -5,12 +5,12 @@
         <field name="name">clinic.whatsapp.message.tree</field>
         <field name="model">clinic.whatsapp.message</field>
         <field name="arch" type="xml">
-            <list decoration-success="status == 'sent'" decoration-danger="status == 'failed'" decoration-warning="status == 'pending'">
+            <list decoration-success="state == 'sent'" decoration-danger="state == 'failed'" decoration-warning="state == 'pending'">
                 <field name="create_date" string="Date"/>
                 <field name="phone_number"/>
                 <field name="message_type"/>
                 <field name="template_id" optional="hide"/>
-                <field name="status"/>
+                <field name="state"/>
                 <field name="direction"/>
                 <field name="patient_id" optional="show"/>
             </list>
@@ -24,7 +24,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <field name="status" widget="statusbar" statusbar_visible="pending,queued,sent,delivered"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,queued,sent,delivered"/>
                 </header>
                 <sheet>
                     <group>
@@ -33,11 +33,11 @@
                             <field name="patient_id"/>
                             <field name="direction"/>
                             <field name="message_type"/>
-                            <field name="template_id" attrs="{'invisible': [('message_type', '!=', 'template')]}"/>
+                            <field name="template_id" invisible="message_type != 'template'"/>
                         </group>
                         <group string="Status">
-                            <field name="status"/>
-                            <field name="whatsapp_message_id"/>
+                            <field name="state"/>
+                            <field name="message_id"/>
                             <field name="sent_date"/>
                             <field name="delivered_date"/>
                             <field name="read_date"/>
@@ -46,10 +46,9 @@
                     <group string="Content">
                         <field name="message_body" nolabel="1"/>
                     </group>
-                    <group string="Error Information" attrs="{'invisible': [('status', '!=', 'failed')]}">
+                    <group string="Error Information" invisible="state != 'failed'">
                         <field name="error_message" nolabel="1" readonly="1"/>
                         <field name="retry_count"/>
-                        <field name="last_retry_date"/>
                     </group>
                 </sheet>
             </form>
@@ -64,18 +63,18 @@
             <search>
                 <field name="phone_number"/>
                 <field name="patient_id"/>
-                <filter string="Sent" name="sent" domain="[('status', '=', 'sent')]"/>
-                <filter string="Failed" name="failed" domain="[('status', '=', 'failed')]"/>
-                <filter string="Pending" name="pending" domain="[('status', '=', 'pending')]"/>
                 <separator/>
-                <filter string="Incoming" name="incoming" domain="[('direction', '=', 'incoming')]"/>
-                <filter string="Outgoing" name="outgoing" domain="[('direction', '=', 'outgoing')]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
-                    <filter string="Type" name="group_type" context="{'group_by': 'message_type'}"/>
-                    <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
-                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
-                </group>
+                <filter string="Sent" name="sent" domain="[('state', '=', 'sent')]"/>
+                <filter string="Failed" name="failed" domain="[('state', '=', 'failed')]"/>
+                <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
+                <separator/>
+                <filter string="Inbound" name="inbound" domain="[('direction', '=', 'inbound')]"/>
+                <filter string="Outbound" name="outbound" domain="[('direction', '=', 'outbound')]"/>
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
+                <filter string="Type" name="group_type" context="{'group_by': 'message_type'}"/>
+                <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
             </search>
         </field>
     </record>
