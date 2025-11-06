@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- View Appointment (Token) -->
+    <!-- ======================== -->
+    <template id="appointment_view" name="View Appointment">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <div class="card shadow-sm">
+                                <div class="card-body p-4">
+                                    <h1 class="mb-4">
+                                        <i class="fa fa-calendar"/>
+                                        Your Appointment
+                                    </h1>
+
+                                    <div class="card bg-light mb-4">
+                                        <div class="card-body">
+                                            <h4 class="card-title">
+                                                <t t-esc="appointment.appointment_type_id.name"/>
+                                            </h4>
+                                            <hr/>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p>
+                                                        <i class="fa fa-calendar"/>
+                                                        <strong>Date:</strong><br/>
+                                                        <t t-esc="appointment.start.strftime('%A, %B %d, %Y')"/>
+                                                    </p>
+                                                    <p>
+                                                        <i class="fa fa-clock-o"/>
+                                                        <strong>Time:</strong><br/>
+                                                        <t t-esc="appointment.start.strftime('%H:%M')"/> -
+                                                        <t t-esc="appointment.stop.strftime('%H:%M')"/>
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p>
+                                                        <i class="fa fa-user-md"/>
+                                                        <strong>Staff:</strong><br/>
+                                                        <t t-esc="appointment.staff_id.name"/>
+                                                    </p>
+                                                    <p>
+                                                        <i class="fa fa-info-circle"/>
+                                                        <strong>Status:</strong><br/>
+                                                        <span class="badge badge-info">
+                                                            <t t-esc="appointment.stage_id.name"/>
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <p class="mb-0">
+                                                <small class="text-muted">
+                                                    Confirmation #<t t-esc="appointment.appointment_number"/>
+                                                </small>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Patient Info -->
+                                    <div class="mb-4">
+                                        <h5>Contact Information</h5>
+                                        <p>
+                                            <strong>Name:</strong> <t t-esc="appointment.patient_id.name"/><br/>
+                                            <strong>Email:</strong> <t t-esc="appointment.patient_email"/><br/>
+                                            <strong>Phone:</strong> <t t-esc="appointment.patient_phone or 'Not provided'"/>
+                                        </p>
+                                    </div>
+
+                                    <!-- Questionnaire Answers -->
+                                    <t t-if="appointment.questionnaire_answer_ids">
+                                        <div class="mb-4">
+                                            <h5>Additional Information</h5>
+                                            <t t-foreach="appointment.questionnaire_answer_ids" t-as="answer">
+                                                <p>
+                                                    <strong><t t-esc="answer.question_name"/>:</strong><br/>
+                                                    <t t-esc="answer.answer_text"/>
+                                                </p>
+                                            </t>
+                                        </div>
+                                    </t>
+
+                                    <!-- Actions -->
+                                    <hr/>
+                                    <div class="text-center">
+                                        <t t-if="appointment.state not in ['cancelled', 'done', 'no_show']">
+                                            <a t-if="appointment.appointment_type_id.allow_reschedule"
+                                               t-attf-href="/appointment/reschedule/#{appointment.id}/#{appointment.access_token}"
+                                               class="btn btn-warning">
+                                                <i class="fa fa-refresh"/>
+                                                Reschedule
+                                            </a>
+                                            <a t-if="appointment.appointment_type_id.allow_cancel"
+                                               t-attf-href="/appointment/cancel/#{appointment.id}/#{appointment.access_token}"
+                                               class="btn btn-danger">
+                                                <i class="fa fa-times"/>
+                                                Cancel
+                                            </a>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="alert alert-info">
+                                                This appointment cannot be modified.
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Reschedule Page -->
+    <!-- ======================== -->
+    <template id="appointment_reschedule" name="Reschedule Appointment">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-12">
+                            <h1 class="mb-4">
+                                <i class="fa fa-refresh"/>
+                                Reschedule Appointment
+                            </h1>
+
+                            <div class="alert alert-info">
+                                <strong>Current appointment:</strong>
+                                <t t-esc="appointment.start.strftime('%A, %B %d, %Y at %H:%M')"/>
+                            </div>
+
+                            <h4 class="mt-4 mb-3">Select New Date &amp; Time</h4>
+                        </div>
+                    </div>
+
+                    <!-- New Slots -->
+                    <div class="row">
+                        <div class="col-12">
+                            <t t-if="not slots_by_date">
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-exclamation-triangle"/>
+                                    No available slots found for rescheduling.
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <div class="accordion" id="rescheduleAccordion">
+                                    <t t-foreach="slots_by_date" t-as="date">
+                                        <div class="card mb-2">
+                                            <div class="card-header" t-attf-id="heading_#{date_index}">
+                                                <h5 class="mb-0">
+                                                    <button class="btn btn-link" type="button"
+                                                            data-toggle="collapse"
+                                                            t-attf-data-target="#collapse_#{date_index}">
+                                                        <i class="fa fa-calendar-o"/>
+                                                        <t t-esc="date.strftime('%A, %B %d, %Y')"/>
+                                                        <span class="badge badge-primary ml-2">
+                                                            <t t-esc="len(slots_by_date[date])"/> slots
+                                                        </span>
+                                                    </button>
+                                                </h5>
+                                            </div>
+                                            <div t-attf-id="collapse_#{date_index}"
+                                                 class="collapse"
+                                                 t-att-class="'show' if date_index == 0 else ''"
+                                                 t-attf-data-parent="#rescheduleAccordion">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <t t-foreach="slots_by_date[date]" t-as="slot">
+                                                            <div class="col-md-3 col-sm-6 mb-3">
+                                                                <form method="post"
+                                                                      t-attf-action="/appointment/reschedule/#{appointment.id}/#{appointment.access_token}/confirm">
+                                                                    <input type="hidden" name="csrf_token"
+                                                                           t-att-value="request.csrf_token()"/>
+                                                                    <input type="hidden" name="new_start"
+                                                                           t-att-value="slot['start'].isoformat()"/>
+                                                                    <input type="hidden" name="new_end"
+                                                                           t-att-value="slot['end'].isoformat()"/>
+                                                                    <button type="submit"
+                                                                            class="btn btn-outline-success btn-block">
+                                                                        <i class="fa fa-clock-o"/>
+                                                                        <t t-esc="slot['start'].strftime('%H:%M')"/>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+
+                            <div class="mt-4 text-center">
+                                <a t-attf-href="/appointment/view/#{appointment.id}/#{appointment.access_token}"
+                                   class="btn btn-link">
+                                    <i class="fa fa-arrow-left"/>
+                                    Back to Appointment
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Cancel Confirmation -->
+    <!-- ======================== -->
+    <template id="appointment_cancel_confirm" name="Cancel Appointment Confirmation">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3">
+                            <div class="card shadow-sm border-danger">
+                                <div class="card-body p-4">
+                                    <h1 class="text-danger mb-4">
+                                        <i class="fa fa-exclamation-triangle"/>
+                                        Cancel Appointment?
+                                    </h1>
+
+                                    <div class="alert alert-warning">
+                                        <strong>Are you sure you want to cancel this appointment?</strong>
+                                    </div>
+
+                                    <div class="card bg-light mb-4">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <t t-esc="appointment.appointment_type_id.name"/>
+                                            </h5>
+                                            <p class="card-text">
+                                                <i class="fa fa-calendar"/>
+                                                <t t-esc="appointment.start.strftime('%A, %B %d, %Y')"/>
+                                                <br/>
+                                                <i class="fa fa-clock-o"/>
+                                                <t t-esc="appointment.start.strftime('%H:%M')"/> -
+                                                <t t-esc="appointment.stop.strftime('%H:%M')"/>
+                                                <br/>
+                                                <i class="fa fa-user-md"/>
+                                                <t t-esc="appointment.staff_id.name"/>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-muted">
+                                        This action cannot be undone. You will receive a cancellation confirmation email.
+                                    </p>
+
+                                    <div class="text-center">
+                                        <form method="post">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <button type="submit" class="btn btn-danger btn-lg">
+                                                <i class="fa fa-times"/>
+                                                Yes, Cancel Appointment
+                                            </button>
+                                            <a t-attf-href="/appointment/view/#{appointment.id}/#{appointment.access_token}"
+                                               class="btn btn-link">
+                                                No, Keep Appointment
+                                            </a>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Cancelled Success -->
+    <!-- ======================== -->
+    <template id="appointment_cancelled" name="Appointment Cancelled">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3">
+                            <div class="card shadow-sm">
+                                <div class="card-body p-5 text-center">
+                                    <div class="mb-4">
+                                        <i class="fa fa-check-circle text-success" style="font-size: 72px;"/>
+                                    </div>
+
+                                    <h1 class="mb-4">Appointment Cancelled</h1>
+
+                                    <p class="lead mb-4">
+                                        Your appointment has been successfully cancelled.
+                                        A confirmation email has been sent to <strong><t t-esc="appointment.patient_email"/></strong>.
+                                    </p>
+
+                                    <div class="card bg-light mb-4">
+                                        <div class="card-body">
+                                            <p class="mb-0">
+                                                <strong>Cancelled:</strong>
+                                                <t t-esc="appointment.appointment_type_id.name"/>
+                                                <br/>
+                                                <t t-esc="appointment.start.strftime('%A, %B %d, %Y at %H:%M')"/>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-muted">
+                                        If you need to book a new appointment, please visit our booking page.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Action Not Allowed -->
+    <!-- ======================== -->
+    <template id="appointment_action_not_allowed" name="Action Not Allowed">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3 text-center">
+                            <i class="fa fa-ban text-danger" style="font-size: 72px;"/>
+                            <h1 class="mt-4">Action Not Allowed</h1>
+                            <p class="lead">
+                                <t t-esc="message or 'This action is not allowed for this appointment.'"/>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

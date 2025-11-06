@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Booking Start Page -->
+    <!-- ======================== -->
+    <template id="appointment_booking_start" name="Appointment Booking Start">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <section class="container mt-5">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <div class="card shadow-sm">
+                                <div class="card-body p-5">
+                                    <h1 class="mb-4">
+                                        <i class="fa fa-calendar-check-o text-primary"/>
+                                        <t t-esc="appointment_type.name"/>
+                                    </h1>
+
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"/>
+                                        <strong>Duration:</strong>
+                                        <t t-esc="appointment_type.default_duration"/> hours
+                                    </div>
+
+                                    <div t-if="appointment_type.description" class="mb-4">
+                                        <t t-out="appointment_type.description"/>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <h5>Details</h5>
+                                        <ul class="list-unstyled">
+                                            <li>
+                                                <i class="fa fa-map-marker"/>
+                                                <strong>Location:</strong>
+                                                <t t-esc="appointment_type.meeting_mode"/>
+                                            </li>
+                                            <li t-if="appointment_type.min_notice_hours">
+                                                <i class="fa fa-clock-o"/>
+                                                <strong>Minimum notice:</strong>
+                                                <t t-esc="appointment_type.min_notice_hours"/> hours
+                                            </li>
+                                            <li t-if="appointment_type.allow_reschedule">
+                                                <i class="fa fa-refresh"/>
+                                                Rescheduling allowed
+                                            </li>
+                                            <li t-if="appointment_type.allow_cancel">
+                                                <i class="fa fa-times-circle"/>
+                                                Cancellation allowed
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a t-attf-href="/appointment/book/#{appointment_type.id}/slots"
+                                           class="btn btn-primary btn-lg">
+                                            <i class="fa fa-calendar"/>
+                                            Select Date &amp; Time
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Slots Selection Page -->
+    <!-- ======================== -->
+    <template id="appointment_booking_slots" name="Appointment Slots Selection">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-12">
+                            <h1 class="mb-4">
+                                <i class="fa fa-calendar"/>
+                                Select Date &amp; Time
+                            </h1>
+                            <h4 class="text-muted mb-4">
+                                <t t-esc="appointment_type.name"/>
+                            </h4>
+                        </div>
+                    </div>
+
+                    <!-- Staff Selection (if customer choice) -->
+                    <div t-if="staff_list" class="row mb-4">
+                        <div class="col-12">
+                            <h5>Select Staff Member</h5>
+                            <div class="btn-group" role="group">
+                                <a t-attf-href="/appointment/book/#{appointment_type.id}/slots?timezone=#{timezone}"
+                                   class="btn btn-outline-primary"
+                                   t-att-class="'active' if not selected_staff_id else ''">
+                                    All Staff
+                                </a>
+                                <t t-foreach="staff_list" t-as="staff">
+                                    <a t-attf-href="/appointment/book/#{appointment_type.id}/slots?timezone=#{timezone}&amp;staff_id=#{staff.id}"
+                                       class="btn btn-outline-primary"
+                                       t-att-class="'active' if selected_staff_id == staff.id else ''">
+                                        <t t-esc="staff.name"/>
+                                    </a>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slots by Date -->
+                    <div class="row">
+                        <div class="col-12">
+                            <t t-if="not slots_by_date">
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-exclamation-triangle"/>
+                                    No available slots found. Please try different dates or staff members.
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <div class="accordion" id="slotsAccordion">
+                                    <t t-foreach="slots_by_date" t-as="date">
+                                        <div class="card mb-2">
+                                            <div class="card-header" t-attf-id="heading_#{date_index}">
+                                                <h5 class="mb-0">
+                                                    <button class="btn btn-link" type="button"
+                                                            data-toggle="collapse"
+                                                            t-attf-data-target="#collapse_#{date_index}">
+                                                        <i class="fa fa-calendar-o"/>
+                                                        <t t-esc="date.strftime('%A, %B %d, %Y')"/>
+                                                        <span class="badge badge-primary ml-2">
+                                                            <t t-esc="len(slots_by_date[date])"/> slots
+                                                        </span>
+                                                    </button>
+                                                </h5>
+                                            </div>
+                                            <div t-attf-id="collapse_#{date_index}"
+                                                 class="collapse"
+                                                 t-att-class="'show' if date_index == 0 else ''"
+                                                 t-attf-data-parent="#slotsAccordion">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <t t-foreach="slots_by_date[date]" t-as="slot">
+                                                            <div class="col-md-3 col-sm-6 mb-3">
+                                                                <a t-attf-href="/appointment/book/#{appointment_type.id}/info?slot_start=#{slot['start'].isoformat()}&amp;slot_end=#{slot['end'].isoformat()}&amp;staff_id=#{slot['staff_id']}"
+                                                                   class="btn btn-outline-success btn-block">
+                                                                    <i class="fa fa-clock-o"/>
+                                                                    <t t-esc="slot['start'].strftime('%H:%M')"/>
+                                                                    <br/>
+                                                                    <small t-if="staff_list">
+                                                                        <t t-esc="slot['staff_name']"/>
+                                                                    </small>
+                                                                </a>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Booking Info Form -->
+    <!-- ======================== -->
+    <template id="appointment_booking_info" name="Appointment Booking Info">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <div class="card shadow-sm">
+                                <div class="card-body p-4">
+                                    <h1 class="mb-4">
+                                        <i class="fa fa-user"/>
+                                        Your Information
+                                    </h1>
+
+                                    <!-- Appointment Summary -->
+                                    <div class="alert alert-info mb-4">
+                                        <h5>
+                                            <i class="fa fa-calendar"/>
+                                            <t t-esc="appointment_type.name"/>
+                                        </h5>
+                                        <p class="mb-0">
+                                            <i class="fa fa-clock-o"/>
+                                            <strong><t t-esc="slot_start.strftime('%A, %B %d, %Y at %H:%M')"/></strong>
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="fa fa-user-md"/>
+                                            <strong><t t-esc="staff_name"/></strong>
+                                        </p>
+                                    </div>
+
+                                    <!-- Customer Info Form -->
+                                    <form method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                        <div class="form-group">
+                                            <label for="patient_name">Full Name *</label>
+                                            <input type="text" class="form-control" id="patient_name"
+                                                   name="patient_name" required="required"/>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="patient_email">Email *</label>
+                                            <input type="email" class="form-control" id="patient_email"
+                                                   name="patient_email" required="required"/>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="patient_phone">Phone</label>
+                                            <input type="tel" class="form-control" id="patient_phone"
+                                                   name="patient_phone"/>
+                                        </div>
+
+                                        <!-- Questionnaire -->
+                                        <t t-if="questionnaire_lines">
+                                            <hr class="my-4"/>
+                                            <h5 class="mb-3">Additional Information</h5>
+
+                                            <t t-foreach="questionnaire_lines" t-as="line">
+                                                <div class="form-group">
+                                                    <label t-attf-for="question_#{line.id}">
+                                                        <t t-esc="line.name"/>
+                                                        <span t-if="line.required" class="text-danger">*</span>
+                                                    </label>
+
+                                                    <t t-if="line.question_type == 'text'">
+                                                        <input type="text" class="form-control"
+                                                               t-attf-id="question_#{line.id}"
+                                                               t-attf-name="question_#{line.id}"
+                                                               t-att-required="'required' if line.required else None"
+                                                               t-att-placeholder="line.placeholder"/>
+                                                    </t>
+
+                                                    <t t-elif="line.question_type == 'textarea'">
+                                                        <textarea class="form-control" rows="3"
+                                                                  t-attf-id="question_#{line.id}"
+                                                                  t-attf-name="question_#{line.id}"
+                                                                  t-att-required="'required' if line.required else None"
+                                                                  t-att-placeholder="line.placeholder"/>
+                                                    </t>
+
+                                                    <t t-elif="line.question_type == 'selection'">
+                                                        <select class="form-control"
+                                                                t-attf-id="question_#{line.id}"
+                                                                t-attf-name="question_#{line.id}"
+                                                                t-att-required="'required' if line.required else None">
+                                                            <option value="">-- Select --</option>
+                                                            <t t-foreach="line.get_answer_options_list()" t-as="option">
+                                                                <option t-att-value="option">
+                                                                    <t t-esc="option"/>
+                                                                </option>
+                                                            </t>
+                                                        </select>
+                                                    </t>
+
+                                                    <t t-elif="line.question_type == 'checkbox'">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input"
+                                                                   t-attf-id="question_#{line.id}"
+                                                                   t-attf-name="question_#{line.id}"
+                                                                   value="yes"/>
+                                                            <label class="form-check-label" t-attf-for="question_#{line.id}">
+                                                                Yes
+                                                            </label>
+                                                        </div>
+                                                    </t>
+
+                                                    <t t-elif="line.question_type == 'date'">
+                                                        <input type="date" class="form-control"
+                                                               t-attf-id="question_#{line.id}"
+                                                               t-attf-name="question_#{line.id}"
+                                                               t-att-required="'required' if line.required else None"/>
+                                                    </t>
+
+                                                    <t t-elif="line.question_type == 'number'">
+                                                        <input type="number" class="form-control"
+                                                               t-attf-id="question_#{line.id}"
+                                                               t-attf-name="question_#{line.id}"
+                                                               t-att-required="'required' if line.required else None"/>
+                                                    </t>
+
+                                                    <small t-if="line.help_text" class="form-text text-muted">
+                                                        <t t-esc="line.help_text"/>
+                                                    </small>
+                                                </div>
+                                            </t>
+                                        </t>
+
+                                        <hr class="my-4"/>
+
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-primary btn-lg">
+                                                <i class="fa fa-check"/>
+                                                Confirm Booking
+                                            </button>
+                                            <a t-attf-href="/appointment/book/#{appointment_type.id}/slots"
+                                               class="btn btn-link">
+                                                <i class="fa fa-arrow-left"/>
+                                                Back to Slots
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Confirmation Page -->
+    <!-- ======================== -->
+    <template id="appointment_confirm" name="Appointment Confirmation">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5 mb-5">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2">
+                            <div class="card shadow-sm border-success">
+                                <div class="card-body p-5 text-center">
+                                    <div class="mb-4">
+                                        <i class="fa fa-check-circle text-success" style="font-size: 72px;"/>
+                                    </div>
+
+                                    <h1 class="text-success mb-4">Appointment Confirmed!</h1>
+
+                                    <p class="lead mb-4">
+                                        Your appointment has been successfully booked.
+                                        A confirmation email has been sent to <strong><t t-esc="appointment.patient_email"/></strong>.
+                                    </p>
+
+                                    <div class="card bg-light mb-4">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <t t-esc="appointment.appointment_type_id.name"/>
+                                            </h5>
+                                            <p class="card-text">
+                                                <i class="fa fa-calendar"/>
+                                                <strong><t t-esc="appointment.start.strftime('%A, %B %d, %Y')"/></strong>
+                                                <br/>
+                                                <i class="fa fa-clock-o"/>
+                                                <t t-esc="appointment.start.strftime('%H:%M')"/> -
+                                                <t t-esc="appointment.stop.strftime('%H:%M')"/>
+                                                <br/>
+                                                <i class="fa fa-user-md"/>
+                                                <t t-esc="appointment.staff_id.name"/>
+                                            </p>
+                                            <p class="mb-0">
+                                                <small class="text-muted">
+                                                    Confirmation #<t t-esc="appointment.appointment_number"/>
+                                                </small>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <a t-attf-href="/appointment/view/#{appointment.id}/#{appointment.access_token}"
+                                           class="btn btn-primary">
+                                            <i class="fa fa-eye"/>
+                                            View Appointment
+                                        </a>
+                                    </div>
+
+                                    <hr/>
+
+                                    <p class="text-muted mb-0">
+                                        <small>
+                                            Save this link to manage your appointment:
+                                            <br/>
+                                            <a t-attf-href="/appointment/view/#{appointment.id}/#{appointment.access_token}">
+                                                <t t-esc="request.httprequest.host_url"/>appointment/view/<t t-esc="appointment.id"/>/<t t-esc="appointment.access_token"/>
+                                            </a>
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- ======================== -->
+    <!-- Error Pages -->
+    <!-- ======================== -->
+    <template id="appointment_not_available" name="Appointment Not Available">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3 text-center">
+                            <i class="fa fa-exclamation-triangle text-warning" style="font-size: 72px;"/>
+                            <h1 class="mt-4">Not Available</h1>
+                            <p class="lead">
+                                <t t-esc="message or 'This appointment type is not available.'"/>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="appointment_not_found" name="Appointment Not Found">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3 text-center">
+                            <i class="fa fa-question-circle text-muted" style="font-size: 72px;"/>
+                            <h1 class="mt-4">Appointment Not Found</h1>
+                            <p class="lead">
+                                The appointment you're looking for could not be found or the link has expired.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="appointment_booking_error" name="Booking Error">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="container mt-5">
+                    <div class="row">
+                        <div class="col-lg-6 offset-lg-3">
+                            <div class="alert alert-danger">
+                                <h4>
+                                    <i class="fa fa-exclamation-circle"/>
+                                    Booking Error
+                                </h4>
+                                <p><t t-esc="error_message"/></p>
+                                <a t-if="type_id" t-attf-href="/appointment/book/#{type_id}/slots"
+                                   class="btn btn-primary">
+                                    Try Again
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

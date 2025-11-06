@@ -36,6 +36,7 @@ Features:
         'mail',
         'calendar',  # Now using calendar.event as base
         'resource',  # For resource management (rooms, staff)
+        'website',  # For online booking (Phase 2)
         'clinic_patient',
         'clinic_staff',
     ],
@@ -50,17 +51,22 @@ Features:
         'data/appointment_sequence.xml',
         'data/appointment_types.xml',
         'data/appointment_stages.xml',
-        
+        'data/email_templates.xml',
+
         # Wizards
         'wizards/appointment_reschedule_views.xml',
         'wizards/follow_up_wizard_views.xml',
-        
-        # Views
+
+        # Views - Backend
         'views/appointment_views.xml',
         'views/appointment_type_views.xml',
         'views/waiting_list_views.xml',
         'views/slot_views.xml',
         'views/menu_views.xml',
+
+        # Views - Website (Phase 2)
+        'views/website/booking_templates.xml',
+        'views/website/manage_templates.xml',
     ],
     
     

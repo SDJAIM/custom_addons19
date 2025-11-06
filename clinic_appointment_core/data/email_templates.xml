@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Appointment Confirmation Email -->
+    <!-- ======================== -->
+    <record id="email_template_appointment_confirmation" model="mail.template">
+        <field name="name">Appointment: Confirmation</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="subject">Appointment Confirmed - {{ object.appointment_number }}</field>
+        <field name="email_from">{{ (object.staff_id.work_email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.patient_email }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #28a745; color: #ffffff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">✓ Appointment Confirmed</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 20px;">
+                                Dear <strong>{{ object.patient_id.name }}</strong>,
+                            </p>
+
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 30px;">
+                                Your appointment has been successfully confirmed. We look forward to seeing you!
+                            </p>
+
+                            <!-- Appointment Details Card -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 15px; font-size: 20px; color: #333333;">
+                                            {{ object.appointment_type_id.name }}
+                                        </h2>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            <strong>📅 Date:</strong>
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            <strong>🕐 Time:</strong>
+                                            {{ format_datetime(object.start, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            -
+                                            {{ format_datetime(object.stop, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            <strong>👨‍⚕️ Provider:</strong>
+                                            {{ object.staff_id.name }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            <strong>📍 Location:</strong>
+                                            <t t-if="object.appointment_type_id.meeting_mode == 'onsite'">
+                                                {{ object.branch_id.name }}
+                                                <t t-if="object.room_id"> - Room {{ object.room_id.name }}</t>
+                                            </t>
+                                            <t t-elif="object.appointment_type_id.meeting_mode == 'online'">
+                                                Online Meeting
+                                            </t>
+                                            <t t-else="">
+                                                Phone Call
+                                            </t>
+                                        </p>
+
+                                        <p style="margin: 15px 0 5px; font-size: 12px; color: #999999;">
+                                            Confirmation #{{ object.appointment_number }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action Buttons -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="center">
+                                        <t t-set="view_url" t-value="object.get_booking_url('view')"/>
+                                        <a t-att-href="view_url"
+                                           style="display: inline-block; padding: 12px 30px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; margin: 5px;">
+                                            View Appointment
+                                        </a>
+
+                                        <t t-if="object.appointment_type_id.allow_reschedule">
+                                            <t t-set="reschedule_url" t-value="object.get_booking_url('reschedule')"/>
+                                            <a t-att-href="reschedule_url"
+                                               style="display: inline-block; padding: 12px 30px; background-color: #ffc107; color: #000000; text-decoration: none; border-radius: 4px; font-size: 16px; margin: 5px;">
+                                                Reschedule
+                                            </a>
+                                        </t>
+
+                                        <t t-if="object.appointment_type_id.allow_cancel">
+                                            <t t-set="cancel_url" t-value="object.get_booking_url('cancel')"/>
+                                            <a t-att-href="cancel_url"
+                                               style="display: inline-block; padding: 12px 30px; background-color: #dc3545; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; margin: 5px;">
+                                                Cancel
+                                            </a>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Important Information -->
+                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
+                                <p style="margin: 0; font-size: 14px; color: #856404;">
+                                    <strong>⚠️ Important:</strong>
+                                </p>
+                                <ul style="margin: 10px 0 0; padding-left: 20px; font-size: 14px; color: #856404;">
+                                    <li>Please arrive 15 minutes early</li>
+                                    <li>Bring your ID and insurance card</li>
+                                    <t t-if="object.appointment_type_id.reschedule_limit_hours">
+                                        <li>Rescheduling allowed up to {{ object.appointment_type_id.reschedule_limit_hours }} hours before</li>
+                                    </t>
+                                    <t t-if="object.appointment_type_id.cancel_limit_hours">
+                                        <li>Cancellation allowed up to {{ object.appointment_type_id.cancel_limit_hours }} hours before</li>
+                                    </t>
+                                </ul>
+                            </div>
+
+                            <!-- Contact Info -->
+                            <p style="font-size: 14px; color: #666666; margin: 0;">
+                                If you have any questions, please contact us at:
+                                <br/>
+                                <t t-if="object.staff_id.work_phone">
+                                    Phone: <strong>{{ object.staff_id.work_phone }}</strong>
+                                    <br/>
+                                </t>
+                                Email: <strong>{{ object.staff_id.work_email or user.email }}</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; font-size: 12px; color: #999999;">
+                                This is an automated message. Please do not reply to this email.
+                                <br/>
+                                Add this appointment to your calendar using the attachment above.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+        <field name="lang">{{ object.patient_id.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+        <field name="report_template" ref="clinic_appointment_core.report_appointment_confirmation"/>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Appointment Reminder Email -->
+    <!-- ======================== -->
+    <record id="email_template_appointment_reminder" model="mail.template">
+        <field name="name">Appointment: Reminder</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="subject">Reminder: Appointment Tomorrow - {{ object.appointment_number }}</field>
+        <field name="email_from">{{ (object.staff_id.work_email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.patient_email }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #17a2b8; color: #ffffff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">🔔 Appointment Reminder</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 20px;">
+                                Dear <strong>{{ object.patient_id.name }}</strong>,
+                            </p>
+
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 30px;">
+                                This is a friendly reminder about your upcoming appointment.
+                            </p>
+
+                            <!-- Appointment Details Card -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #e7f3ff; border-left: 4px solid #17a2b8; padding: 20px; margin-bottom: 30px;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 15px; font-size: 20px; color: #333333;">
+                                            {{ object.appointment_type_id.name }}
+                                        </h2>
+
+                                        <p style="margin: 5px 0; font-size: 16px; color: #333333;">
+                                            <strong>📅 Tomorrow</strong>
+                                            <br/>
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 16px; color: #333333;">
+                                            <strong>🕐 {{ format_datetime(object.start, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}</strong>
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            With {{ object.staff_id.name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action Buttons -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="center">
+                                        <t t-set="view_url" t-value="object.get_booking_url('view')"/>
+                                        <a t-att-href="view_url"
+                                           style="display: inline-block; padding: 12px 30px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px; margin: 5px;">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #666666; text-align: center; margin: 20px 0;">
+                                See you tomorrow! 👋
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; font-size: 12px; color: #999999;">
+                                This is an automated reminder. Please do not reply to this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+        <field name="lang">{{ object.patient_id.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Appointment Cancellation Email -->
+    <!-- ======================== -->
+    <record id="email_template_appointment_cancellation" model="mail.template">
+        <field name="name">Appointment: Cancellation</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="subject">Appointment Cancelled - {{ object.appointment_number }}</field>
+        <field name="email_from">{{ (object.staff_id.work_email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.patient_email }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #dc3545; color: #ffffff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">❌ Appointment Cancelled</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 20px;">
+                                Dear <strong>{{ object.patient_id.name }}</strong>,
+                            </p>
+
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 30px;">
+                                Your appointment has been successfully cancelled.
+                            </p>
+
+                            <!-- Cancelled Appointment Details -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin-bottom: 30px;">
+                                <tr>
+                                    <td>
+                                        <h3 style="margin: 0 0 10px; font-size: 16px; color: #721c24;">
+                                            Cancelled Appointment
+                                        </h3>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #721c24;">
+                                            <strong>Type:</strong> {{ object.appointment_type_id.name }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #721c24;">
+                                            <strong>Was scheduled for:</strong>
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy at HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 12px; color: #999999;">
+                                            Confirmation #{{ object.appointment_number }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 20px;">
+                                If you would like to schedule a new appointment, please use the button below:
+                            </p>
+
+                            <!-- Action Button -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="center">
+                                        <t t-set="booking_url" t-value="'/appointment/book/' + str(object.appointment_type_id.id)"/>
+                                        <a t-att-href="booking_url"
+                                           style="display: inline-block; padding: 12px 30px; background-color: #28a745; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px;">
+                                            Book New Appointment
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #666666; margin: 0;">
+                                If you have any questions, please contact us.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; font-size: 12px; color: #999999;">
+                                This is an automated message. Please do not reply to this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+        <field name="lang">{{ object.patient_id.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Appointment Rescheduled Email -->
+    <!-- ======================== -->
+    <record id="email_template_appointment_rescheduled" model="mail.template">
+        <field name="name">Appointment: Rescheduled</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="subject">Appointment Rescheduled - {{ object.appointment_number }}</field>
+        <field name="email_from">{{ (object.staff_id.work_email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.patient_email }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #ffc107; color: #000000; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">🔄 Appointment Rescheduled</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 20px;">
+                                Dear <strong>{{ object.patient_id.name }}</strong>,
+                            </p>
+
+                            <p style="font-size: 16px; color: #333333; margin: 0 0 30px;">
+                                Your appointment has been successfully rescheduled to a new date and time.
+                            </p>
+
+                            <!-- New Appointment Details -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin-bottom: 30px;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 15px; font-size: 20px; color: #333333;">
+                                            {{ object.appointment_type_id.name }}
+                                        </h2>
+
+                                        <p style="margin: 5px 0; font-size: 16px; color: #333333;">
+                                            <strong>📅 New Date:</strong>
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 16px; color: #333333;">
+                                            <strong>🕐 New Time:</strong>
+                                            {{ format_datetime(object.start, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            -
+                                            {{ format_datetime(object.stop, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                        </p>
+
+                                        <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+                                            With {{ object.staff_id.name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Action Buttons -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="center">
+                                        <t t-set="view_url" t-value="object.get_booking_url('view')"/>
+                                        <a t-att-href="view_url"
+                                           style="display: inline-block; padding: 12px 30px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px;">
+                                            View Appointment
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 14px; color: #666666; text-align: center; margin: 20px 0;">
+                                We look forward to seeing you at your new appointment time! 👋
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; font-size: 12px; color: #999999;">
+                                This is an automated message. Please do not reply to this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+        <field name="lang">{{ object.patient_id.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+</odoo>

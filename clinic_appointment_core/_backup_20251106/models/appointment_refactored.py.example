@@ -1,0 +1,381 @@
+# -*- coding: utf-8 -*-
+"""
+EXAMPLE: Refactored Clinic Appointment
+
+This is an EXAMPLE showing how clinic.appointment should look
+after inheriting from calendar.event.
+
+CHANGES:
+1. Added 'calendar.event' to _inherit
+2. REMOVED duplicate fields: start, stop, duration, allday
+3. These fields now come from calendar.event
+4. All medical-specific fields remain
+5. Added auto-attendee logic (patient as calendar attendee)
+
+BENEFITS:
+- Appears in Odoo Calendar app
+- Google Calendar sync
+- Outlook sync
+- Automatic reminders (calendar.alarm)
+- Free/busy calculation
+- Recurring appointments support
+- Less code to maintain
+"""
+
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
+
+
+class ClinicAppointment(models.Model):
+    """
+    Medical Appointment
+
+    Inherits calendar.event for calendar functionality,
+    adds medical-specific fields and workflow.
+    """
+    _name = 'clinic.appointment'
+    _description = 'Medical Appointment'
+    _inherit = ['calendar.event', 'mail.thread', 'mail.activity.mixin']  # ← KEY CHANGE
+    _rec_name = 'appointment_number'
+    _order = 'start desc'
+
+    # ========================
+    # Medical Identification
+    # ========================
+    appointment_number = fields.Char(
+        string='Appointment Number',
+        required=True,
+        copy=False,
+        readonly=True,
+        index=True,
+        default=lambda self: _('New'),
+        tracking=True
+    )
+
+    # NOTE: 'name' field comes from calendar.event (used as subject)
+    # We can compute it based on patient + service
+
+    # ========================
+    # REMOVED: These fields now come from calendar.event
+    # ========================
+    # start = ...       ← Inherited from calendar.event
+    # stop = ...        ← Inherited from calendar.event
+    # duration = ...    ← Inherited from calendar.event
+    # allday = ...      ← Inherited from calendar.event
+
+    # ========================
+    # Medical Relationships
+    # ========================
+    patient_id = fields.Many2one(
+        'clinic.patient',
+        string='Patient',
+        required=True,
+        tracking=True,
+        ondelete='restrict',
+        index=True
+    )
+
+    staff_id = fields.Many2one(
+        'clinic.staff',
+        string='Doctor/Dentist',
+        required=True,
+        tracking=True,
+        domain="[('state', '=', 'active')]",
+        index=True
+    )
+
+    # Link staff to calendar resource
+    resource_id = fields.Many2one(
+        'resource.resource',
+        string='Resource',
+        compute='_compute_resource_id',
+        store=True,
+        help='Automatically linked to staff resource'
+    )
+
+    appointment_type_id = fields.Many2one(
+        'clinic.appointment.type',
+        string='Appointment Type',
+        required=True,
+        tracking=True
+    )
+
+    service_type = fields.Selection([
+        ('medical', 'Medical'),
+        ('dental', 'Dental'),
+        ('telemed', 'Telemedicine'),
+        ('emergency', 'Emergency')
+    ], string='Service Type', required=True, default='medical', tracking=True)
+
+    # ========================
+    # Location (Using Resources)
+    # ========================
+    branch_id = fields.Many2one(
+        'clinic.branch',
+        string='Branch',
+        required=True,
+        tracking=True
+    )
+
+    room_id = fields.Many2one(
+        'clinic.room',
+        string='Room/Facility',
+        domain="[('branch_id', '=', branch_id), ('status', '=', 'available')]",
+        tracking=True,
+        help='Physical room or facility'
+    )
+
+    # ========================
+    # Medical Information
+    # ========================
+    chief_complaint = fields.Text(
+        string='Chief Complaint',
+        help='Main reason for visit'
+    )
+
+    symptoms = fields.Text(
+        string='Symptoms',
+        help='Patient reported symptoms'
+    )
+
+    urgency = fields.Selection([
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('emergency', 'Emergency')
+    ], string='Urgency Level', default='medium', tracking=True)
+
+    # ========================
+    # Appointment Status (Medical Workflow)
+    # ========================
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('confirmed', 'Confirmed'),
+        ('arrived', 'Arrived'),
+        ('in_progress', 'In Progress'),
+        ('done', 'Completed'),
+        ('cancelled', 'Cancelled'),
+        ('no_show', 'No Show')
+    ], string='Status', default='draft', required=True, tracking=True)
+
+    # ========================
+    # Patient Information (Denormalized for quick access)
+    # ========================
+    patient_age = fields.Integer(
+        string='Age',
+        related='patient_id.age',
+        store=True
+    )
+
+    patient_phone = fields.Char(
+        string='Phone',
+        related='patient_id.mobile',
+        store=True
+    )
+
+    patient_email = fields.Char(
+        string='Email',
+        related='patient_id.email',
+        store=True
+    )
+
+    # ========================
+    # Insurance Information
+    # ========================
+    insurance_flag = fields.Boolean(
+        string='Insurance Coverage',
+        default=False
+    )
+
+    insurance_id = fields.Many2one(
+        'clinic.patient.insurance',
+        string='Insurance',
+        domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]"
+    )
+
+    # ========================
+    # Computed Fields
+    # ========================
+
+    @api.depends('staff_id')
+    def _compute_resource_id(self):
+        """Link staff to their resource"""
+        for appointment in self:
+            if appointment.staff_id and appointment.staff_id.resource_id:
+                appointment.resource_id = appointment.staff_id.resource_id
+            else:
+                appointment.resource_id = False
+
+    # ========================
+    # Constraints
+    # ========================
+
+    @api.constrains('start', 'stop')
+    def _check_dates(self):
+        """Validate appointment dates"""
+        for appointment in self:
+            if appointment.start and appointment.stop:
+                if appointment.start >= appointment.stop:
+                    raise ValidationError(
+                        _('Appointment end time must be after start time')
+                    )
+
+    @api.constrains('patient_id', 'start', 'stop')
+    def _check_patient_double_booking(self):
+        """Prevent double-booking same patient"""
+        for appointment in self:
+            if appointment.state not in ['cancelled', 'no_show']:
+                overlapping = self.search([
+                    ('id', '!=', appointment.id),
+                    ('patient_id', '=', appointment.patient_id.id),
+                    ('state', 'not in', ['cancelled', 'no_show']),
+                    ('start', '<', appointment.stop),
+                    ('stop', '>', appointment.start)
+                ])
+                if overlapping:
+                    raise ValidationError(
+                        _('Patient already has an appointment at this time: %s')
+                        % overlapping[0].appointment_number
+                    )
+
+    # ========================
+    # CRUD Methods
+    # ========================
+
+    @api.model
+    def create(self, vals):
+        """
+        Override create to:
+        1. Generate appointment number
+        2. Auto-compute name/subject
+        3. Add patient as calendar attendee
+        """
+        # Generate appointment number
+        if vals.get('appointment_number', _('New')) == _('New'):
+            vals['appointment_number'] = self.env['ir.sequence'].next_by_code(
+                'clinic.appointment'
+            ) or _('New')
+
+        # Create appointment
+        appointment = super(ClinicAppointment, self).create(vals)
+
+        # Auto-compute subject if not provided
+        if not vals.get('name'):
+            appointment._compute_appointment_name()
+
+        # Add patient as calendar attendee (so they get emails/notifications)
+        if appointment.patient_id and appointment.patient_id.partner_id:
+            appointment.partner_ids = [(4, appointment.patient_id.partner_id.id)]
+
+        # Log creation
+        appointment.message_post(
+            body=_('Appointment created for patient %s') % appointment.patient_id.name,
+            message_type='notification'
+        )
+
+        return appointment
+
+    def write(self, vals):
+        """Track important changes"""
+        # Track rescheduling
+        if 'start' in vals or 'stop' in vals:
+            for appointment in self:
+                old_start = appointment.start
+                result = super(ClinicAppointment, appointment).write(vals)
+                if vals.get('start') and vals['start'] != old_start:
+                    appointment.message_post(
+                        body=_('Appointment rescheduled from %s to %s') % (
+                            old_start, appointment.start
+                        ),
+                        message_type='notification'
+                    )
+                return result
+
+        return super(ClinicAppointment, self).write(vals)
+
+    def _compute_appointment_name(self):
+        """Auto-generate appointment subject"""
+        for appointment in self:
+            parts = []
+
+            if appointment.appointment_type_id:
+                parts.append(appointment.appointment_type_id.name)
+
+            if appointment.patient_id:
+                parts.append(appointment.patient_id.name)
+
+            appointment.name = ' - '.join(parts) if parts else _('Appointment')
+
+    # ========================
+    # Action Methods (Medical Workflow)
+    # ========================
+
+    def action_confirm(self):
+        """Confirm appointment"""
+        self.write({'state': 'confirmed'})
+        self.message_post(
+            body=_('Appointment confirmed'),
+            message_type='notification'
+        )
+        # TODO: Send confirmation email/SMS to patient
+        return True
+
+    def action_mark_arrived(self):
+        """Patient has arrived"""
+        self.write({'state': 'arrived'})
+        return True
+
+    def action_start(self):
+        """Start appointment (patient with doctor)"""
+        self.write({'state': 'in_progress'})
+        return True
+
+    def action_complete(self):
+        """Complete appointment"""
+        self.write({'state': 'done'})
+        return True
+
+    def action_cancel(self):
+        """Cancel appointment"""
+        self.write({'state': 'cancelled'})
+        self.message_post(
+            body=_('Appointment cancelled'),
+            message_type='notification'
+        )
+        # TODO: Send cancellation notification
+        return True
+
+    def action_no_show(self):
+        """Mark as no-show"""
+        self.write({'state': 'no_show'})
+        return True
+
+    # ========================
+    # Calendar Integration Overrides
+    # ========================
+
+    @api.onchange('patient_id', 'appointment_type_id')
+    def _onchange_compute_name(self):
+        """Update calendar subject when patient/type changes"""
+        self._compute_appointment_name()
+
+    @api.onchange('staff_id')
+    def _onchange_staff_user(self):
+        """Link calendar event to staff user"""
+        if self.staff_id and self.staff_id.user_id:
+            # calendar.event has 'user_id' field - link to staff's user
+            self.user_id = self.staff_id.user_id
+
+    # ========================
+    # Views and Actions
+    # ========================
+
+    def action_open_in_calendar(self):
+        """Open this appointment in calendar view"""
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'calendar.event',
+            'res_id': self.id,  # Since we inherit calendar.event, same ID
+            'view_mode': 'form',
+            'target': 'current',
+        }
