@@ -7,10 +7,9 @@ Sistema integral de gestión clínica para Odoo 19 Community Edition.
 | Módulo | Nombre | Estado | Descripción |
 |--------|--------|--------|-------------|
 | `clinic_installer` | 🏥 Clinic System Installer | ✅ Instalable | Instalador principal del sistema |
-| `clinic_patient` | Clinic Patient Management | ⚠️ Requiere corrección | Gestión de pacientes |
-| `clinic_staff` | Clinic Staff Management | ✅ Corregido | Gestión de personal médico |
-| `clinic_theme` | Clinic Theme & Design System | ✅ Instalable | Tema y sistema de diseño |
-| `clinic_appointment_core` | Clinic Appointment Core | ⚠️ Requiere corrección | Sistema de citas médicas |
+| `clinic_patient` | Clinic Patient Management | ✅ Instalable | Gestión de pacientes |
+| `clinic_staff` | Clinic Staff Management | ✅ Instalable | Gestión de personal médico |
+| `clinic_appointment_core` | Clinic Appointment Core | ✅ Instalable | Sistema de citas médicas |
 | `clinic_treatment` | Clinic Treatment Management | ✅ Instalable | Gestión de tratamientos |
 | `clinic_dental_chart` | Clinic Dental Chart | ✅ Instalable | Odontograma dental |
 | `clinic_prescription` | Clinic Prescription Management | ✅ Instalable | Gestión de prescripciones |
@@ -27,7 +26,6 @@ Sistema integral de gestión clínica para Odoo 19 Community Edition.
 graph TD
     A[clinic_installer] --> B[clinic_patient]
     A --> C[clinic_staff]
-    A --> D[clinic_theme]
 
     B --> E[clinic_appointment_core]
     C --> E
@@ -50,7 +48,7 @@ graph TD
 ### Orden de Instalación Recomendado
 
 1. **Base**: `clinic_installer`
-2. **Fundación**: `clinic_patient`, `clinic_staff`, `clinic_theme`
+2. **Fundación**: `clinic_patient`, `clinic_staff`
 3. **Core**: `clinic_appointment_core`
 4. **Gestión Clínica**: `clinic_treatment`, `clinic_dental_chart`, `clinic_prescription`
 5. **Finanzas**: `clinic_finance`
@@ -94,7 +92,7 @@ python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_installer --stop-af
 
 #### 4. Instalar todos los módulos
 ```powershell
-$modules = "clinic_installer,clinic_patient,clinic_staff,clinic_theme,clinic_appointment_core,clinic_treatment,clinic_dental_chart,clinic_prescription,clinic_finance,clinic_integrations_telemed,clinic_integrations_whatsapp,clinic_kpis,clinic_api,clinic_appointment_web"
+$modules = "clinic_installer,clinic_patient,clinic_staff,clinic_appointment_core,clinic_treatment,clinic_dental_chart,clinic_prescription,clinic_finance,clinic_integrations_telemed,clinic_integrations_whatsapp,clinic_kpis,clinic_api,clinic_appointment_web"
 
 python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i $modules --stop-after-init
 ```
@@ -196,7 +194,6 @@ for row in cur.fetchall():
 | ✅ | clinic_installer | Instalado exitosamente |
 | ⏳ | clinic_patient | Pendiente - requiere instalación manual |
 | ⏳ | clinic_staff | Pendiente - requiere instalación manual |
-| ⏳ | clinic_theme | Pendiente - requiere instalación manual |
 | ⏳ | clinic_appointment_core | Pendiente - requiere instalación manual |
 | ⏳ | clinic_treatment | Pendiente - requiere instalación manual |
 | ⏳ | clinic_dental_chart | Pendiente - requiere instalación manual |
@@ -220,7 +217,6 @@ python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db --init base --stop-after-init
 python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_installer --stop-after-init
 python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_staff --stop-after-init
 python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_patient --stop-after-init
-python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_theme --stop-after-init
 
 # 3. Instalar módulo core
 python .\odoo\odoo-bin -c .\odoo.conf -d clinic_db -i clinic_appointment_core --stop-after-init
@@ -346,7 +342,7 @@ I've successfully reviewed and fixed multiple compatibility issues between the
   Current Status:
 
   The system is progressively loading more modules successfully:
-  - ✅ clinic_base, clinic_theme, clinic_staff, clinic_patient - Loading successfully      
+  - ✅ clinic_base, clinic_staff, clinic_patient - Loading successfully      
   - ✅ clinic_appointment_core, clinic_treatment - Loading successfully
   - ✅ clinic_dental_chart - Loading successfully
   - ⚠️ clinic_prescription - Still has compatibility issues with missing models

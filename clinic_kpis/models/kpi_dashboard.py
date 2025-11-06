@@ -147,8 +147,8 @@ class KPIDashboard(models.Model):
         """Get today's appointments statistics - cached per day"""
         today = fields.Date.today()
         appointments = self.env['clinic.appointment'].search([
-            ('appointment_date', '>=', today.strftime('%Y-%m-%d 00:00:00')),
-            ('appointment_date', '<=', today.strftime('%Y-%m-%d 23:59:59'))
+            ('start', '>=', today.strftime('%Y-%m-%d 00:00:00')),
+            ('start', '<=', today.strftime('%Y-%m-%d 23:59:59'))
         ])
         
         return {
@@ -211,8 +211,8 @@ class KPIDashboard(models.Model):
         """Calculate no-show rate for the month"""
         start_date = date.today().replace(day=1)
         appointments = self.env['clinic.appointment'].search([
-            ('appointment_date', '>=', start_date.strftime('%Y-%m-%d')),
-            ('appointment_date', '<=', fields.Date.today().strftime('%Y-%m-%d')),
+            ('start', '>=', start_date.strftime('%Y-%m-%d')),
+            ('start', '<=', fields.Date.today().strftime('%Y-%m-%d')),
             ('state', 'in', ['done', 'no_show'])
         ])
         
@@ -233,26 +233,29 @@ class KPIDashboard(models.Model):
         }
     
     def _get_avg_wait_time(self):
-        """Calculate average wait time for today"""
+        """Calculate average wait time for today
+
+        Note: waiting_time field needs to be added to clinic.appointment model
+        or this KPI should be disabled until the field exists.
+        For now, returning placeholder data.
+        """
         today = fields.Date.today()
         appointments = self.env['clinic.appointment'].search([
-            ('appointment_date', '>=', today.strftime('%Y-%m-%d 00:00:00')),
-            ('appointment_date', '<=', today.strftime('%Y-%m-%d 23:59:59')),
-            ('waiting_time', '>', 0)
+            ('start', '>=', today.strftime('%Y-%m-%d 00:00:00')),
+            ('start', '<=', today.strftime('%Y-%m-%d 23:59:59'))
         ])
-        
-        if appointments:
-            avg_wait = sum(appointments.mapped('waiting_time')) / len(appointments)
-            avg_wait_minutes = int(avg_wait * 60)
-        else:
-            avg_wait_minutes = 0
-        
+
+        # TODO: Implement waiting_time field or calculate from check-in time
+        # For now, return N/A since waiting_time field doesn't exist
+        avg_wait_minutes = 0
+
         return {
             'title': _('Avg Wait Time'),
-            'value': f"{avg_wait_minutes} min",
+            'value': 'N/A' if not appointments else f"0 min",
             'icon': 'fa-clock',
-            'color': 'danger' if avg_wait_minutes > 30 else 'success',
-            'threshold_warning': avg_wait_minutes > 30,
+            'color': 'secondary',
+            'threshold_warning': False,
+            'note': 'Waiting time tracking not yet implemented'
         }
     
     def _get_claim_status(self):
@@ -280,14 +283,15 @@ class KPIDashboard(models.Model):
         
         # SQL query for performance
         self.env.cr.execute("""
-            SELECT 
+            SELECT
                 s.name as procedure_name,
                 COUNT(*) as count,
                 SUM(asl.subtotal) as revenue
             FROM clinic_appointment_service_line asl
             JOIN clinic_service s ON asl.service_id = s.id
             JOIN clinic_appointment a ON asl.appointment_id = a.id
-            WHERE a.appointment_date >= %s
+            JOIN calendar_event ce ON ce.id = a.calendar_event_id
+            WHERE ce.start >= %s
                 AND a.state = 'done'
             GROUP BY s.id, s.name
             ORDER BY count DESC
@@ -321,9 +325,9 @@ class KPIDashboard(models.Model):
         for staff in staff_members:
             # Get today's appointments
             appointments = self.env['clinic.appointment'].search([
-                ('doctor_id', '=', staff.id),
-                ('appointment_date', '>=', today.strftime('%Y-%m-%d 00:00:00')),
-                ('appointment_date', '<=', today.strftime('%Y-%m-%d 23:59:59')),
+                ('staff_id', '=', staff.id),
+                ('start', '>=', today.strftime('%Y-%m-%d 00:00:00')),
+                ('start', '<=', today.strftime('%Y-%m-%d 23:59:59')),
                 ('state', 'in', ['confirmed', 'arrived', 'in_progress', 'done'])
             ])
             
@@ -360,21 +364,21 @@ class KPIDashboard(models.Model):
         """Get appointment timeline for today"""
         today = fields.Date.today()
         appointments = self.env['clinic.appointment'].search([
-            ('appointment_date', '>=', today.strftime('%Y-%m-%d 00:00:00')),
-            ('appointment_date', '<=', today.strftime('%Y-%m-%d 23:59:59'))
-        ], order='appointment_date')
-        
+            ('start', '>=', today.strftime('%Y-%m-%d 00:00:00')),
+            ('start', '<=', today.strftime('%Y-%m-%d 23:59:59'))
+        ], order='start')
+
         timeline = []
         for appointment in appointments:
             timeline.append({
-                'time': appointment.appointment_date.strftime('%H:%M'),
+                'time': appointment.start.strftime('%H:%M'),
                 'patient': appointment.patient_id.name,
-                'doctor': appointment.doctor_id.name if appointment.doctor_id else 'TBD',
+                'doctor': appointment.staff_id.name if appointment.staff_id else 'TBD',
                 'service': appointment.service_type,
                 'state': appointment.state,
                 'state_color': self._get_state_color(appointment.state),
             })
-        
+
         return timeline
     
     def _get_state_color(self, state):
@@ -436,7 +440,7 @@ class KPIDashboard(models.Model):
     def send_daily_report(self):
         """Send daily KPI report via email"""
         users = self.env['res.users'].search([
-            ('groups_id', 'in', self.env.ref('clinic_kpis.group_kpi_manager').id)
+            ('groups_id', 'in', self.env.ref('clinic_kpis.group_clinic_kpi_manager').id)
         ])
         
         for user in users:
