@@ -48,7 +48,7 @@
         'hr',
         'account',
         'sale',
-        'stock',
+        'stock',  # Includes lot expiration when "Expiration Dates" enabled in settings
         'product',
         'website',
         'website_payment',
@@ -62,7 +62,7 @@
         'clinic_theme',        # Theme
         'clinic_appointment_core',  # Appointments
         'clinic_treatment',    # Treatments
-        'clinic_prescription', # Prescriptions
+        'clinic_prescription', # Prescriptions (requires Expiration Dates in Inventory settings)
         'clinic_dental_chart', # Dental
         'clinic_finance',      # Finance
         'clinic_appointment_web', # Web booking

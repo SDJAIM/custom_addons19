@@ -35,7 +35,7 @@ Features:
     'depends': [
         'base',
         'mail',
-        'stock',
+        'stock',  # Includes expiration date fields when "Expiration Dates" is enabled in Inventory settings
         'product',
         'clinic_patient',
         'clinic_staff',

@@ -30,8 +30,8 @@ class ClinicPrescription(models.Model):
         required=True,
         default=fields.Datetime.now,
         tracking=True,
-        index=True,
-        states={'confirmed': [('readonly', True)], 'sent': [('readonly', True)], 'dispensed': [('readonly', True)]}
+        index=True
+        # Note: readonly behavior controlled in views via readonly="state in ('confirmed', 'sent', 'dispensed')"
     )
 
     patient_id = fields.Many2one(
@@ -40,8 +40,7 @@ class ClinicPrescription(models.Model):
         required=True,
         tracking=True,
         ondelete='restrict',
-        index=True,
-        states={'confirmed': [('readonly', True)], 'sent': [('readonly', True)], 'dispensed': [('readonly', True)]}
+        index=True
     )
 
     doctor_id = fields.Many2one(
@@ -51,8 +50,7 @@ class ClinicPrescription(models.Model):
         default=lambda self: self._get_default_doctor(),
         tracking=True,
         domain="[('staff_type', 'in', ['doctor', 'dentist']), ('state', '=', 'active')]",
-        index=True,
-        states={'confirmed': [('readonly', True)], 'sent': [('readonly', True)], 'dispensed': [('readonly', True)]}
+        index=True
     )
     
     appointment_id = fields.Many2one(
@@ -102,8 +100,7 @@ class ClinicPrescription(models.Model):
     prescription_line_ids = fields.One2many(
         'clinic.prescription.line',
         'prescription_id',
-        string='Medications',
-        states={'confirmed': [('readonly', True)], 'sent': [('readonly', True)], 'dispensed': [('readonly', True)]}
+        string='Medications'
     )
     
     medication_count = fields.Integer(
@@ -138,8 +135,7 @@ class ClinicPrescription(models.Model):
     # ========================
     refills_allowed = fields.Integer(
         string='Refills Allowed',
-        default=0,
-        states={'confirmed': [('readonly', True)], 'sent': [('readonly', True)], 'dispensed': [('readonly', True)]}
+        default=0
     )
     
     refills_used = fields.Integer(

@@ -304,10 +304,47 @@ class PrescriptionLotSelectionLine(models.TransientModel):
 
     expiration_date = fields.Date(
         string='Expiration Date',
-        related='lot_id.life_date',  # In Odoo 19: life_date is the expiration date
+        compute='_compute_expiration_date',
+        store=False,  # TransientModel - no need to persist
         readonly=True,
-        store=True
+        help='Expiration date from lot (uses life_date, use_date, removal_date, or alert_date)'
     )
+
+    @api.depends('lot_id')
+    def _compute_expiration_date(self):
+        """
+        Compute expiration date from lot fields (robust fallback).
+
+        Tries fields in priority order:
+        1. life_date (end of life)
+        2. use_date (best before)
+        3. removal_date (remove from stock)
+        4. alert_date (alert date)
+
+        This approach prevents KeyError if expiration dates are not enabled yet.
+
+        Note: Lot fields are Datetime, we convert to Date for display.
+        """
+        preferred_fields = ('life_date', 'use_date', 'removal_date', 'alert_date')
+
+        for rec in self:
+            rec.expiration_date = False
+            lot = rec.lot_id  # Define lot variable inside the loop
+
+            if not lot:
+                continue
+
+            value = False
+            # Try each field in order until we find one that exists and has a value
+            for field_name in preferred_fields:
+                if field_name in lot._fields:
+                    field_value = getattr(lot, field_name, False)
+                    if field_value:
+                        value = field_value
+                        break
+
+            # Convert Datetime to Date (lot fields are Datetime)
+            rec.expiration_date = fields.Date.to_date(value) if value else False
 
     manufacturing_date = fields.Date(
         string='Manufacturing Date'
