@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Payment Plan Tree View -->
+    <!-- ======================== -->
+    <record id="view_clinic_payment_plan_tree" model="ir.ui.view">
+        <field name="name">clinic.payment.plan.tree</field>
+        <field name="model">clinic.payment.plan</field>
+        <field name="arch" type="xml">
+            <list string="Payment Plans"
+                  decoration-success="state=='completed'"
+                  decoration-warning="state=='draft'"
+                  decoration-info="state=='approved' or state=='active'"
+                  decoration-danger="state=='defaulted'"
+                  decoration-muted="state=='on_hold'">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="down_payment" widget="monetary"/>
+                <field name="installments"/>
+                <field name="start_date"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Payment Plan Form View -->
+    <!-- ======================== -->
+    <record id="view_clinic_payment_plan_form" model="ir.ui.view">
+        <field name="name">clinic.payment.plan.form</field>
+        <field name="model">clinic.payment.plan</field>
+        <field name="arch" type="xml">
+            <form string="Payment Plan" class="o_form_sheet">
+                <header>
+                    <!-- Workflow Buttons -->
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                    <button name="action_activate" type="object" string="Activate"
+                            class="btn-success"
+                            attrs="{'invisible': [('state','!=','approved')]}"/>
+                    <button name="action_hold" type="object" string="Put On Hold"
+                            class="btn-warning"
+                            attrs="{'invisible': [('state','not in',['approved','active'])]}"/>
+                    <button name="action_resume" type="object" string="Resume"
+                            class="btn-info"
+                            attrs="{'invisible': [('state','!=','on_hold')]}"/>
+                    <button name="action_complete" type="object" string="Mark Complete"
+                            class="btn-success"
+                            attrs="{'invisible': [('state','!=','active')]}"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('state','in',['completed','defaulted','cancelled'])]}"/>
+
+                    <!-- Status Field -->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,approved,active,completed"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Plan Reference"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Patient Information -->
+                    <group>
+                        <group string="Patient Information">
+                            <field name="patient_id" required="1"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                            <field name="partner_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Plan Financial Details -->
+                    <group string="Financial Details">
+                        <group string="Amounts">
+                            <field name="total_amount" required="1"
+                                   widget="monetary"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                            <field name="down_payment"
+                                   widget="monetary"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                            <field name="financed_amount" readonly="1" widget="monetary"/>
+                        </group>
+                        <group string="Installment Details">
+                            <field name="installments" required="1"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                            <field name="installment_amount" readonly="1" widget="monetary"/>
+                            <field name="payment_frequency" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Interest Information -->
+                    <group string="Interest">
+                        <group>
+                            <field name="interest_rate"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"
+                                   widget="float" options="{'digits': [5,2]}"/>
+                            <field name="total_interest" readonly="1" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="total_payable" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <!-- Plan Dates -->
+                    <group string="Plan Dates">
+                        <group>
+                            <field name="start_date" required="1"
+                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                            <field name="end_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Related Documents Tab -->
+                    <notebook>
+                        <page string="Payment Schedule" name="payment_schedule">
+                            <field name="payment_line_ids"
+                                   nolabel="1"
+                                   readonly="1">
+                                <tree>
+                                    <field name="sequence"/>
+                                    <field name="due_date"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="interest_amount" widget="monetary"/>
+                                    <field name="total_due" widget="monetary"/>
+                                    <field name="paid_amount" widget="monetary"/>
+                                    <field name="status" widget="badge"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Related Invoices" name="invoices">
+                            <field name="invoice_ids"
+                                   attrs="{'readonly': [('state','in',['completed'])]}"
+                                   nolabel="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="amount_total" widget="monetary"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Related Appointments" name="appointments">
+                            <field name="appointment_ids"
+                                   nolabel="1"
+                                   readonly="1">
+                                <tree>
+                                    <field name="appointment_number"/>
+                                    <field name="patient_id"/>
+                                    <field name="start"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Payment Plan Search View -->
+    <!-- ======================== -->
+    <record id="view_clinic_payment_plan_search" model="ir.ui.view">
+        <field name="name">clinic.payment.plan.search</field>
+        <field name="model">clinic.payment.plan</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="start_date"/>
+
+                <separator/>
+
+                <!-- State Filters -->
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="on_hold" string="On Hold" domain="[('state','=','on_hold')]"/>
+                <filter name="completed" string="Completed" domain="[('state','=','completed')]"/>
+                <filter name="defaulted" string="Defaulted" domain="[('state','=','defaulted')]"/>
+
+                <separator/>
+
+                <!-- Active Plans -->
+                <filter name="active_plans" string="Active Plans"
+                        domain="[('state','in',['approved','active'])]"/>
+                <filter name="pending_approval" string="Pending Approval"
+                        domain="[('state','=','draft')]"/>
+
+                <separator/>
+
+                <!-- Grouping -->
+                <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                <filter string="Frequency" name="group_frequency" context="{'group_by': 'payment_frequency'}"/>
+                <filter string="Start Date" name="group_date" context="{'group_by': 'start_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Payment Plan Kanban View -->
+    <!-- ======================== -->
+    <record id="view_clinic_payment_plan_kanban" model="ir.ui.view">
+        <field name="name">clinic.payment.plan.kanban</field>
+        <field name="model">clinic.payment.plan</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <progressbar field="state" colors="{'draft': 'warning', 'approved': 'info', 'active': 'success', 'completed': 'success', 'on_hold': 'warning', 'defaulted': 'danger'}"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span class="o_kanban_record_subtitle">
+                                        <field name="patient_id"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div>
+                                    <strong>Amount:</strong>
+                                    <field name="total_amount" widget="monetary"/>
+                                </div>
+                                <div>
+                                    <strong>Installments:</strong>
+                                    <field name="installments"/> x
+                                    <field name="payment_frequency"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <span class="badge" t-attf-class="badge-{{ 'success' if record.state.raw_value == 'active' or record.state.raw_value == 'completed' else 'warning' if record.state.raw_value == 'draft' else 'danger' }}">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Payment Plan Action -->
+    <!-- ======================== -->
+    <record id="action_clinic_payment_plan" model="ir.actions.act_window">
+        <field name="name">Payment Plans</field>
+        <field name="res_model">clinic.payment.plan</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="view_clinic_payment_plan_search"/>
+        <field name="context">{'search_default_active_plans': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No payment plans yet!
+            </p>
+            <p>
+                Create payment plans to manage patient installment payments.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_clinic_payment_plan"
+              name="Payment Plans"
+              parent="menu_clinic_finance"
+              action="action_clinic_payment_plan"
+              sequence="30"/>
+</odoo>

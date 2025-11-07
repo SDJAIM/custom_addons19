@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Insurance Claim Tree View -->
+    <!-- ======================== -->
+    <record id="view_clinic_insurance_claim_tree" model="ir.ui.view">
+        <field name="name">clinic.insurance.claim.tree</field>
+        <field name="model">clinic.insurance.claim</field>
+        <field name="arch" type="xml">
+            <list string="Insurance Claims"
+                  decoration-danger="state=='rejected'"
+                  decoration-success="state=='paid'"
+                  decoration-warning="state=='draft'"
+                  decoration-info="state=='submitted'"
+                  decoration-muted="state=='cancelled'">
+                <field name="claim_number"/>
+                <field name="patient_id"/>
+                <field name="insurance_company_id"/>
+                <field name="claim_type"/>
+                <field name="service_date"/>
+                <field name="amount_billed" widget="monetary"/>
+                <field name="amount_approved" widget="monetary"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Insurance Claim Form View -->
+    <!-- ======================== -->
+    <record id="view_clinic_insurance_claim_form" model="ir.ui.view">
+        <field name="name">clinic.insurance.claim.form</field>
+        <field name="model">clinic.insurance.claim</field>
+        <field name="arch" type="xml">
+            <form string="Insurance Claim" class="o_form_sheet">
+                <header>
+                    <!-- Workflow Buttons -->
+                    <button name="action_submit" type="object" string="Submit Claim"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-success"
+                            attrs="{'invisible': [('state','!=','submitted')]}"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            class="btn-danger"
+                            attrs="{'invisible': [('state','not in',['submitted','in_review'])]}"/>
+                    <button name="action_mark_paid" type="object" string="Mark Paid"
+                            class="btn-info"
+                            attrs="{'invisible': [('state','!=','approved')]}"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('state','in',['paid','cancelled','rejected'])]}"/>
+
+                    <!-- Status Field -->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,paid,rejected"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Claim #"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Patient & Policy Information -->
+                    <group>
+                        <group string="Patient &amp; Policy">
+                            <field name="patient_id" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="policy_id" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="insurance_company_id" readonly="1"/>
+                        </group>
+                        <group string="Claim Details">
+                            <field name="claim_type" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="priority"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="requires_authorization" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Service Information -->
+                    <group string="Service Information">
+                        <group>
+                            <field name="appointment_id"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="service_date" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="service_end_date"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="provider_id" required="1"
+                                   attrs="{'readonly': [('state','in',['submitted','approved','paid','rejected'])]}"/>
+                            <field name="facility_id"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Diagnosis -->
+                    <group string="Diagnosis &amp; Procedures">
+                        <group>
+                            <field name="primary_diagnosis_id" required="1"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="secondary_diagnosis_ids" widget="many2many_tags"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+                    <field name="procedure_codes"
+                           attrs="{'readonly': [('state','!=','draft')]}"/>
+
+                    <!-- Related Records -->
+                    <group string="Related Records">
+                        <group>
+                            <field name="treatment_ids" widget="many2many_tags"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="prescription_ids" widget="many2many_tags"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Authorization -->
+                    <group string="Authorization">
+                        <group>
+                            <field name="authorization_number"
+                                   attrs="{'readonly': [('state','in',['paid'])]}"/>
+                            <field name="authorization_date"
+                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Claim Lines (Detail Tab) -->
+                    <notebook>
+                        <page string="Claim Items" name="claim_lines">
+                            <field name="line_ids"
+                                   attrs="{'readonly': [('state','in',['submitted','approved','paid'])]}"
+                                   nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="sequence"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount_billed" widget="monetary"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Financial Summary -->
+                        <page string="Financial" name="financial">
+                            <group>
+                                <group string="Claim Amounts">
+                                    <field name="amount_billed" required="1"
+                                           widget="monetary"
+                                           attrs="{'readonly': [('state','in',['submitted','approved','paid'])]}"/>
+                                    <field name="amount_approved"
+                                           widget="monetary"
+                                           attrs="{'readonly': [('state','in',['paid'])]}"/>
+                                    <field name="amount_paid" readonly="1" widget="monetary"/>
+                                    <field name="amount_adjusted" readonly="1" widget="monetary"/>
+                                </group>
+                                <group string="Patient Responsibility">
+                                    <field name="copay_amount" widget="monetary"
+                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                    <field name="deductible_amount" widget="monetary"
+                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                    <field name="coinsurance_amount" widget="monetary"
+                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                    <field name="patient_responsibility" readonly="1" widget="monetary"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Invoice Link -->
+                        <page string="Invoice" name="invoice">
+                            <group>
+                                <field name="invoice_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Insurance Claim Search View -->
+    <!-- ======================== -->
+    <record id="view_clinic_insurance_claim_search" model="ir.ui.view">
+        <field name="name">clinic.insurance.claim.search</field>
+        <field name="model">clinic.insurance.claim</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="insurance_company_id"/>
+                <field name="claim_type"/>
+                <field name="service_date"/>
+
+                <separator/>
+
+                <!-- State Filters -->
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="submitted" string="Submitted" domain="[('state','=','submitted')]"/>
+                <filter name="in_review" string="In Review" domain="[('state','=','in_review')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="paid" string="Paid" domain="[('state','=','paid')]"/>
+                <filter name="rejected" string="Rejected" domain="[('state','=','rejected')]"/>
+
+                <separator/>
+
+                <!-- Priority Filters -->
+                <filter name="normal_priority" string="Normal" domain="[('priority','=','normal')]"/>
+                <filter name="urgent_priority" string="Urgent" domain="[('priority','=','urgent')]"/>
+                <filter name="emergency_priority" string="Emergency" domain="[('priority','=','emergency')]"/>
+
+                <separator/>
+
+                <!-- Type Filters -->
+                <filter name="medical" string="Medical" domain="[('claim_type','=','medical')]"/>
+                <filter name="dental" string="Dental" domain="[('claim_type','=','dental')]"/>
+                <filter name="vision" string="Vision" domain="[('claim_type','=','vision')]"/>
+                <filter name="pharmacy" string="Pharmacy" domain="[('claim_type','=','pharmacy')]"/>
+
+                <separator/>
+
+                <!-- Grouping -->
+                <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                <filter string="Insurance" name="group_insurance" context="{'group_by': 'insurance_company_id'}"/>
+                <filter string="Type" name="group_type" context="{'group_by': 'claim_type'}"/>
+                <filter string="Date" name="group_date" context="{'group_by': 'service_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Insurance Claim Action -->
+    <!-- ======================== -->
+    <record id="action_clinic_insurance_claim" model="ir.actions.act_window">
+        <field name="name">Insurance Claims</field>
+        <field name="res_model">clinic.insurance.claim</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_clinic_insurance_claim_search"/>
+        <field name="context">{'search_default_submitted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No insurance claims yet!
+            </p>
+            <p>
+                Create insurance claims for patient appointments to manage insurance billing.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_clinic_insurance_claim"
+              name="Insurance Claims"
+              parent="menu_clinic_finance"
+              action="action_clinic_insurance_claim"
+              sequence="20"/>
+</odoo>

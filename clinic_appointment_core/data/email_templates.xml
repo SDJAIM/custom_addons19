@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<odoo noupdate="1">
     <!-- ======================== -->
     <!-- Appointment Confirmation Email -->
     <!-- ======================== -->
@@ -60,15 +60,14 @@
 
                                         <p style="margin: 5px 0; font-size: 14px; color: #666666;">
                                             <strong>📍 Location:</strong>
-                                            <t t-if="object.appointment_type_id.meeting_mode == 'onsite'">
-                                                {{ object.branch_id.name }}
-                                                <t t-if="object.room_id"> - Room {{ object.room_id.name }}</t>
-                                            </t>
-                                            <t t-elif="object.appointment_type_id.meeting_mode == 'online'">
+                                            <t t-if="object.appointment_type_id.meeting_mode == 'online'">
                                                 Online Meeting
                                             </t>
-                                            <t t-else="">
+                                            <t t-elif="object.appointment_type_id.meeting_mode == 'phone'">
                                                 Phone Call
+                                            </t>
+                                            <t t-else="">
+                                                In-person (Check confirmation)
                                             </t>
                                         </p>
 
@@ -156,7 +155,6 @@
         </field>
         <field name="lang">{{ object.patient_id.lang }}</field>
         <field name="auto_delete" eval="False"/>
-        <field name="report_template" ref="clinic_appointment_core.report_appointment_confirmation"/>
     </record>
 
     <!-- ======================== -->
@@ -201,13 +199,13 @@
                                         </h2>
 
                                         <p style="margin: 5px 0; font-size: 16px; color: #333333;">
-                                            <strong>📅 Tomorrow</strong>
+                                            <strong>📅 Upcoming</strong>
                                             <br/>
-                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy') }}
                                         </p>
 
                                         <p style="margin: 5px 0; font-size: 16px; color: #333333;">
-                                            <strong>🕐 {{ format_datetime(object.start, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}</strong>
+                                            <strong>🕐 {{ format_datetime(object.start, dt_format='HH:mm') }}</strong>
                                         </p>
 
                                         <p style="margin: 5px 0; font-size: 14px; color: #666666;">
@@ -301,7 +299,7 @@
 
                                         <p style="margin: 5px 0; font-size: 14px; color: #721c24;">
                                             <strong>Was scheduled for:</strong>
-                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy at HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy at HH:mm') }}
                                         </p>
 
                                         <p style="margin: 5px 0; font-size: 12px; color: #999999;">
@@ -395,14 +393,14 @@
 
                                         <p style="margin: 5px 0; font-size: 16px; color: #333333;">
                                             <strong>📅 New Date:</strong>
-                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            {{ format_datetime(object.start, dt_format='EEEE, MMMM d, yyyy') }}
                                         </p>
 
                                         <p style="margin: 5px 0; font-size: 16px; color: #333333;">
                                             <strong>🕐 New Time:</strong>
-                                            {{ format_datetime(object.start, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            {{ format_datetime(object.start, dt_format='HH:mm') }}
                                             -
-                                            {{ format_datetime(object.stop, dt_format='HH:mm', tz=object.appointment_type_id.timezone or 'UTC') }}
+                                            {{ format_datetime(object.stop, dt_format='HH:mm') }}
                                         </p>
 
                                         <p style="margin: 5px 0; font-size: 14px; color: #666666;">

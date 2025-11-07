@@ -27,7 +27,6 @@
     ✅ WhatsApp Integration
     ✅ Telemedicine
     ✅ Analytics & KPIs
-    ✅ Custom Theme
 
     Installation Notes:
     ------------------
@@ -59,7 +58,6 @@
         'clinic_base',         # Base utilities must be first
         'clinic_staff',        # Staff must be before patient for security rules
         'clinic_patient',      # Patient management
-        'clinic_theme',        # Theme
         'clinic_appointment_core',  # Appointments
         'clinic_treatment',    # Treatments
         'clinic_prescription', # Prescriptions (requires Expiration Dates in Inventory settings)

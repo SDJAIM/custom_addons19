@@ -42,21 +42,24 @@ Features:
     ],
     
     'data': [
-        # Security
+        # Security - MUST load first
         'security/appointment_security.xml',
         'security/ir.model.access.csv',
         'security/appointment_record_rules.xml',
 
-        # Data
+        # Data - Email templates MUST load before stages
         'data/appointment_sequence.xml',
+        'data/email_templates.xml',
         'data/appointment_types.xml',
         'data/appointment_stages.xml',
-        'data/email_templates.xml',
         'data/cron_jobs.xml',
 
         # Wizards
         'wizards/appointment_reschedule_views.xml',
         'wizards/follow_up_wizard_views.xml',
+
+        # Views - Questionnaire MUST load before main appointment views
+        'views/questionnaire_views.xml',
 
         # Views - Backend
         'views/appointment_views.xml',

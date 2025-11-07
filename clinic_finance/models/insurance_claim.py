@@ -13,7 +13,7 @@ class InsuranceClaim(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'submission_date desc, claim_number desc'
     _rec_name = 'claim_number'
-    
+
     # Basic Information
     claim_number = fields.Char(
         string='Claim Number',
@@ -30,9 +30,7 @@ class InsuranceClaim(models.Model):
         string='Patient',
         required=True,
         tracking=True,
-        index=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]}
+        index=True
     )
 
     policy_id = fields.Many2one(
@@ -40,9 +38,7 @@ class InsuranceClaim(models.Model):
         string='Insurance Policy',
         required=True,
         tracking=True,
-        domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]",
-        readonly=True,
-        states={'draft': [('readonly', False)]}
+        domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]"
     )
     
     insurance_company_id = fields.Many2one(
@@ -72,9 +68,7 @@ class InsuranceClaim(models.Model):
     appointment_id = fields.Many2one(
         'clinic.appointment',
         string='Appointment',
-        tracking=True,
-        readonly=True,
-        states={'draft': [('readonly', False)]}
+        tracking=True
     )
 
     invoice_id = fields.Many2one(
@@ -85,25 +79,19 @@ class InsuranceClaim(models.Model):
 
     treatment_ids = fields.Many2many(
         'clinic.treatment.plan.line',
-        string='Treatments',
-        readonly=True,
-        states={'draft': [('readonly', False)]}
+        string='Treatments'
     )
 
     prescription_ids = fields.Many2many(
         'clinic.prescription',
-        string='Prescriptions',
-        readonly=True,
-        states={'draft': [('readonly', False)]}
+        string='Prescriptions'
     )
     
     # Service Information
     service_date = fields.Date(
         string='Service Date',
         required=True,
-        tracking=True,
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        tracking=True
     )
     
     service_end_date = fields.Date(
@@ -116,9 +104,7 @@ class InsuranceClaim(models.Model):
         string='Provider',
         required=True,
         tracking=True,
-        domain=[('is_practitioner', '=', True)],
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)], 'rejected': [('readonly', True)]}
+        domain=[('is_practitioner', '=', True)]
     )
     
     facility_id = fields.Many2one(
@@ -155,8 +141,7 @@ class InsuranceClaim(models.Model):
     
     authorization_number = fields.Char(
         string='Authorization Number',
-        tracking=True,
-        states={'paid': [('readonly', True)]}
+        tracking=True
     )
     
     authorization_date = fields.Date(
@@ -168,9 +153,7 @@ class InsuranceClaim(models.Model):
     line_ids = fields.One2many(
         'clinic.claim.line',
         'claim_id',
-        string='Claim Lines',
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)]}
+        string='Claim Lines'
     )
     
     # Financial Information
@@ -178,16 +161,13 @@ class InsuranceClaim(models.Model):
         string='Amount Billed',
         digits='Product Price',
         required=True,
-        tracking=True,
-        states={'submitted': [('readonly', True)], 'approved': [('readonly', True)],
-                'paid': [('readonly', True)]}
+        tracking=True
     )
     
     amount_approved = fields.Float(
         string='Amount Approved',
         digits='Product Price',
-        tracking=True,
-        states={'paid': [('readonly', True)]}
+        tracking=True
     )
     
     amount_paid = fields.Float(
@@ -428,6 +408,46 @@ class InsuranceClaim(models.Model):
         for claim in self:
             if claim.amount_paid > claim.amount_approved and claim.amount_approved > 0:
                 raise ValidationError(_("Paid amount cannot exceed approved amount."))
+
+    @api.constrains('patient_id', 'state')
+    def _check_patient_id_on_update(self):
+        """Enforce patient_id readonly constraint based on state"""
+        for claim in self:
+            if claim.state not in ('draft',) and not self.env.context.get('skip_state_checks'):
+                # Patient cannot be changed after draft
+                if claim.id and claim.state != 'draft':
+                    original = self.env['clinic.insurance.claim'].browse(claim.id)
+                    if original.patient_id != claim.patient_id:
+                        raise ValidationError(
+                            _("Patient cannot be changed once the claim is submitted. "
+                              "Current state: %s") % claim.state
+                        )
+
+    @api.constrains('provider_id', 'state')
+    def _check_provider_id_on_update(self):
+        """Enforce provider_id readonly constraint based on state"""
+        for claim in self:
+            if claim.state in ('submitted', 'approved', 'paid', 'rejected') and not self.env.context.get('skip_state_checks'):
+                # Provider cannot be changed in these states
+                if claim.id:
+                    original = self.env['clinic.insurance.claim'].browse(claim.id)
+                    if original.provider_id != claim.provider_id:
+                        raise ValidationError(
+                            _("Provider cannot be changed in %s state.") % claim.state
+                        )
+
+    @api.constrains('amount_billed', 'state')
+    def _check_amount_billed_on_update(self):
+        """Enforce amount_billed readonly constraint based on state"""
+        for claim in self:
+            if claim.state in ('submitted', 'approved', 'paid') and not self.env.context.get('skip_state_checks'):
+                # Amount billed cannot be changed in these states
+                if claim.id:
+                    original = self.env['clinic.insurance.claim'].browse(claim.id)
+                    if original.amount_billed != claim.amount_billed:
+                        raise ValidationError(
+                            _("Billed amount cannot be changed in %s state.") % claim.state
+                        )
     
     @api.onchange('patient_id')
     def _onchange_patient_id(self):

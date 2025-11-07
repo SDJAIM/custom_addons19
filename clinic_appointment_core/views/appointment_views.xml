@@ -1,256 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ======================== -->
     <!-- Appointment Tree View -->
+    <!-- ======================== -->
     <record id="view_clinic_appointment_tree" model="ir.ui.view">
         <field name="name">clinic.appointment.list</field>
         <field name="model">clinic.appointment</field>
         <field name="arch" type="xml">
-            <list string="Appointments" 
+            <list string="Appointments"
                   decoration-danger="state=='no_show'"
                   decoration-warning="state=='draft'"
                   decoration-success="state=='done'"
+                  decoration-muted="state=='cancelled'"
                   decoration-info="state=='confirmed'">
                 <field name="appointment_number"/>
                 <field name="start" widget="datetime"/>
                 <field name="patient_id"/>
                 <field name="staff_id"/>
-                <field name="service_type"/>
-                <field name="room_id" optional="show"/>
-                <field name="urgency" 
-                       decoration-danger="urgency=='emergency'"
-                       decoration-warning="urgency=='high'"/>
+                <field name="appointment_type_id"/>
+                <field name="stage_id" widget="badge"/>
                 <field name="state"/>
-                <field name="insurance_flag" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
     </record>
 
+    <!-- ======================== -->
     <!-- Appointment Form View -->
+    <!-- ======================== -->
     <record id="view_clinic_appointment_form" model="ir.ui.view">
         <field name="name">clinic.appointment.form</field>
         <field name="model">clinic.appointment</field>
         <field name="arch" type="xml">
             <form string="Appointment" class="o_form_sheet">
                 <header>
-                    <button name="action_confirm" type="object" string="Confirm" 
-                           invisible="state != 'draft'" class="btn-primary"/>
-                    <button name="action_arrive" type="object" string="Arrived" 
-                           invisible="state != 'confirmed'" class="btn-info"/>
-                    <button name="action_start" type="object" string="Start" 
-                           invisible="state != 'arrived'" class="btn-warning"/>
-                    <button name="action_done" type="object" string="Done" 
-                           invisible="state != 'in_progress'" class="btn-success"/>
-                    <button name="action_cancel" type="object" string="Cancel" 
-                           invisible="state not in ['draft', 'confirmed', 'arrived']" class="btn-danger"/>
-                    <button name="action_no_show" type="object" string="No Show" 
-                           invisible="state not in ['confirmed', 'arrived']"/>
-                    <button name="action_reschedule" type="object" string="Reschedule" 
-                           invisible="state not in ['confirmed', 'arrived']" icon="fa-calendar"/>
-                    <button name="action_create_follow_up" type="object" string="Schedule Follow-up" 
-                           invisible="state != 'done'" icon="fa-plus"/>
-                    <button name="action_approve" type="object" string="Approve" 
-                           invisible="requires_approval == False or approved_by != False"
-                           groups="clinic_appointment_core.group_appointment_manager"/>
-                    <field name="state" widget="statusbar" 
-                          statusbar_visible="draft,confirmed,arrived,in_progress,done"/>
+                    <!-- Action Buttons - ONLY methods that exist in model -->
+                    <button name="action_confirm" type="object" string="Confirm"
+                           class="btn-primary"
+                           invisible="state not in ['draft']"/>
+                    <button name="action_start" type="object" string="Start Consultation"
+                           class="btn-info"
+                           invisible="state not in ['confirmed']"/>
+                    <button name="action_done" type="object" string="Mark Done"
+                           class="btn-success"
+                           invisible="state not in ['confirmed']"/>
+                    <button name="action_no_show" type="object" string="Mark No-Show"
+                           class="btn-warning"
+                           invisible="state not in ['confirmed']"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                           class="btn-danger"
+                           invisible="state in ['done', 'cancelled', 'no_show']"/>
+                    <button name="action_create_follow_up" type="object" string="Schedule Follow-up"
+                           class="btn-secondary"
+                           invisible="state != 'done'"/>
+                    <button name="action_reschedule" type="object" string="Reschedule"
+                           class="btn-secondary"
+                           invisible="state not in ['draft', 'confirmed']"/>
+
+                    <!-- Stage statusbar (clickable) -->
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" icon="fa-stethoscope"
-                               invisible="follow_up_count == 0">
-                            <field name="follow_up_count" widget="statinfo" string="Follow-ups"/>
-                        </button>
-                    </div>
-                    
-                    <widget name="web_ribbon" title="Requires Approval" 
-                           invisible="requires_approval == False or approved_by != False"/>
-                    <widget name="web_ribbon" title="Emergency" bg_color="bg-danger"
-                           invisible="urgency != 'emergency'"/>
-                    
                     <div class="oe_title">
+                        <label for="appointment_number" string="Appointment #"/>
                         <h1>
                             <field name="appointment_number" readonly="1"/>
                         </h1>
                     </div>
-                    
+
+                    <!-- Main Information -->
                     <group>
                         <group string="Patient Information">
                             <field name="patient_id" required="1"/>
-                            <field name="patient_age"/>
-                            <field name="patient_phone" widget="phone"/>
                         </group>
                         <group string="Appointment Details">
                             <field name="appointment_type_id" required="1"/>
-                            <field name="service_type" required="1"/>
-                            <field name="urgency"/>
-                            <field name="staff_id" required="1" 
-                                  domain="[('state', '=', 'active')]"/>
+                            <field name="staff_id" required="1"/>
                         </group>
                     </group>
-                    
+
+                    <!-- Schedule -->
                     <group>
                         <group string="Schedule">
                             <field name="start" required="1"/>
-                            <field name="duration"/>
                             <field name="stop"/>
                             <field name="allday"/>
                         </group>
-                        <group string="Location">
-                            <field name="branch_id" required="1"/>
-                            <field name="room_id" 
-                                  domain="[('branch_id', '=', branch_id), ('status', '=', 'available')]"/>
+                        <group string="Duration">
+                            <field name="default_duration" readonly="1"/>
+                            <field name="buffer_before" readonly="1"/>
+                            <field name="buffer_after" readonly="1"/>
                         </group>
                     </group>
-                    
+
+                    <!-- Booking Information -->
+                    <group>
+                        <group string="Online Booking">
+                            <field name="booking_method"/>
+                            <field name="access_token" readonly="1"/>
+                            <field name="confirmed_by_customer" readonly="1"/>
+                            <field name="confirmation_date" readonly="1"/>
+                        </group>
+                        <group string="Questionnaire">
+                            <field name="questionnaire_completed" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Notebook with Additional Pages -->
                     <notebook>
-                        <page string="Clinical Information" name="clinical">
+                        <!-- Notes -->
+                        <page string="Notes" name="notes">
                             <group>
-                                <field name="chief_complaint" 
-                                      placeholder="Main reason for visit..."/>
-                                <field name="symptoms" 
-                                      placeholder="Patient reported symptoms..."/>
-                                <field name="notes" 
-                                      placeholder="Additional notes..."/>
+                                <field name="notes" nolabel="1" placeholder="Add appointment notes..."/>
                             </group>
                         </page>
-                        
-                        <page string="Insurance" name="insurance" 
-                             invisible="insurance_flag == False">
+
+                        <!-- Follow-up -->
+                        <page string="Follow-ups" name="followup">
                             <group>
                                 <group>
-                                    <field name="insurance_flag"/>
-                                    <field name="insurance_id" 
-                                          required="insurance_flag == True"
-                                          invisible="insurance_flag == False"
-                                          domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]"/>
-                                </group>
-                                <group>
-                                    <field name="requires_authorization"/>
-                                    <field name="insurance_auth_number" 
-                                          required="requires_authorization == True"
-                                          invisible="requires_authorization == False"/>
-                                    <field name="copay_amount" widget="monetary"/>
+                                    <field name="parent_appointment_id" readonly="1" string="Parent Appointment"/>
                                 </group>
                             </group>
+                            <separator string="Follow-up Appointments"/>
+                            <field name="follow_up_ids" readonly="1" nolabel="1">
+                                <tree>
+                                    <field name="appointment_number"/>
+                                    <field name="start"/>
+                                    <field name="stage_id"/>
+                                </tree>
+                            </field>
                         </page>
-                        
-                        <page string="Telemedicine" name="telemed" 
-                             invisible="service_type != 'telemed'">
+
+                        <!-- Timing Information -->
+                        <page string="Timing" name="timing">
                             <group>
-                                <field name="telemed_platform"/>
-                                <field name="telemed_link" widget="url" 
-                                      placeholder="Video consultation link..."/>
-                            </group>
-                        </page>
-                        
-                        <page string="Follow-up" name="followup" 
-                             invisible="is_follow_up == False">
-                            <group>
-                                <field name="is_follow_up"/>
-                                <field name="parent_appointment_id" 
-                                      invisible="is_follow_up == False"/>
-                            </group>
-                            <field name="follow_up_ids" readonly="1"/>
-                        </page>
-                        
-                        <page string="Timing" name="timing" 
-                             invisible="state in ['draft', 'confirmed']">
-                            <group>
-                                <group string="Check-in">
+                                <group string="Arrival">
                                     <field name="arrived_time" readonly="1"/>
-                                    <field name="waiting_time" widget="float_time"/>
+                                    <field name="waiting_time" readonly="1" widget="float_time"/>
                                 </group>
                                 <group string="Consultation">
                                     <field name="consultation_start_time" readonly="1"/>
                                     <field name="consultation_end_time" readonly="1"/>
-                                    <field name="consultation_duration" widget="float_time"/>
+                                    <field name="consultation_duration" readonly="1" widget="float_time"/>
                                 </group>
                             </group>
                         </page>
-                        
-                        <page string="Notifications" name="notifications">
+
+                        <!-- Questionnaire Responses - References dedicated views -->
+                        <page string="Questionnaire" name="questionnaire">
+                            <field name="questionnaire_answer_ids"
+                                   nolabel="1"
+                                   mode="tree,form">
+                            </field>
+                        </page>
+
+                        <!-- Resource Allocation -->
+                        <page string="Resources" name="resources">
                             <group>
-                                <group string="Reminders">
-                                    <field name="reminder_sent"/>
-                                    <field name="reminder_sent_date" readonly="1"/>
-                                </group>
-                                <group string="Confirmation">
-                                    <field name="confirmed_by_patient"/>
-                                    <field name="confirmation_date" readonly="1"/>
-                                </group>
+                                <field name="resource_id" readonly="1"/>
                             </group>
-                        </page>
-                        
-                        <page string="Approval" name="approval" 
-                             invisible="requires_approval == False">
-                            <group>
-                                <field name="requires_approval"/>
-                                <field name="approved_by" readonly="1"/>
-                                <field name="approval_date" readonly="1"/>
-                            </group>
-                        </page>
-                        
-                        <page string="Internal Notes" name="internal" 
-                             groups="clinic_appointment_core.group_appointment_user">
-                            <field name="internal_notes" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
+
+                <!-- Chatter for messaging/activity -->
                 <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
         </field>
     </record>
 
+    <!-- ======================== -->
     <!-- Appointment Kanban View -->
+    <!-- ======================== -->
     <record id="view_clinic_appointment_kanban" model="ir.ui.view">
         <field name="name">clinic.appointment.kanban</field>
         <field name="model">clinic.appointment</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" class="o_kanban_mobile" 
-                   quick_create="false">
+            <kanban default_group_by="stage_id" class="o_kanban_mobile" quick_create="false">
                 <field name="id"/>
                 <field name="appointment_number"/>
                 <field name="patient_id"/>
                 <field name="staff_id"/>
                 <field name="start"/>
-                <field name="service_type"/>
-                <field name="urgency"/>
                 <field name="state"/>
-                <field name="insurance_flag"/>
-                <progressbar field="state"/>
+                <field name="stage_id"/>
+                <progressbar field="state" colors="{'draft': 'warning', 'confirmed': 'info', 'done': 'success', 'cancelled': 'danger', 'no_show': 'danger'}"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                        <div class="oe_kanban_global_click">
                             <div class="o_kanban_record_top">
                                 <div class="o_kanban_record_headings">
                                     <strong class="o_kanban_record_title">
                                         <field name="appointment_number"/>
                                     </strong>
-                                </div>
-                                <div class="o_kanban_record_subtitle">
-                                    <field name="patient_id"/>
+                                    <span class="o_kanban_record_subtitle">
+                                        <field name="start" widget="datetime"/>
+                                    </span>
                                 </div>
                             </div>
                             <div class="o_kanban_record_body">
                                 <div>
-                                    <i class="fa fa-calendar"/> <field name="start" widget="datetime"/>
+                                    <strong>Patient:</strong> <field name="patient_id"/>
                                 </div>
                                 <div>
-                                    <i class="fa fa-user-md"/> <field name="staff_id"/>
-                                </div>
-                                <div class="o_kanban_tags_section">
-                                    <field name="service_type"/>
-                                    <field name="urgency" 
-                                          invisible="urgency == 'medium'"/>
+                                    <strong>Doctor:</strong> <field name="staff_id"/>
                                 </div>
                             </div>
-                            <div class="o_kanban_record_bottom" t-if="record.insurance_flag.raw_value">
-                                <span class="badge badge-info">
-                                    <i class="fa fa-shield"/> Insurance
+                            <div class="o_kanban_record_bottom">
+                                <span class="badge" t-attf-class="badge-{{ 'success' if record.state.raw_value == 'done' else 'warning' if record.state.raw_value == 'draft' else 'info' }}">
+                                    <field name="state"/>
                                 </span>
                             </div>
                         </div>
@@ -260,7 +222,9 @@
         </field>
     </record>
 
-    <!-- Enhanced Appointment Calendar View with Scheduling Features -->
+    <!-- ======================== -->
+    <!-- Appointment Calendar View -->
+    <!-- ======================== -->
     <record id="view_clinic_appointment_calendar" model="ir.ui.view">
         <field name="name">clinic.appointment.calendar</field>
         <field name="model">clinic.appointment</field>
@@ -271,46 +235,19 @@
                      color="staff_id"
                      mode="week"
                      event_open_popup="true"
-                     quick_create="true"
-                     all_day="allday">
+                     quick_create="false">
                 <field name="appointment_number"/>
-                <field name="patient_id" avatar_field="image_128"/>
-                <field name="staff_id" filters="1" avatar_field="image_128"/>
-                <field name="service_type" filters="1"/>
-                <field name="room_id" filters="1"/>
-                <field name="branch_id" invisible="1" filters="1"/>
+                <field name="patient_id"/>
+                <field name="staff_id" filters="1"/>
                 <field name="state"/>
-                <field name="urgency" invisible="urgency == 'medium'"/>
+                <field name="appointment_type_id" filters="1"/>
             </calendar>
         </field>
     </record>
 
-    <!-- Timeline/Schedule View using Tree grouped by date/time (Community Alternative) -->
-    <record id="view_clinic_appointment_timeline" model="ir.ui.view">
-        <field name="name">clinic.appointment.timeline</field>
-        <field name="model">clinic.appointment</field>
-        <field name="arch" type="xml">
-            <list string="Appointment Timeline"
-                  create="false"
-                  edit="false"
-                  decoration-info="state=='confirmed'"
-                  decoration-warning="state=='arrived'"
-                  decoration-success="state=='in_progress'"
-                  decoration-muted="state=='done'"
-                  default_order="start,staff_id">
-                <field name="start" widget="datetime"/>
-                <field name="stop" widget="datetime"/>
-                <field name="staff_id"/>
-                <field name="patient_id"/>
-                <field name="service_type"/>
-                <field name="room_id"/>
-                <field name="state"/>
-                <field name="duration" widget="float_time"/>
-            </list>
-        </field>
-    </record>
-
+    <!-- ======================== -->
     <!-- Appointment Search View -->
+    <!-- ======================== -->
     <record id="view_clinic_appointment_search" model="ir.ui.view">
         <field name="name">clinic.appointment.search</field>
         <field name="model">clinic.appointment</field>
@@ -319,84 +256,69 @@
                 <field name="appointment_number"/>
                 <field name="patient_id"/>
                 <field name="staff_id"/>
+                <field name="appointment_type_id"/>
                 <field name="start"/>
-                
-                <filter name="today" string="Today" 
-                       domain="[('start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),
-                                ('start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]"/>
-                <filter name="tomorrow" string="Tomorrow" 
-                       domain="[('start', '&gt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0)),
-                                ('start', '&lt;=', (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=23, minute=59, second=59))]"/>
-                <filter name="this_week" string="This Week" 
-                       domain="[('start', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().weekday())).replace(hour=0, minute=0, second=0))]"/>
-                <separator/>
-                
+
+                <!-- Filters by State -->
                 <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
-                <filter name="arrived" string="Arrived" domain="[('state', '=', 'arrived')]"/>
-                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
                 <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="no_show" string="No-Show" domain="[('state', '=', 'no_show')]"/>
+
                 <separator/>
-                
-                <filter name="medical" string="Medical" domain="[('service_type', '=', 'medical')]"/>
-                <filter name="dental" string="Dental" domain="[('service_type', '=', 'dental')]"/>
-                <filter name="telemed" string="Telemedicine" domain="[('service_type', '=', 'telemed')]"/>
-                <filter name="emergency" string="Emergency" domain="[('urgency', '=', 'emergency')]"/>
+
+                <!-- Filters by Time -->
+                <filter name="today" string="Today" domain="[('start', '>=', context_today().strftime('%Y-%m-%d 00:00:00')), ('start', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter name="upcoming" string="Upcoming" domain="[('start', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="past" string="Past" domain="[('start', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+
                 <separator/>
-                
-                <filter name="insurance" string="Insurance" domain="[('insurance_flag', '=', True)]"/>
-                <filter name="follow_up" string="Follow-ups" domain="[('is_follow_up', '=', True)]"/>
-                
-                <separator string="Group By"/>
-                <filter name="group_date" string="Date" context="{'group_by': 'start:day'}"/>
-                <filter name="group_staff" string="Doctor/Dentist" context="{'group_by': 'staff_id'}"/>
-                <filter name="group_patient" string="Patient" context="{'group_by': 'patient_id'}"/>
-                <filter name="group_service" string="Service Type" context="{'group_by': 'service_type'}"/>
-                <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
-                <filter name="group_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
-                <filter name="group_room" string="Room" context="{'group_by': 'room_id'}"/>
-                
-                <searchpanel>
-                    <field name="state" enable_counters="1"/>
-                    <field name="service_type" enable_counters="1"/>
-                    <field name="staff_id" enable_counters="1"/>
-                    <field name="branch_id" enable_counters="1"/>
-                </searchpanel>
+
+                <!-- Grouping -->
+                <filter string="Stage" name="group_stage" context="{'group_by': 'stage_id'}"/>
+                <filter string="Staff" name="group_staff" context="{'group_by': 'staff_id'}"/>
+                <filter string="Date" name="group_date" context="{'group_by': 'start:day'}"/>
+                <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                <filter string="Type" name="group_type" context="{'group_by': 'appointment_type_id'}"/>
             </search>
         </field>
     </record>
 
-    <!-- Appointment Action -->
+    <!-- ======================== -->
+    <!-- Appointment Action Window -->
+    <!-- ======================== -->
     <record id="action_clinic_appointment" model="ir.actions.act_window">
         <field name="name">Appointments</field>
         <field name="res_model">clinic.appointment</field>
-        <field name="view_mode">list,kanban,calendar,form</field>
+        <field name="view_mode">tree,kanban,calendar,form</field>
         <field name="search_view_id" ref="view_clinic_appointment_search"/>
-        <field name="context">{'search_default_today': 1}</field>
+        <field name="context">{'search_default_today': 1, 'search_default_confirmed': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No appointments scheduled yet!
             </p>
             <p>
-                Schedule patient appointments and manage your clinic's calendar.
+                Create or schedule new patient appointments to get started.
             </p>
         </field>
     </record>
 
-    <!-- Staff Schedule Action (Timeline View) -->
+    <!-- ======================== -->
+    <!-- Staff Schedule Action -->
+    <!-- ======================== -->
     <record id="action_clinic_appointment_schedule" model="ir.actions.act_window">
         <field name="name">Staff Schedule</field>
         <field name="res_model">clinic.appointment</field>
-        <field name="view_mode">list,calendar,form</field>
-        <field name="view_id" ref="view_clinic_appointment_timeline"/>
+        <field name="view_mode">calendar,tree,form</field>
         <field name="search_view_id" ref="view_clinic_appointment_search"/>
-        <field name="context">{'search_default_today': 1, 'search_default_group_staff': 1}</field>
+        <field name="context">{'search_default_today': 1, 'search_default_upcoming': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                No appointments scheduled!
+                No schedule available!
             </p>
             <p>
-                View and manage staff schedules and appointment timelines.
+                View and manage doctor/staff schedules and appointments.
             </p>
         </field>
     </record>

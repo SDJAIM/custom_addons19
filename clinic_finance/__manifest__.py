@@ -53,6 +53,8 @@ Features:
 
         # Views
         'views/invoice_views.xml',
+        'views/insurance_claim_views.xml',
+        'views/payment_plan_views.xml',
     ],
     
     'installable': True,

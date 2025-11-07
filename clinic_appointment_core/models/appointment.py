@@ -38,7 +38,6 @@ class ClinicAppointment(models.Model):
         string='Calendar Event',
         required=True,
         ondelete='cascade',
-        auto_join=True,
         help='Link to Odoo calendar event for sync and calendar features'
     )
 
@@ -566,6 +565,13 @@ class ClinicAppointment(models.Model):
             self.stage_id = confirmed_stage
             self._send_confirmation_email()
             self._send_confirmation_sms()
+
+    def action_start(self):
+        """Start consultation - mark as in_progress"""
+        self.ensure_one()
+        self.write({
+            'consultation_start_time': fields.Datetime.now()
+        })
 
     def action_done(self):
         """Complete appointment"""

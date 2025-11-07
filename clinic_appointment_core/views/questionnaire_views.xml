@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Questionnaire Answer Tree View -->
+    <!-- ======================== -->
+    <record id="view_clinic_appointment_questionnaire_answer_tree" model="ir.ui.view">
+        <field name="name">clinic.appointment.questionnaire.answer.tree</field>
+        <field name="model">clinic.appointment.questionnaire.answer</field>
+        <field name="arch" type="xml">
+            <list string="Questionnaire Answers" editable="bottom">
+                <field name="sequence"/>
+                <field name="question_name"/>
+                <field name="answer_text"/>
+                <field name="answer_bool" optional="show"/>
+                <field name="answer_number" optional="show"/>
+                <field name="answer_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Questionnaire Answer Form View -->
+    <!-- ======================== -->
+    <record id="view_clinic_appointment_questionnaire_answer_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.questionnaire.answer.form</field>
+        <field name="model">clinic.appointment.questionnaire.answer</field>
+        <field name="arch" type="xml">
+            <form string="Questionnaire Answer">
+                <group>
+                    <group string="Question">
+                        <field name="sequence"/>
+                        <field name="question_id"/>
+                        <field name="question"/>
+                        <field name="question_name" readonly="1"/>
+                    </group>
+                    <group string="Answer">
+                        <field name="answer_text" widget="textarea"/>
+                        <field name="answer_bool"/>
+                        <field name="answer_number"/>
+                        <field name="answer_date"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Questionnaire Answer Search View -->
+    <!-- ======================== -->
+    <record id="view_clinic_appointment_questionnaire_answer_search" model="ir.ui.view">
+        <field name="name">clinic.appointment.questionnaire.answer.search</field>
+        <field name="model">clinic.appointment.questionnaire.answer</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="appointment_id"/>
+                <field name="question_name"/>
+                <field name="answer_text"/>
+                <separator/>
+                <filter string="Text Answers" name="filter_text" domain="[('answer_text', '!=', False)]"/>
+                <filter string="Boolean Answers" name="filter_bool" domain="[('answer_bool', '!=', False)]"/>
+                <filter string="Numeric Answers" name="filter_number" domain="[('answer_number', '!=', False)]"/>
+                <filter string="Date Answers" name="filter_date" domain="[('answer_date', '!=', False)]"/>
+                <separator/>
+                <filter string="Appointment" name="group_appointment" context="{'group_by': 'appointment_id'}"/>
+                <filter string="Question" name="group_question" context="{'group_by': 'question_name'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Questionnaire Answer Action Window -->
+    <!-- ======================== -->
+    <record id="action_clinic_appointment_questionnaire_answer" model="ir.actions.act_window">
+        <field name="name">Questionnaire Answers</field>
+        <field name="res_model">clinic.appointment.questionnaire.answer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_clinic_appointment_questionnaire_answer_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No questionnaire answers yet!
+            </p>
+            <p>
+                Answers will be recorded as patients respond to questionnaires.
+            </p>
+        </field>
+    </record>
+</odoo>

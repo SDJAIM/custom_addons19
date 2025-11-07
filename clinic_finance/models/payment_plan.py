@@ -13,7 +13,7 @@ class PaymentPlan(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'create_date desc'
     _rec_name = 'name'
-    
+
     # Basic Information
     name = fields.Char(
         string='Plan Reference',
@@ -29,8 +29,7 @@ class PaymentPlan(models.Model):
         string='Patient',
         required=True,
         tracking=True,
-        index=True,
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        index=True
     )
     
     partner_id = fields.Many2one(
@@ -46,15 +45,13 @@ class PaymentPlan(models.Model):
         string='Total Amount',
         required=True,
         tracking=True,
-        digits='Product Price',
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        digits='Product Price'
     )
     
     down_payment = fields.Float(
         string='Down Payment',
         digits='Product Price',
-        tracking=True,
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        tracking=True
     )
     
     financed_amount = fields.Float(
@@ -67,8 +64,7 @@ class PaymentPlan(models.Model):
     installments = fields.Integer(
         string='Number of Installments',
         required=True,
-        tracking=True,
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        tracking=True
     )
     
     installment_amount = fields.Float(
@@ -90,8 +86,7 @@ class PaymentPlan(models.Model):
         string='Start Date',
         required=True,
         tracking=True,
-        default=fields.Date.context_today,
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        default=fields.Date.context_today
     )
     
     end_date = fields.Date(
@@ -104,8 +99,7 @@ class PaymentPlan(models.Model):
     interest_rate = fields.Float(
         string='Interest Rate (%)',
         default=0.0,
-        tracking=True,
-        states={'active': [('readonly', True)], 'completed': [('readonly', True)]}
+        tracking=True
     )
     
     total_interest = fields.Float(
@@ -125,8 +119,7 @@ class PaymentPlan(models.Model):
     # Related Documents
     invoice_ids = fields.Many2many(
         'clinic.invoice',
-        string='Related Invoices',
-        states={'completed': [('readonly', True)]}
+        string='Related Invoices'
     )
     
     appointment_ids = fields.Many2many(
@@ -304,6 +297,84 @@ class PaymentPlan(models.Model):
         for plan in self:
             if plan.down_payment > plan.total_amount:
                 raise ValidationError(_("Down payment cannot exceed total amount."))
+
+    @api.constrains('patient_id', 'state')
+    def _check_patient_id_on_update(self):
+        """Enforce patient_id readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Patient cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.patient_id != plan.patient_id:
+                        raise ValidationError(
+                            _("Patient cannot be changed in %s state.") % plan.state
+                        )
+
+    @api.constrains('total_amount', 'state')
+    def _check_total_amount_on_update(self):
+        """Enforce total_amount readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Total amount cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.total_amount != plan.total_amount:
+                        raise ValidationError(
+                            _("Total amount cannot be changed in %s state.") % plan.state
+                        )
+
+    @api.constrains('down_payment', 'state')
+    def _check_down_payment_on_update(self):
+        """Enforce down_payment readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Down payment cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.down_payment != plan.down_payment:
+                        raise ValidationError(
+                            _("Down payment cannot be changed in %s state.") % plan.state
+                        )
+
+    @api.constrains('installments', 'state')
+    def _check_installments_on_update(self):
+        """Enforce installments readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Installments cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.installments != plan.installments:
+                        raise ValidationError(
+                            _("Number of installments cannot be changed in %s state.") % plan.state
+                        )
+
+    @api.constrains('start_date', 'state')
+    def _check_start_date_on_update(self):
+        """Enforce start_date readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Start date cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.start_date != plan.start_date:
+                        raise ValidationError(
+                            _("Start date cannot be changed in %s state.") % plan.state
+                        )
+
+    @api.constrains('interest_rate', 'state')
+    def _check_interest_rate_on_update(self):
+        """Enforce interest_rate readonly constraint based on state"""
+        for plan in self:
+            if plan.state in ('active', 'completed') and not self.env.context.get('skip_state_checks'):
+                # Interest rate cannot be changed in these states
+                if plan.id:
+                    original = self.env['clinic.payment.plan'].browse(plan.id)
+                    if original.interest_rate != plan.interest_rate:
+                        raise ValidationError(
+                            _("Interest rate cannot be changed in %s state.") % plan.state
+                        )
     
     def action_generate_schedule(self):
         """Generate payment schedule"""

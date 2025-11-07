@@ -85,7 +85,7 @@ class AppointmentQuestionnaireAnswer(models.Model):
     """
     _name = 'clinic.appointment.questionnaire.answer'
     _description = 'Appointment Questionnaire Answer'
-    _order = 'appointment_id, question_id'
+    _order = 'appointment_id, sequence, id'
 
     # RELATIONSHIP
     appointment_id = fields.Many2one(
@@ -95,35 +95,56 @@ class AppointmentQuestionnaireAnswer(models.Model):
         ondelete='cascade',
         index=True
     )
-    
+
     question_id = fields.Many2one(
         'clinic.appointment.questionnaire.line',
         string='Question',
-        required=True,
         ondelete='cascade',
-        index=True
+        index=True,
+        help='Optional link to predefined question'
     )
-    
-    # ANSWER
-    answer_text = fields.Text(string='Answer')
-    
+
+    # SIMPLE QUESTION (if not using predefined questions)
+    question = fields.Char(
+        string='Question Text',
+        help='Direct question text (if not linked to predefined question)'
+    )
+
+    # SEQUENCE for ordering
+    sequence = fields.Integer(string='Sequence', default=10)
+
+    # ANSWERS - support multiple answer types
+    answer_text = fields.Text(string='Text Answer')
+    answer_bool = fields.Boolean(string='Boolean Answer')
+    answer_number = fields.Float(string='Numeric Answer')
+    answer_date = fields.Date(string='Date Answer')
+
     # COMPUTED DISPLAY
     question_name = fields.Char(
-        related='question_id.name',
-        string='Question',
-        store=True,
-        readonly=True
+        compute='_compute_question_name',
+        string='Question Display',
+        store=True
     )
-    
+
     question_type = fields.Selection(
         related='question_id.question_type',
         string='Type',
         store=True,
         readonly=True
     )
-    
+
+    @api.depends('question', 'question_id.name')
+    def _compute_question_name(self):
+        """Get question name from related question or use direct question text"""
+        for answer in self:
+            if answer.question_id:
+                answer.question_name = answer.question_id.name
+            else:
+                answer.question_name = answer.question or 'Untitled Question'
+
     _sql_constraints = [
-        ('unique_answer_per_question',
+        ('unique_answer_per_predefined_question',
          'UNIQUE(appointment_id, question_id)',
-         'Only one answer per question per appointment allowed')
+         'Only one answer per predefined question per appointment allowed',
+         "question_id IS NOT NULL")
     ]

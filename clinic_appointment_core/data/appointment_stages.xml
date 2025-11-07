@@ -22,7 +22,7 @@
             <field name="stage_type">confirmed</field>
             <field name="fold" eval="False"/>
             <field name="send_email" eval="True"/>
-            <field name="mail_template_id" ref="email_template_appointment_confirmation"/>
+            <field name="mail_template_id" ref="clinic_appointment_core.email_template_appointment_confirmation"/>
             <field name="description">Appointment confirmed by staff or customer</field>
         </record>
 
@@ -53,7 +53,7 @@
             <field name="stage_type">cancelled</field>
             <field name="fold" eval="True"/>
             <field name="send_email" eval="True"/>
-            <field name="mail_template_id" ref="email_template_appointment_cancellation"/>
+            <field name="mail_template_id" ref="clinic_appointment_core.email_template_appointment_cancellation"/>
             <field name="description">Appointment cancelled by staff or customer</field>
         </record>
     </data>
