@@ -12,6 +12,13 @@ class Medication(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
     _order = 'name'
     _rec_name = 'display_name'
+
+    # Database-level uniqueness constraints
+    # Reference: Odoo 19 SQL constraints
+    # https://www.odoo.com/documentation/19.0/developer/reference/backend/orm.html#sql-constraints
+    _sql_constraints = [
+        ('med_code_uniq', 'UNIQUE(code)', 'Medication code must be unique'),
+    ]
     
     # Basic Information
     name = fields.Char(
@@ -585,23 +592,219 @@ class Medication(models.Model):
     
     @api.model
     def check_reorder_levels(self):
-        """Cron job to check reorder levels"""
-        medications = self.search([
-            ('track_inventory', '=', True),
-            ('product_id', '!=', False),
-            ('reorder_level', '>', 0),
-        ])
-        
-        for med in medications:
-            if med.product_id.qty_available <= med.reorder_level:
-                # Create activity for reorder
-                med.activity_schedule(
-                    'mail.mail_activity_data_todo',
-                    summary=f'Reorder {med.name}',
-                    note=f'Stock level ({med.product_id.qty_available}) is below reorder level ({med.reorder_level})',
-                    user_id=self.env.ref('base.user_admin').id
-                )
+        """Cron job to check medication reorder levels (requires pharmacy manager role).
+
+        Called via ir.cron to identify medications with stock below reorder level.
+        Creates activities assigned to pharmacy manager users.
+
+        Security:
+        - Uses sudo() to bypass field-level access controls for system-wide inventory check
+        - Only creates activities for medications with valid product_id
+        - Activities assigned to pharmacy.manager group (not hardcoded admin)
+
+        Returns:
+            bool: True on success
+
+        Reference: Odoo 19 cron security patterns
+        https://www.odoo.com/documentation/19.0/developer/reference/backend/actions.html#scheduled-actions
+        """
+        try:
+            # Use sudo() to read all medications regardless of field-level restrictions
+            # Justification: Cron runs as system service and needs full visibility of inventory
+            medications = self.sudo().search([
+                ('track_inventory', '=', True),
+                ('product_id', '!=', False),
+                ('reorder_level', '>', 0),
+            ])
+
+            _logger.info("Checking reorder levels for %d medications", len(medications))
+
+            # Get pharmacy manager group for activity assignment
+            pharmacy_group = self.env.ref(
+                'clinic_prescription.group_clinic_prescription_manager',
+                raise_if_not_found=False
+            )
+
+            # Fallback to base.user_admin if group not found
+            if not pharmacy_group:
+                pharmacy_group = self.env.ref('base.group_erp_manager', raise_if_not_found=False)
+
+            for med in medications:
+                # Defensive check: ensure product_id exists and has qty_available
+                if not med.product_id:
+                    _logger.warning("Medication %s has no product_id", med.name)
+                    continue
+
+                if not hasattr(med.product_id, 'qty_available'):
+                    _logger.warning("Product %s has no qty_available attribute", med.product_id.name)
+                    continue
+
+                try:
+                    if med.product_id.qty_available <= med.reorder_level:
+                        # Find users in pharmacy manager group
+                        if pharmacy_group:
+                            managers = self.env['res.users'].search([
+                                ('groups_id', 'in', pharmacy_group.ids),
+                                ('active', '=', True),
+                            ])
+
+                            for manager in managers:
+                                # Deduplication: check if activity already exists
+                                existing = self.env['mail.activity'].search([
+                                    ('res_model_id.model', '=', 'clinic.medication'),
+                                    ('res_id', '=', med.id),
+                                    ('user_id', '=', manager.id),
+                                    ('state', '!=', 'done'),
+                                    ('summary', 'ilike', 'Reorder'),
+                                ], limit=1)
+
+                                if not existing:
+                                    med.activity_schedule(
+                                        'mail.mail_activity_data_todo',
+                                        summary=f'Reorder {med.name}',
+                                        note=f'Stock level ({med.product_id.qty_available}) is below reorder level ({med.reorder_level})',
+                                        user_id=manager.id
+                                    )
+                                    _logger.debug("Created reorder activity for %s (user: %s)", med.name, manager.name)
+                        else:
+                            _logger.warning("No pharmacy manager group found; skipping activity creation")
+
+                except (AttributeError, AccessError) as e:
+                    _logger.error("Error processing medication %s: %s", med.name, str(e))
+                    continue
+
+            return True
+
+        except Exception as e:
+            _logger.error("Error checking reorder levels: %s", str(e))
+            return False
     
+    @api.model
+    def check_expiring_lots(self, days_before=30):
+        """Check for expiring medication lots and create alerts (idempotent).
+
+        Called by ir.cron daily to identify stock lots expiring soon.
+        Creates activities for pharmacy staff to review and rotate stock.
+
+        IMPORTANT: Deduplicates activities to prevent duplicate notifications
+        on subsequent cron runs. Checks for existing activities with same lot
+        and user before creating new ones.
+
+        Args:
+            days_before (int): Number of days before expiration to alert (default 30)
+
+        Returns:
+            stock.production.lot: Recordset of expiring lots found
+
+        Security:
+        - Uses sudo() to read all lots regardless of field-level access controls
+        - Only creates activities for pharmacy manager group members (active users)
+        - Filters out already-expired and missing expiration_date lots
+        - Implements deduplication to prevent activity spam
+
+        Reference: Odoo 19 cron security and mail.activity patterns
+        https://www.odoo.com/documentation/19.0/developer/reference/backend/actions.html#scheduled-actions
+        https://www.odoo.com/documentation/19.0/developer/reference/backend/orm.html#mail-activity
+        """
+        from datetime import date, timedelta
+
+        # Calculate alert date (today + days_before)
+        alert_date = date.today() + timedelta(days=days_before)
+
+        try:
+            # Use sudo() for system-wide lot visibility
+            # Justification: Cron needs to scan all inventory regardless of field-level restrictions
+            expiring_lots = self.env['stock.production.lot'].sudo().search([
+                ('product_id.tracking', '!=', 'none'),
+                ('expiration_date', '!=', False),
+                ('expiration_date', '<=', alert_date),
+                ('expiration_date', '>', date.today()),  # Not already expired
+            ])
+
+            _logger.info(
+                "Found %d lots expiring within %d days",
+                len(expiring_lots),
+                days_before
+            )
+
+            # Get pharmacy manager group
+            pharmacy_group = self.env.ref(
+                'clinic_prescription.group_clinic_prescription_manager',
+                raise_if_not_found=False
+            )
+
+            if pharmacy_group:
+                # Get active pharmacy managers
+                users = self.env['res.users'].search([
+                    ('groups_id', 'in', pharmacy_group.ids),
+                    ('active', '=', True),
+                ])
+
+                _logger.debug("Found %d active pharmacy managers", len(users))
+
+                # Get activity type references (defensive checks)
+                activity_type_warning = self.env.ref(
+                    'mail.mail_activity_data_warning',
+                    raise_if_not_found=False
+                )
+                lot_model_id = self.env.ref(
+                    'stock.model_stock_production_lot',
+                    raise_if_not_found=False
+                )
+
+                if activity_type_warning and lot_model_id:
+                    for lot in expiring_lots:
+                        # Defensive check: ensure lot has valid expiration_date
+                        if not lot.expiration_date:
+                            _logger.warning("Lot %s has null expiration_date", lot.name)
+                            continue
+
+                        for user in users:
+                            try:
+                                # DEDUPLICATION: Check if activity already exists for this lot/user combination
+                                existing_activity = self.env['mail.activity'].search([
+                                    ('res_model_id', '=', lot_model_id.id),
+                                    ('res_id', '=', lot.id),
+                                    ('user_id', '=', user.id),
+                                    ('activity_type_id', '=', activity_type_warning.id),
+                                    ('state', '!=', 'done'),  # Only count active activities
+                                ], limit=1)
+
+                                # Only create new activity if one doesn't already exist
+                                if not existing_activity:
+                                    self.env['mail.activity'].create({
+                                        'activity_type_id': activity_type_warning.id,
+                                        'summary': _("Stock lot %s expires on %s") % (
+                                            lot.name, lot.expiration_date
+                                        ),
+                                        'user_id': user.id,
+                                        'res_id': lot.id,
+                                        'res_model_id': lot_model_id.id,
+                                        'date_deadline': lot.expiration_date,
+                                    })
+                                    _logger.debug("Created expiring lot activity for %s (user: %s)", lot.name, user.name)
+                                else:
+                                    _logger.debug(
+                                        "Activity for lot %s (user %s) already exists; skipping duplicate",
+                                        lot.name, user.name
+                                    )
+
+                            except (AttributeError, AccessError) as e:
+                                _logger.error("Error creating activity for lot %s (user %s): %s", lot.name, user.name, str(e))
+                                continue
+
+                else:
+                    _logger.warning("Missing activity_type or lot model reference; skipping activity creation")
+
+            else:
+                _logger.warning("Pharmacy manager group not found; skipping activity creation")
+
+            return expiring_lots
+
+        except Exception as e:
+            _logger.error("Error checking expiring lots: %s", str(e))
+            return self.env['stock.production.lot'].browse()
+
     @api.model
     def import_drug_database(self):
         """Import medications from external drug database"""

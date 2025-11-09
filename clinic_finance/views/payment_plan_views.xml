@@ -36,22 +36,22 @@
                     <!-- Workflow Buttons -->
                     <button name="action_approve" type="object" string="Approve"
                             class="btn-primary"
-                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                            invisible="state != 'draft'"/>
                     <button name="action_activate" type="object" string="Activate"
                             class="btn-success"
-                            attrs="{'invisible': [('state','!=','approved')]}"/>
+                            invisible="state != 'approved'"/>
                     <button name="action_hold" type="object" string="Put On Hold"
                             class="btn-warning"
-                            attrs="{'invisible': [('state','not in',['approved','active'])]}"/>
+                            invisible="state not in ('approved','active')"/>
                     <button name="action_resume" type="object" string="Resume"
                             class="btn-info"
-                            attrs="{'invisible': [('state','!=','on_hold')]}"/>
+                            invisible="state != 'on_hold'"/>
                     <button name="action_complete" type="object" string="Mark Complete"
                             class="btn-success"
-                            attrs="{'invisible': [('state','!=','active')]}"/>
+                            invisible="state != 'active'"/>
                     <button name="action_cancel" type="object" string="Cancel"
                             class="btn-secondary"
-                            attrs="{'invisible': [('state','in',['completed','defaulted','cancelled'])]}"/>
+                            invisible="state in ('completed','defaulted','cancelled')"/>
 
                     <!-- Status Field -->
                     <field name="state" widget="statusbar"
@@ -70,7 +70,7 @@
                     <group>
                         <group string="Patient Information">
                             <field name="patient_id" required="1"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                                   readonly="state in ('active','completed')"/>
                             <field name="partner_id" readonly="1"/>
                         </group>
                     </group>
@@ -80,18 +80,18 @@
                         <group string="Amounts">
                             <field name="total_amount" required="1"
                                    widget="monetary"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                                   readonly="state in ('active','completed')"/>
                             <field name="down_payment"
                                    widget="monetary"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                                   readonly="state in ('active','completed')"/>
                             <field name="financed_amount" readonly="1" widget="monetary"/>
                         </group>
                         <group string="Installment Details">
                             <field name="installments" required="1"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                                   readonly="state in ('active','completed')"/>
                             <field name="installment_amount" readonly="1" widget="monetary"/>
                             <field name="payment_frequency" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
 
@@ -99,7 +99,7 @@
                     <group string="Interest">
                         <group>
                             <field name="interest_rate"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"
+                                   readonly="state in ('active','completed')"
                                    widget="float" options="{'digits': [5,2]}"/>
                             <field name="total_interest" readonly="1" widget="monetary"/>
                         </group>
@@ -112,7 +112,7 @@
                     <group string="Plan Dates">
                         <group>
                             <field name="start_date" required="1"
-                                   attrs="{'readonly': [('state','in',['active','completed'])]}"/>
+                                   readonly="state in ('active','completed')"/>
                             <field name="end_date" readonly="1"/>
                         </group>
                     </group>
@@ -122,42 +122,22 @@
                         <page string="Payment Schedule" name="payment_schedule">
                             <field name="payment_line_ids"
                                    nolabel="1"
-                                   readonly="1">
-                                <tree>
-                                    <field name="sequence"/>
-                                    <field name="due_date"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="interest_amount" widget="monetary"/>
-                                    <field name="total_due" widget="monetary"/>
-                                    <field name="paid_amount" widget="monetary"/>
-                                    <field name="status" widget="badge"/>
-                                </tree>
-                            </field>
+                                   readonly="1"
+                                   widget="many2many"/>
                         </page>
 
                         <page string="Related Invoices" name="invoices">
                             <field name="invoice_ids"
-                                   attrs="{'readonly': [('state','in',['completed'])]}"
-                                   nolabel="1">
-                                <tree>
-                                    <field name="name"/>
-                                    <field name="amount_total" widget="monetary"/>
-                                    <field name="state"/>
-                                </tree>
-                            </field>
+                                   readonly="state in ('completed',)"
+                                   nolabel="1"
+                                   widget="many2many"/>
                         </page>
 
                         <page string="Related Appointments" name="appointments">
                             <field name="appointment_ids"
                                    nolabel="1"
-                                   readonly="1">
-                                <tree>
-                                    <field name="appointment_number"/>
-                                    <field name="patient_id"/>
-                                    <field name="start"/>
-                                    <field name="state"/>
-                                </tree>
-                            </field>
+                                   readonly="1"
+                                   widget="many2many"/>
                         </page>
                     </notebook>
                 </sheet>

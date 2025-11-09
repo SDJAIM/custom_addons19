@@ -2,64 +2,15 @@
 <odoo>
     <data noupdate="1">
 
-        <!-- Cron job to check for expiring medication lots -->
-        <record id="cron_check_expiring_medications" model="ir.cron">
-            <field name="name">Check Expiring Medications</field>
-            <field name="model_id" ref="model_clinic_medication"/>
-            <field name="state">code</field>
-            <field name="code">
-# Check for medications with expiring lots
-for medication in model.search([('track_inventory', '=', True), ('use_expiration_date', '=', True)]):
-    expiring_lots = medication.check_expiring_lots(30)  # 30 days warning
-    if expiring_lots:
-        # Create activities for expiring lots
-        for lot in expiring_lots:
-            days_to_expiry = (lot.expiration_date - fields.Date.today()).days
-            medication.activity_schedule(
-                'mail.mail_activity_data_warning',
-                summary=f'Medication lot expiring: {lot.name}',
-                note=f'{medication.name} - Lot {lot.name} expires in {days_to_expiry} days (on {lot.expiration_date})',
-                date_deadline=lot.expiration_date,
-                user_id=env.ref('base.user_admin').id
-            )
-            </field>
-            <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="active">True</field>
-        </record>
-
-        <!-- Cron job to check medication reorder levels -->
-        <record id="cron_check_medication_reorder_levels" model="ir.cron">
-            <field name="name">Check Medication Reorder Levels</field>
-            <field name="model_id" ref="model_clinic_medication"/>
-            <field name="state">code</field>
-            <field name="code">model.check_reorder_levels()</field>
-            <field name="interval_number">6</field>
-            <field name="interval_type">hours</field>
-            <field name="active">True</field>
-        </record>
-
-        <!-- Cron job to mark expired prescriptions -->
-        <record id="cron_check_expired_prescriptions" model="ir.cron">
-            <field name="name">Check Expired Prescriptions</field>
-            <field name="model_id" ref="model_clinic_prescription"/>
-            <field name="state">code</field>
-            <field name="code">model.check_expired_prescriptions()</field>
-            <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="active">True</field>
-        </record>
-
-        <!-- Cron job to send refill reminders -->
-        <record id="cron_prescription_refill_reminders" model="ir.cron">
-            <field name="name">Prescription Refill Reminders</field>
-            <field name="model_id" ref="model_clinic_prescription_line"/>
-            <field name="state">code</field>
-            <field name="code">model.check_refill_reminders()</field>
-            <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="active">True</field>
-        </record>
+        <!-- CRON JOBS TEMPORARILY DISABLED FOR DEPLOYMENT -->
+        <!-- These will be configured via UI or created programmatically once methods are properly implemented -->
+        <!--
+        Cron Specifications (to be manually created):
+        1. Check Expiring Medications - interval: 1 day - executes clinic.medication::check_expiring_lots(days_before=30)
+        2. Check Medication Reorder Levels - interval: 6 hours - executes clinic.medication::check_reorder_levels()
+        3. Check Expired Prescriptions - interval: 1 day - executes clinic.prescription::check_expired_prescriptions()
+        4. Prescription Refill Reminders - interval: 1 day - executes clinic.prescription.line::check_refill_reminders()
+        -->
 
     </data>
 </odoo>

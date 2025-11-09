@@ -26,6 +26,23 @@
     </record>
 
     <!-- ======================== -->
+    <!-- Claim Line List View (Nested) -->
+    <!-- ======================== -->
+    <record id="view_clinic_claim_line_tree" model="ir.ui.view">
+        <field name="name">clinic.claim.line.tree</field>
+        <field name="model">clinic.claim.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" string="Claim Items">
+                <field name="sequence" widget="handle"/>
+                <field name="description"/>
+                <field name="quantity"/>
+                <field name="unit_price" widget="monetary"/>
+                <field name="amount" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ======================== -->
     <!-- Insurance Claim Form View -->
     <!-- ======================== -->
     <record id="view_clinic_insurance_claim_form" model="ir.ui.view">
@@ -37,19 +54,19 @@
                     <!-- Workflow Buttons -->
                     <button name="action_submit" type="object" string="Submit Claim"
                             class="btn-primary"
-                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                            invisible="state != 'draft'"/>
                     <button name="action_approve" type="object" string="Approve"
                             class="btn-success"
-                            attrs="{'invisible': [('state','!=','submitted')]}"/>
+                            invisible="state != 'submitted'"/>
                     <button name="action_reject" type="object" string="Reject"
                             class="btn-danger"
-                            attrs="{'invisible': [('state','not in',['submitted','in_review'])]}"/>
+                            invisible="state not in ('submitted','in_review')"/>
                     <button name="action_mark_paid" type="object" string="Mark Paid"
                             class="btn-info"
-                            attrs="{'invisible': [('state','!=','approved')]}"/>
+                            invisible="state != 'approved'"/>
                     <button name="action_cancel" type="object" string="Cancel"
                             class="btn-secondary"
-                            attrs="{'invisible': [('state','in',['paid','cancelled','rejected'])]}"/>
+                            invisible="state in ('paid','cancelled','rejected')"/>
 
                     <!-- Status Field -->
                     <field name="state" widget="statusbar"
@@ -68,16 +85,16 @@
                     <group>
                         <group string="Patient &amp; Policy">
                             <field name="patient_id" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="policy_id" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="insurance_company_id" readonly="1"/>
                         </group>
                         <group string="Claim Details">
                             <field name="claim_type" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="priority"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="requires_authorization" readonly="1"/>
                         </group>
                     </group>
@@ -86,17 +103,17 @@
                     <group string="Service Information">
                         <group>
                             <field name="appointment_id"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="service_date" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                             <field name="service_end_date"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="provider_id" required="1"
-                                   attrs="{'readonly': [('state','in',['submitted','approved','paid','rejected'])]}"/>
+                                   readonly="state in ('submitted','approved','paid','rejected')"/>
                             <field name="facility_id"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
 
@@ -104,25 +121,25 @@
                     <group string="Diagnosis &amp; Procedures">
                         <group>
                             <field name="primary_diagnosis_id" required="1"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="secondary_diagnosis_ids" widget="many2many_tags"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
                     <field name="procedure_codes"
-                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                           readonly="state != 'draft'"/>
 
                     <!-- Related Records -->
                     <group string="Related Records">
                         <group>
                             <field name="treatment_ids" widget="many2many_tags"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="prescription_ids" widget="many2many_tags"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
 
@@ -130,9 +147,9 @@
                     <group string="Authorization">
                         <group>
                             <field name="authorization_number"
-                                   attrs="{'readonly': [('state','in',['paid'])]}"/>
+                                   readonly="state in ('paid',)"/>
                             <field name="authorization_date"
-                                   attrs="{'readonly': [('state','!=','draft')]}"/>
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
 
@@ -140,16 +157,10 @@
                     <notebook>
                         <page string="Claim Items" name="claim_lines">
                             <field name="line_ids"
-                                   attrs="{'readonly': [('state','in',['submitted','approved','paid'])]}"
-                                   nolabel="1">
-                                <tree editable="bottom">
-                                    <field name="sequence"/>
-                                    <field name="description"/>
-                                    <field name="quantity"/>
-                                    <field name="unit_price"/>
-                                    <field name="amount_billed" widget="monetary"/>
-                                </tree>
-                            </field>
+                                   readonly="state in ('submitted','approved','paid')"
+                                   nolabel="1"
+                                   mode="tree"
+                                   view_id="ref('view_clinic_claim_line_tree')"/>
                         </page>
 
                         <!-- Financial Summary -->
@@ -158,20 +169,20 @@
                                 <group string="Claim Amounts">
                                     <field name="amount_billed" required="1"
                                            widget="monetary"
-                                           attrs="{'readonly': [('state','in',['submitted','approved','paid'])]}"/>
+                                           readonly="state in ('submitted','approved','paid')"/>
                                     <field name="amount_approved"
                                            widget="monetary"
-                                           attrs="{'readonly': [('state','in',['paid'])]}"/>
+                                           readonly="state in ('paid',)"/>
                                     <field name="amount_paid" readonly="1" widget="monetary"/>
                                     <field name="amount_adjusted" readonly="1" widget="monetary"/>
                                 </group>
                                 <group string="Patient Responsibility">
                                     <field name="copay_amount" widget="monetary"
-                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                           readonly="state != 'draft'"/>
                                     <field name="deductible_amount" widget="monetary"
-                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                           readonly="state != 'draft'"/>
                                     <field name="coinsurance_amount" widget="monetary"
-                                           attrs="{'readonly': [('state','!=','draft')]}"/>
+                                           readonly="state != 'draft'"/>
                                     <field name="patient_responsibility" readonly="1" widget="monetary"/>
                                 </group>
                             </group>

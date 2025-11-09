@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================== -->
+    <!-- Finance Main Menu -->
+    <!-- ======================== -->
+    <menuitem id="menu_clinic_finance"
+              name="Finance"
+              sequence="50"/>
+</odoo>

@@ -47,6 +47,7 @@ Features:
         'security/ir.model.access.csv',
 
         # Data
+        'data/menus.xml',
         'data/finance_sequence.xml',
         'data/payment_terms.xml',
         'data/insurance_data.xml',
