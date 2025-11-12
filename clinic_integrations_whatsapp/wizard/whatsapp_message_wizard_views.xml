@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 3.4: WhatsApp Message Wizard with Smart Template Suggestions -->
+    <record id="view_whatsapp_message_wizard_form" model="ir.ui.view">
+        <field name="name">whatsapp.message.wizard.form</field>
+        <field name="model">clinic.whatsapp.message.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send WhatsApp Message">
+                <sheet>
+                    <!-- Patient Info Header -->
+                    <div class="oe_title">
+                        <label for="patient_id" string="Send WhatsApp to:"/>
+                        <h1>
+                            <field name="patient_id" readonly="1" nolabel="1"/>
+                        </h1>
+                        <div>
+                            <field name="phone_number" readonly="1"/> |
+                            <field name="window_status_text" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+
+                    <group invisible="1">
+                        <field name="thread_id"/>
+                        <field name="can_send_free_text"/>
+                        <field name="requires_template"/>
+                        <field name="window_urgency_level"/>
+                        <field name="show_template_warning"/>
+                        <field name="show_window_closing_warning"/>
+                        <field name="suggested_templates_count"/>
+                    </group>
+
+                    <!-- Window Status Alerts -->
+                    <div class="alert alert-success" role="alert"
+                         invisible="window_urgency_level not in ['normal']">
+                        <i class="fa fa-check-circle"/> <strong>Free Text Allowed</strong><br/>
+                        You can send regular text messages within the 24-hour window.
+                    </div>
+
+                    <div class="alert alert-warning" role="alert"
+                         invisible="window_urgency_level != 'warning'">
+                        <i class="fa fa-exclamation-triangle"/> <strong>Window Closing Soon!</strong><br/>
+                        Send your messages now before the 24-hour window expires.
+                    </div>
+
+                    <div class="alert alert-danger" role="alert"
+                         invisible="window_urgency_level != 'urgent'">
+                        <i class="fa fa-fire"/> <strong>URGENT: Window Closing in Minutes!</strong><br/>
+                        Send free text NOW or switch to templates!
+                    </div>
+
+                    <div class="alert alert-info" role="alert"
+                         invisible="window_urgency_level != 'expired'">
+                        <i class="fa fa-info-circle"/> <strong>24h Window Closed</strong><br/>
+                        You must use an approved template to send messages.
+                    </div>
+
+                    <div class="alert alert-secondary" role="alert"
+                         invisible="window_urgency_level != 'none'">
+                        <i class="fa fa-clock-o"/> <strong>No Customer Message Yet</strong><br/>
+                        Start conversation with an approved template.
+                    </div>
+
+                    <!-- Warning if trying free text outside window -->
+                    <div class="alert alert-danger" role="alert"
+                         invisible="not show_template_warning">
+                        <i class="fa fa-ban"/> <strong>❌ Free Text NOT Allowed!</strong><br/>
+                        You cannot send free text messages outside the 24-hour window.<br/>
+                        Please select a template instead.
+                    </div>
+
+                    <!-- Message Type Selection -->
+                    <group>
+                        <field name="message_type" widget="radio"
+                               options="{'horizontal': true}"/>
+                    </group>
+
+                    <!-- Template Selection (when message_type = template) -->
+                    <group invisible="message_type != 'template'">
+                        <field name="template_id"
+                               options="{'no_create': True, 'no_create_edit': True}"
+                               placeholder="Select an approved template..."
+                               required="message_type == 'template'"/>
+                        <field name="template_category" invisible="1"/>
+                    </group>
+
+                    <!-- Suggested Templates Section (when required) -->
+                    <div invisible="not requires_template or suggested_templates_count == 0">
+                        <separator string="📋 Suggested Templates"/>
+                        <div class="o_suggested_templates">
+                            <p class="text-muted">
+                                Click on a template below to use it:
+                            </p>
+                            <field name="suggested_template_ids" nolabel="1" mode="kanban"
+                                   widget="many2many"
+                                   options="{'no_create': True, 'no_create_edit': True}">
+                                <kanban create="false" edit="false" delete="false">
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click"
+                                                 style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin: 8px; cursor: pointer; background-color: #f8f9fa;">
+                                                <div class="o_kanban_record_top">
+                                                    <strong><field name="name"/></strong>
+                                                    <span class="badge badge-success float-right" invisible="meta_status != 'APPROVED'">✓ APPROVED</span>
+                                                </div>
+                                                <div style="margin-top: 8px; font-size: 0.9em; color: #666;">
+                                                    <field name="message_body" widget="text"/>
+                                                </div>
+                                                <div style="margin-top: 8px;">
+                                                    <span class="badge badge-info"><field name="meta_category"/></span>
+                                                    <span class="badge badge-secondary"><field name="language_code"/></span>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </div>
+                    </div>
+
+                    <!-- Message Body / Template Preview -->
+                    <group string="Message">
+                        <!-- Template Preview (when template selected) -->
+                        <div invisible="not template_id or message_type != 'template'">
+                            <div style="background-color: #DCF8C6; padding: 15px; border-radius: 12px; max-width: 500px;">
+                                <div style="margin-bottom: 10px;">
+                                    <i class="fa fa-whatsapp" style="color: #25D366; font-size: 1.2em;"/>
+                                    <strong style="color: #075E54; margin-left: 8px;">WhatsApp Preview</strong>
+                                </div>
+                                <div style="background-color: white; padding: 16px; border-radius: 8px;">
+                                    <!-- Header -->
+                                    <div style="font-weight: 600; margin-bottom: 10px;" invisible="not template_header">
+                                        <field name="template_header" readonly="1" nolabel="1"/>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div style="white-space: pre-wrap; line-height: 1.5;">
+                                        <field name="message_body" readonly="message_type == 'template'" nolabel="1"
+                                               placeholder="Template body will appear here..."/>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div style="margin-top: 10px; font-size: 0.85em; color: #999; font-style: italic;"
+                                         invisible="not template_footer">
+                                        <field name="template_footer" readonly="1" nolabel="1"/>
+                                    </div>
+
+                                    <!-- Timestamp -->
+                                    <div style="text-align: right; margin-top: 8px; font-size: 0.7em; color: #667781;">
+                                        <span>Now</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Free Text Editor (when message_type = text) -->
+                        <field name="message_body"
+                               invisible="message_type != 'text'"
+                               nolabel="1"
+                               placeholder="Type your message here..."
+                               required="message_type == 'text'"
+                               widget="text"/>
+                    </group>
+
+                    <!-- PHI Warning -->
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa fa-shield"/> <strong>⚠️ PHI/HIPAA Reminder:</strong><br/>
+                        Do NOT include sensitive medical information (diagnoses, test results, medications) in WhatsApp messages.<br/>
+                        Use generic notifications with portal links instead.
+                    </div>
+
+                </sheet>
+
+                <footer>
+                    <button string="📱 Send Message"
+                            name="action_send_message"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Wizard -->
+    <record id="action_whatsapp_message_wizard" model="ir.actions.act_window">
+        <field name="name">Send WhatsApp Message</field>
+        <field name="res_model">clinic.whatsapp.message.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
