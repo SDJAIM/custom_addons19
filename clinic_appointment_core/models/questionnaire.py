@@ -142,9 +142,10 @@ class AppointmentQuestionnaireAnswer(models.Model):
             else:
                 answer.question_name = answer.question or 'Untitled Question'
 
-    _sql_constraints = [
-        ('unique_answer_per_predefined_question',
-         'UNIQUE(appointment_id, question_id)',
-         'Only one answer per predefined question per appointment allowed',
-         "question_id IS NOT NULL")
-    ]
+    # Odoo 19 Constraint API
+    # PostgreSQL UNIQUE treats NULL ≠ NULL, so multiple NULL question_ids are allowed
+    # Only one answer per predefined (non-NULL) question_id per appointment
+    _unique_answer_per_predefined_question = models.Constraint(
+        'UNIQUE(appointment_id, question_id)',
+        'Only one answer per predefined question per appointment allowed'
+    )

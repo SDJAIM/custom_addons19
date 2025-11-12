@@ -158,13 +158,13 @@
                             </div>
                             <div class="o_kanban_record_body">
                                 <div>
-                                    <i class="fa fa-building-o"/> <field name="branch_id"/>
+                                    <i class="fa fa-building-o" title="Branch"/> <field name="branch_id"/>
                                 </div>
                                 <div>
-                                    <i class="fa fa-door-open"/> <field name="room_type"/>
+                                    <i class="fa fa-door-open" title="Room Type"/> <field name="room_type"/>
                                 </div>
                                 <div>
-                                    <i class="fa fa-users"/> Capacity: <field name="capacity"/>
+                                    <i class="fa fa-users" title="Capacity"/> Capacity: <field name="capacity"/>
                                 </div>
                             </div>
                             <div class="o_kanban_record_bottom">
@@ -173,7 +173,7 @@
                                 </div>
                                 <div class="oe_kanban_bottom_right">
                                     <span t-if="record.is_sterile.raw_value" class="badge badge-info" title="Sterile Room">
-                                        <i class="fa fa-shield"/>
+                                        <i class="fa fa-shield" title="Security Features"/>
                                     </span>
                                     <span t-if="record.has_oxygen.raw_value" class="badge badge-info" title="Oxygen Supply">
                                         O₂

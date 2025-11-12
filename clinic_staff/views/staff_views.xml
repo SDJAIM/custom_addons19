@@ -231,11 +231,11 @@
                                 </div>
                                 <ul>
                                     <li t-if="record.primary_specialization_id.value">
-                                        <i class="fa fa-stethoscope"/> <field name="primary_specialization_id"/>
+                                        <i class="fa fa-stethoscope" title="Specialization"/> <field name="primary_specialization_id"/>
                                     </li>
-                                    <li><i class="fa fa-phone"/> <field name="mobile"/></li>
+                                    <li><i class="fa fa-phone" title="Phone"/> <field name="mobile"/></li>
                                     <li t-if="record.email.value">
-                                        <i class="fa fa-envelope"/> <field name="email"/>
+                                        <i class="fa fa-envelope" title="Email"/> <field name="email"/>
                                     </li>
                                     <li>
                                         <field name="average_rating" widget="priority"/>

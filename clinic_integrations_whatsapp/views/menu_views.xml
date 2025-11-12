@@ -2,8 +2,8 @@
 <odoo>
     <menuitem id="menu_clinic_whatsapp_root"
               name="WhatsApp"
-              parent="clinic_base.menu_clinic_root"
-              sequence="80"/>
+              parent="clinic_base.menu_clinic_integrations"
+              sequence="10"/>
 
     <menuitem id="menu_clinic_whatsapp_messages"
               name="Messages"
@@ -16,4 +16,12 @@
               parent="menu_clinic_whatsapp_root"
               action="action_clinic_whatsapp_template"
               sequence="20"/>
+
+    <!-- Operator and AutoResponder menus moved to their respective view files -->
+
+    <menuitem id="menu_whatsapp_technical"
+              name="Technical"
+              parent="menu_clinic_whatsapp_root"
+              sequence="100"
+              groups="base.group_system"/>
 </odoo>

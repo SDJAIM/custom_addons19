@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 5.5: Operator Assignment Views -->
+
+    <!-- Tree View -->
+    <record id="view_whatsapp_operator_assignment_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.operator.assignment.tree</field>
+        <field name="model">clinic.whatsapp.operator.assignment</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Operators"
+                  decoration-success="available==True and not is_at_capacity"
+                  decoration-warning="is_at_capacity==True"
+                  decoration-muted="available==False">
+                <field name="operator_id"/>
+                <field name="available" widget="boolean_toggle"/>
+                <field name="current_chats_count"/>
+                <field name="max_concurrent_chats"/>
+                <field name="capacity_percentage" widget="progressbar"/>
+                <field name="is_at_capacity" invisible="1"/>
+                <field name="avg_response_time_minutes" widget="float_time"/>
+                <field name="escalation_rate" widget="percentage"/>
+                <field name="total_chats_handled"/>
+                <field name="last_activity_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_whatsapp_operator_assignment_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.operator.assignment.form</field>
+        <field name="model">clinic.whatsapp.operator.assignment</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Operator">
+                <header>
+                    <button name="action_toggle_availability"
+                            string="Toggle Availability"
+                            type="object"
+                            class="oe_highlight"/>
+                    <button name="action_view_active_chats"
+                            string="View My Chats"
+                            type="object"
+                            invisible="current_chats_count == 0"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_active_chats"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-comments">
+                            <field name="current_chats_count" widget="statinfo" string="Active Chats"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="At Capacity" bg_color="bg-danger"
+                            invisible="not is_at_capacity"/>
+                    <widget name="web_ribbon" title="Unavailable" bg_color="bg-warning"
+                            invisible="available"/>
+
+                    <group>
+                        <group>
+                            <field name="operator_id"/>
+                            <field name="available"/>
+                            <field name="max_concurrent_chats"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="capacity_percentage" widget="progressbar"/>
+                            <field name="is_at_capacity"/>
+                            <field name="last_activity_at"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Working Hours">
+                            <group>
+                                <group>
+                                    <field name="working_hours_start" widget="float_time"/>
+                                    <field name="working_hours_end" widget="float_time"/>
+                                </group>
+                                <group>
+                                    <field name="working_days"/>
+                                    <field name="custom_working_days"
+                                           invisible="working_days != 'custom'"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Statistics">
+                            <group>
+                                <group string="Performance Metrics">
+                                    <field name="total_chats_handled"/>
+                                    <field name="avg_response_time_minutes" widget="float_time"/>
+                                    <field name="avg_resolution_time_hours" widget="float_time"/>
+                                    <field name="escalation_rate" widget="percentage"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Languages">
+                            <field name="language_ids" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_whatsapp_operator_assignment" model="ir.actions.act_window">
+        <field name="name">WhatsApp Operators</field>
+        <field name="res_model">clinic.whatsapp.operator.assignment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure WhatsApp Operators
+            </p>
+            <p>
+                Assign users to handle WhatsApp conversations and set their capacity.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_whatsapp_operators"
+              name="Operators"
+              parent="clinic_integrations_whatsapp.menu_clinic_whatsapp_root"
+              action="action_whatsapp_operator_assignment"
+              sequence="30"
+              groups="clinic_integrations_whatsapp.group_whatsapp_supervisor"/>
+
+</odoo>

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, tools, _
 from datetime import datetime, date, timedelta
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class AppointmentAnalytics(models.Model):
@@ -17,14 +20,14 @@ class AppointmentAnalytics(models.Model):
     appointment_month = fields.Char(string='Month', readonly=True)
     appointment_year = fields.Integer(string='Year', readonly=True)
     day_of_week = fields.Selection([
-        ('0', 'Sunday'),
         ('1', 'Monday'),
         ('2', 'Tuesday'),
         ('3', 'Wednesday'),
         ('4', 'Thursday'),
         ('5', 'Friday'),
-        ('6', 'Saturday')
-    ], string='Day of Week', readonly=True)
+        ('6', 'Saturday'),
+        ('7', 'Sunday')
+    ], string='Day of Week (ISO)', readonly=True)
     hour_of_day = fields.Integer(string='Hour', readonly=True)
     is_weekend = fields.Boolean(string='Is Weekend', readonly=True)
 
@@ -96,103 +99,111 @@ class AppointmentAnalytics(models.Model):
         """Initialize the SQL view for appointment analytics
 
         NOTE: Uses only fields that exist in clinic.appointment:
+        - event_id (Many2one to calendar.event via _inherits)
         - start (from calendar.event via _inherits)
         - duration (from calendar.event via _inherits)
         - consultation_start_time, consultation_end_time (actual consultation times)
         - waiting_time (in minutes, converted to hours)
         - parent_appointment_id (for rescheduling tracking)
         """
+        _logger.info("Creating clinic_appointment_analytics SQL view...")
         tools.drop_view_if_exists(self.env.cr, self._table)
-        self.env.cr.execute("""
-            CREATE OR REPLACE VIEW %s AS (
-                SELECT
-                    row_number() OVER () AS id,
-                    a.id AS appointment_id,
-                    ce.start AS appointment_date,
-                    DATE(ce.start) AS appointment_day,
-                    TO_CHAR(ce.start, 'YYYY-WW') AS appointment_week,
-                    TO_CHAR(ce.start, 'YYYY-MM') AS appointment_month,
-                    EXTRACT(YEAR FROM ce.start) AS appointment_year,
-                    EXTRACT(DOW FROM ce.start)::text AS day_of_week,
-                    EXTRACT(HOUR FROM ce.start) AS hour_of_day,
-                    CASE
-                        WHEN EXTRACT(DOW FROM ce.start) IN (0, 6) THEN TRUE
-                        ELSE FALSE
-                    END AS is_weekend,
-                    a.patient_id AS patient_id,
-                    DATE_PART('year', AGE(p.date_of_birth)) AS patient_age,
-                    p.gender AS patient_gender,
-                    CASE
-                        WHEN ce.start = (
-                            SELECT MIN(ce2.start)
-                            FROM clinic_appointment a2
-                            JOIN calendar_event ce2 ON ce2.id = a2.calendar_event_id
-                            WHERE a2.patient_id = a.patient_id AND a2.state != 'cancelled'
-                        ) THEN TRUE
-                        ELSE FALSE
-                    END AS is_new_patient,
-                    a.staff_id AS doctor_id,
-                    s.primary_specialization_id AS doctor_specialty,
-                    a.branch_id AS branch_id,
-                    a.room_id AS room_id,
-                    a.service_type AS service_type,
-                    NULL::varchar AS appointment_type,
-                    a.state AS state,
-                    ce.duration AS scheduled_duration,
-                    CASE
-                        WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
-                            EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
-                        ELSE ce.duration
-                    END AS actual_duration,
-                    (a.waiting_time / 60.0) AS waiting_time,
-                    DATE_PART('day', ce.start - a.create_date) AS lead_time,
-                    0::numeric AS total_amount,
-                    0::numeric AS insurance_amount,
-                    0::numeric AS patient_amount,
-                    FALSE AS is_paid,
-                    0 AS service_count,
-                    FALSE AS has_lab_tests,
-                    (
-                        SELECT COUNT(*) > 0
-                        FROM clinic_prescription pr
-                        WHERE pr.appointment_id = a.id
-                    ) AS has_prescriptions,
-                    FALSE AS has_procedures,
-                    NULL::varchar AS cancellation_reason,
-                    NULL::integer AS days_before_cancelled,
-                    CASE
-                        WHEN a.parent_appointment_id IS NOT NULL THEN TRUE
-                        ELSE FALSE
-                    END AS is_rescheduled,
-                    CASE
-                        WHEN ce.duration > 0 AND a.state = 'done' THEN
-                            (CASE
-                                WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
-                                    EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
-                                ELSE ce.duration
-                            END / ce.duration) * 100
-                        ELSE 0
-                    END AS utilization_rate,
-                    CASE
-                        WHEN (
-                            SELECT COUNT(*)
-                            FROM clinic_appointment ca2
-                            JOIN calendar_event ce3 ON ce3.id = ca2.calendar_event_id
-                            WHERE ca2.staff_id = a.staff_id
-                                AND ce3.start::date = ce.start::date
-                                AND ce3.start::time >= ce.start::time
-                                AND ce3.start::time < (ce.start + (ce.duration || ' hours')::interval)::time
-                                AND ca2.id != a.id
-                                AND ca2.state NOT IN ('cancelled', 'no_show')
-                        ) > 0 THEN TRUE
-                        ELSE FALSE
-                    END AS overbooking
-                FROM clinic_appointment a
-                JOIN calendar_event ce ON ce.id = a.calendar_event_id
-                LEFT JOIN clinic_patient p ON p.id = a.patient_id
-                LEFT JOIN clinic_staff s ON s.id = a.staff_id
-            )
-        """ % self._table)
+
+        try:
+            self.env.cr.execute("""
+                CREATE OR REPLACE VIEW %s AS (
+                    SELECT
+                        a.id AS id,
+                        a.id AS appointment_id,
+                        COALESCE(ce.start, a.consultation_start_time, a.create_date) AS appointment_date,
+                        DATE(COALESCE(ce.start, a.consultation_start_time, a.create_date)) AS appointment_day,
+                        TO_CHAR(COALESCE(ce.start, a.consultation_start_time, a.create_date), 'IYYY-IW') AS appointment_week,
+                        TO_CHAR(COALESCE(ce.start, a.consultation_start_time, a.create_date), 'YYYY-MM') AS appointment_month,
+                        EXTRACT(YEAR FROM COALESCE(ce.start, a.consultation_start_time, a.create_date)) AS appointment_year,
+                        EXTRACT(ISODOW FROM COALESCE(ce.start, a.consultation_start_time, a.create_date))::text AS day_of_week,
+                        EXTRACT(HOUR FROM COALESCE(ce.start, a.consultation_start_time, a.create_date)) AS hour_of_day,
+                        CASE
+                            WHEN EXTRACT(ISODOW FROM COALESCE(ce.start, a.consultation_start_time, a.create_date)) IN (6, 7) THEN TRUE
+                            ELSE FALSE
+                        END AS is_weekend,
+                        a.patient_id AS patient_id,
+                        DATE_PART('year', AGE(COALESCE(p.date_of_birth, CURRENT_DATE))) AS patient_age,
+                        p.gender AS patient_gender,
+                        CASE
+                            WHEN COALESCE(ce.start, a.consultation_start_time, a.create_date) = (
+                                SELECT MIN(COALESCE(ce2.start, a2.consultation_start_time, a2.create_date))
+                                FROM clinic_appointment a2
+                                LEFT JOIN calendar_event ce2 ON ce2.id = a2.event_id
+                                WHERE a2.patient_id = a.patient_id AND a2.state != 'cancelled'
+                            ) THEN TRUE
+                            ELSE FALSE
+                        END AS is_new_patient,
+                        a.staff_id AS doctor_id,
+                        s.primary_specialization_id AS doctor_specialty,
+                        a.branch_id AS branch_id,
+                        a.room_id AS room_id,
+                        a.service_type AS service_type,
+                        NULL::varchar AS appointment_type,
+                        a.state AS state,
+                        COALESCE(ce.duration, EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time))/3600.0, 1.0) AS scheduled_duration,
+                        CASE
+                            WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
+                                EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
+                            ELSE COALESCE(ce.duration, 1.0)
+                        END AS actual_duration,
+                        COALESCE(a.waiting_time / 60.0, 0) AS waiting_time,
+                        DATE_PART('day', COALESCE(ce.start, a.consultation_start_time, a.create_date) - a.create_date) AS lead_time,
+                        0::numeric AS total_amount,
+                        0::numeric AS insurance_amount,
+                        0::numeric AS patient_amount,
+                        FALSE AS is_paid,
+                        0 AS service_count,
+                        FALSE AS has_lab_tests,
+                        (
+                            SELECT COUNT(*) > 0
+                            FROM clinic_prescription pr
+                            WHERE pr.appointment_id = a.id
+                        ) AS has_prescriptions,
+                        FALSE AS has_procedures,
+                        NULL::varchar AS cancellation_reason,
+                        NULL::integer AS days_before_cancelled,
+                        CASE
+                            WHEN a.parent_appointment_id IS NOT NULL THEN TRUE
+                            ELSE FALSE
+                        END AS is_rescheduled,
+                        CASE
+                            WHEN COALESCE(ce.duration, 1) > 0 AND a.state = 'done' THEN
+                                (CASE
+                                    WHEN a.consultation_end_time IS NOT NULL AND a.consultation_start_time IS NOT NULL THEN
+                                        EXTRACT(EPOCH FROM (a.consultation_end_time - a.consultation_start_time)) / 3600
+                                    ELSE COALESCE(ce.duration, 1.0)
+                                END / COALESCE(ce.duration, 1.0)) * 100
+                            ELSE 0
+                        END AS utilization_rate,
+                        CASE
+                            WHEN (
+                                SELECT COUNT(*)
+                                FROM clinic_appointment ca2
+                                LEFT JOIN calendar_event ce3 ON ce3.id = ca2.event_id
+                                WHERE ca2.staff_id = a.staff_id
+                                    AND COALESCE(ce3.start, ca2.consultation_start_time, ca2.create_date)::date = COALESCE(ce.start, a.consultation_start_time, a.create_date)::date
+                                    AND COALESCE(ce3.start, ca2.consultation_start_time, ca2.create_date)::time >= COALESCE(ce.start, a.consultation_start_time, a.create_date)::time
+                                    AND COALESCE(ce3.start, ca2.consultation_start_time, ca2.create_date)::time < (COALESCE(ce.start, a.consultation_start_time, a.create_date) + (COALESCE(ce.duration, 1) || ' hours')::interval)::time
+                                    AND ca2.id != a.id
+                                    AND ca2.state NOT IN ('cancelled', 'no_show')
+                            ) > 0 THEN TRUE
+                            ELSE FALSE
+                        END AS overbooking
+                    FROM clinic_appointment a
+                    LEFT JOIN calendar_event ce ON ce.id = a.event_id
+                    LEFT JOIN clinic_patient p ON p.id = a.patient_id
+                    LEFT JOIN clinic_staff s ON s.id = a.staff_id
+                )
+            """ % self._table)
+            _logger.info("Successfully created clinic_appointment_analytics view")
+        except Exception as e:
+            _logger.error(f"Failed to create clinic_appointment_analytics view: {e}")
+            raise
 
     @api.model
     def get_appointment_statistics(self, date_from=None, date_to=None, doctor_id=None, branch_id=None):
@@ -274,15 +285,15 @@ class AppointmentAnalytics(models.Model):
         return [{'hour': f"{h:02d}:00", 'count': c} for h, c in sorted_hours]
 
     def _get_busiest_days(self, analytics):
-        """Get busiest days of the week"""
+        """Get busiest days of the week (ISO: Monday=1, Sunday=7)"""
         day_names = {
-            '0': 'Sunday',
             '1': 'Monday',
             '2': 'Tuesday',
             '3': 'Wednesday',
             '4': 'Thursday',
             '5': 'Friday',
-            '6': 'Saturday'
+            '6': 'Saturday',
+            '7': 'Sunday'
         }
 
         day_counts = {}

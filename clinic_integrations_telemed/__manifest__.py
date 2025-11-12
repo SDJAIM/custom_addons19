@@ -9,24 +9,21 @@
     'description': """
 Clinic Telemedicine Integration
 ================================
-Complete telemedicine solution for remote consultations.
+Complete telemedicine solution using Odoo Discuss WebRTC for video consultations.
 
 Features:
 ---------
-* Video consultation scheduling
-* Meeting link generation
-* Zoom/Google Meet/Jitsi integration
-* Waiting room functionality
-* Screen sharing support
-* Chat during consultation
-* Recording capabilities
-* E-prescription after consultation
-* Digital consent forms
-* Payment integration
-* Calendar synchronization
-* Email/SMS notifications
+* Native Odoo Discuss video calling integration
+* One-click video consultation setup from appointments
+* Automatic Discuss channel creation for patient + doctor
+* Real-time video + audio + chat in one interface
+* Session management with states (scheduled, waiting, in progress, completed)
+* Email invitations and reminders
+* Appointment integration with service type 'Telemedicine'
+* No external platform API keys required
+* Recording capabilities (when supported by Discuss)
+* Secure, HIPAA-compliant video calls (when properly configured)
 * Patient portal access
-* Technical support chat
 * Post-consultation follow-up
     """,
     
@@ -37,6 +34,7 @@ Features:
     'depends': [
         'base',
         'mail',
+        'discuss',  # Added for WebRTC video calling
         'clinic_patient',
         'clinic_staff',
         'clinic_appointment_core',
@@ -52,7 +50,10 @@ Features:
         'data/telemed_config_data.xml',
 
         # Views
+        'views/telemed_session_views.xml',
+        'views/telemed_recording_views.xml',
         'views/telemed_settings_views.xml',
+        'views/appointment_telemed_views.xml',
     ],
     
     'installable': True,

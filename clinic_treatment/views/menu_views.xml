@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Top Menu -->
+    <!-- Top Menu - Now under Clinic Root (renamed to Clinical) -->
     <menuitem id="menu_clinic_treatment_root"
-              name="Treatments"
-              sequence="40"
-              web_icon="clinic_treatment,static/description/icon.png"
+              name="Clinical"
+              parent="clinic_base.menu_clinic_root"
+              sequence="50"
               groups="group_treatment_user"/>
     
     <!-- Treatment Plans -->

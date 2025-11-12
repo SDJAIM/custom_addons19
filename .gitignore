@@ -1,4 +1,4 @@
-# Odoo Custom Addons .gitignore
+# Odoo 19 Project .gitignore
 
 # Python
 *.py[cod]
@@ -19,21 +19,38 @@ wheels/
 *.manifest
 *.spec
 
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+*.venv
+
 # Odoo specific
 *.pyc
 *.pyo
 __pycache__/
 .DS_Store
+filestore/
+sessions/
 
-# Odoo cache and temporary files
-*.cache
-*~
-*.swp
-*.swo
-*.swn
-.*.swp
-.*.swo
-.*.swn
+# Configuration files (be careful with these)
+# Uncomment if you don't want to track config files
+odoo.conf
+# *.conf
+
+# Database dumps and backups
+*.sql
+*.dump
+*.db
+*.backup
+*.bak
+
+# Log files
+*.log
+logs/
+odoo.log
+odoo-server.log
 
 # IDE and Editor files
 .vscode/
@@ -45,6 +62,7 @@ __pycache__/
 .settings/
 *.iml
 .classpath
+*.code-workspace
 
 # OS generated files
 .DS_Store
@@ -55,98 +73,123 @@ __pycache__/
 ehthumbs.db
 Thumbs.db
 desktop.ini
+*.swp
+*.swo
+*.swn
+.*.swp
+.*.swo
+.*.swn
+*~
 
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-*.~*
-
-# Log files
-*.log
-logs/
-
-# Test coverage
+# Test and coverage
 htmlcov/
 .coverage
 .coverage.*
 .pytest_cache/
 .tox/
+coverage.xml
+*.cover
+.hypothesis/
 
-# Documentation builds
+# Documentation
 docs/_build/
 docs/build/
+*.rst~
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv/
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
 
 # Package files
 *.tar.gz
 *.zip
 *.rar
 *.7z
+*.deb
+*.rpm
 
-# Temporary files
-tmp/
-temp/
-.tmp/
-
-# Odoo filestore (if accidentally created in custom_addons)
-filestore/
-
-# Session files
-sessions/
-
-# Database dumps
-*.sql
-*.dump
-*.db
-
-# Configuration files with sensitive data (optional - uncomment if needed)
-# *.conf
-# config.py
-
-# Node modules (if using any JS/CSS preprocessing)
+# Node modules (if using any)
 node_modules/
 package-lock.json
 yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Compiled assets
-/static/src/scss/*.css
-/static/description/*.html~
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
 
-# Translations temporary files
-*.pot~
-*.po~
+# Security - Never commit these!
+*.key
+*.pem
+*.crt
+*.cert
+secrets.json
+credentials.json
+private/
+secret/
+
+# Compiled translations
+*.mo
 
 # Excel/CSV temporary files
 ~$*.xlsx
 ~$*.xls
 *.csv#
 
-# PDF temporary files
-*.pdf#
+# Jupyter Notebooks
+.ipynb_checkpoints/
 
-# Image editor temporary files
-*.psd
-*.ai
-*.sketch
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Linux
+.directory
+.Trash-*
+.nfs*
 
-# Security - API keys and secrets
-*.key
-*.pem
-*.crt
-secrets.json
-credentials.json
+# Odoo data directory (if exists)
+data-dir/
+.local/
+
+# Custom modules build artifacts
+custom_addons/**/static/description/*.html~
+custom_addons/**/*.pot~
+custom_addons/**/*.po~
+
+# Ignore Odoo core (if it's a submodule or you don't want to track changes)
+# Uncomment if needed:
+# odoo/
+
+# But never ignore your custom work
+!custom_addons/
+!custom_addons/**
+
+# Security audit files (temporary)
+security_*.json
+audit_*.json

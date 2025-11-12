@@ -37,7 +37,7 @@ class AppointmentBookingController(http.Controller):
         
         return request.render('clinic_appointment_web.booking_form', values)
     
-    @http.route('/appointment/slots', type='json', auth='public', website=True, csrf=True)
+    @http.route('/appointment/slots', type='jsonrpc', auth='public', website=True, csrf=True)
     def get_available_slots(self, date, service_type=None, doctor_id=None, **kw):
         """Get available slots for a specific date"""
         
@@ -83,7 +83,7 @@ class AppointmentBookingController(http.Controller):
             'date': date,
         }
     
-    @http.route('/appointment/doctors', type='json', auth='public', website=True, csrf=True)
+    @http.route('/appointment/doctors', type='jsonrpc', auth='public', website=True, csrf=True)
     def get_available_doctors(self, service_type=None, date=None, **kw):
         """Get available doctors for a service type"""
         
@@ -130,7 +130,7 @@ class AppointmentBookingController(http.Controller):
             'doctors': doctor_data,
         }
     
-    @http.route('/appointment/submit', type='json', auth='public', website=True, csrf=True)
+    @http.route('/appointment/submit', type='jsonrpc', auth='public', website=True, csrf=True)
     def submit_booking(self, **post):
         """Submit booking request"""
         
@@ -249,7 +249,7 @@ class AppointmentBookingController(http.Controller):
         
         return json.dumps({'success': True})
     
-    @http.route('/appointment/check-patient', type='json', auth='public', website=True, csrf=True)
+    @http.route('/appointment/check-patient', type='jsonrpc', auth='public', website=True, csrf=True)
     def check_patient_exists(self, email=None, phone=None, **kw):
         """Check if patient exists"""
         

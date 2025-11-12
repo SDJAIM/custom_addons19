@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- Telemedicine Recording Form View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_telemed_recording_form" model="ir.ui.view">
+        <field name="name">clinic.telemed.recording.form</field>
+        <field name="model">clinic.telemed.recording</field>
+        <field name="arch" type="xml">
+            <form string="Telemedicine Recording">
+                <sheet>
+                    <!-- Alert -->
+                    <div class="alert alert-info" role="alert">
+                        <strong>📝 Note:</strong>
+                        Session recordings are handled by Odoo Discuss when available.
+                        This is a placeholder for future recording management.
+                    </div>
+
+                    <!-- Alerts -->
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not expiry_date">
+                        <strong>Auto-Delete Notice:</strong>
+                        This recording will be automatically deleted on
+                        <field name="expiry_date" readonly="1"/>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <label for="name" string="Recording Name"/>
+                        <h1>
+                            <field name="name" placeholder="Recording Title"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group name="recording_info" string="Recording Information">
+                            <field name="session_id"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="patient_id" readonly="1"/>
+                            <field name="recording_date"/>
+                            <field name="recording_duration" widget="float_time"/>
+                        </group>
+
+                        <group name="technical_info" string="Technical Details">
+                            <field name="recording_url" widget="url"
+                                   placeholder="Recording URL or file path"/>
+                            <field name="file_size" widget="integer"
+                                   help="File size in bytes"/>
+                            <field name="download_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Add any notes about this recording..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Telemedicine Recording Tree/List View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_telemed_recording_tree" model="ir.ui.view">
+        <field name="name">clinic.telemed.recording.list</field>
+        <field name="model">clinic.telemed.recording</field>
+        <field name="arch" type="xml">
+            <list string="Telemedicine Recordings"
+                  decoration-warning="expiry_date and expiry_date &lt; current_date">
+
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="patient_id"/>
+                <field name="recording_date" widget="datetime"/>
+                <field name="recording_duration" widget="float_time" optional="hide"/>
+                <field name="file_size" widget="integer" optional="hide"/>
+                <field name="download_count"/>
+                <field name="expiry_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Telemedicine Recording Search View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_telemed_recording_search" model="ir.ui.view">
+        <field name="name">clinic.telemed.recording.search</field>
+        <field name="model">clinic.telemed.recording</field>
+        <field name="arch" type="xml">
+            <search>
+                <!-- Search Fields -->
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="patient_id"/>
+
+                <!-- Filters -->
+                <filter string="Has Expiry Date" name="filter_has_expiry"
+                        domain="[('expiry_date', '!=', False)]"/>
+                <filter string="Expiring Soon" name="filter_expiring_soon"
+                        domain="[('expiry_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d')),
+                                 ('expiry_date', '&gt;=', context_today())]"/>
+                <filter string="Expired" name="filter_expired"
+                        domain="[('expiry_date', '&lt;', context_today())]"/>
+
+                <separator/>
+
+                <!-- Date Filters -->
+                <filter string="Today" name="filter_today"
+                        domain="[('recording_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                 ('recording_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="This Week" name="filter_week"
+                        domain="[('recording_date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" name="filter_month"
+                        domain="[('recording_date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d'))]"/>
+
+                <separator/>
+
+                <!-- Group By -->
+                <group>
+                    <filter string="Patient" name="group_patient"
+                            context="{'group_by': 'patient_id'}"/>
+                    <filter string="Recording Date" name="group_date"
+                            context="{'group_by': 'recording_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Actions -->
+    <!-- ========================================== -->
+
+    <!-- Main Recording Action -->
+    <record id="action_clinic_telemed_recording" model="ir.actions.act_window">
+        <field name="name">Session Recordings</field>
+        <field name="res_model">clinic.telemed.recording</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No recordings found
+            </p>
+            <p>
+                Telemedicine session recordings will appear here when available.
+            </p>
+            <p>
+                <small>Note: Recording functionality depends on Discuss capabilities.</small>
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Menu Items -->
+    <!-- ========================================== -->
+
+    <!-- Recordings Menu -->
+    <menuitem id="menu_clinic_telemed_recordings"
+              name="Recordings"
+              parent="menu_clinic_telemed_root"
+              action="action_clinic_telemed_recording"
+              sequence="20"/>
+
+</odoo>

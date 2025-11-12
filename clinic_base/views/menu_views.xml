@@ -7,11 +7,17 @@
                   sequence="5"
                   web_icon="clinic_base,static/description/icon.png"/>
 
+        <!-- Integrations Menu -->
+        <menuitem id="menu_clinic_integrations"
+                  name="Integrations"
+                  parent="menu_clinic_root"
+                  sequence="70"/>
+
         <!-- System Configuration Menu -->
         <menuitem id="menu_clinic_system"
-                  name="System"
+                  name="Configuration"
                   parent="menu_clinic_root"
-                  sequence="200"
+                  sequence="80"
                   groups="group_clinic_base_manager"/>
 
         <!-- Audit Logs -->

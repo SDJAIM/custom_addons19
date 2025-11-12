@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Clinic Appointment Web Booking",
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Website/Website',
     'summary': 'Online appointment booking system with slot selection and insurance verification',
     'sequence': 8,

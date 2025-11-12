@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 4.2: WhatsApp Integration in Prescriptions -->
+
+    <!-- Extend Prescription Form View -->
+    <record id="view_clinic_prescription_form_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.prescription.form.whatsapp</field>
+        <field name="model">clinic.prescription</field>
+        <field name="inherit_id" ref="clinic_prescription.view_clinic_prescription_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp button to button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- WhatsApp Messages Count Button -->
+                <button name="action_send_whatsapp_message"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-whatsapp"
+                        invisible="not can_send_whatsapp"
+                        help="Send WhatsApp message to patient">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="whatsapp_message_count" widget="integer"/>
+                        </span>
+                        <span class="o_stat_text">WhatsApp</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Add invisible fields for computation -->
+            <xpath expr="//sheet" position="inside">
+                <group invisible="1">
+                    <field name="whatsapp_phone"/>
+                    <field name="can_send_whatsapp"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Extend Prescription Tree View -->
+    <record id="view_clinic_prescription_tree_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.prescription.tree.whatsapp</field>
+        <field name="model">clinic.prescription</field>
+        <field name="inherit_id" ref="clinic_prescription.view_clinic_prescription_tree"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp icon indicator -->
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">can_send_whatsapp</attribute>
+            </xpath>
+
+            <!-- Add can_send_whatsapp field to list for filtering -->
+            <xpath expr="//list/field[@name='state']" position="after">
+                <field name="can_send_whatsapp" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Add WhatsApp Filter to Search View -->
+    <record id="view_clinic_prescription_search_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.prescription.search.whatsapp</field>
+        <field name="model">clinic.prescription</field>
+        <field name="inherit_id" ref="clinic_prescription.view_clinic_prescription_search"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp filters -->
+            <xpath expr="//search/filter[last()]" position="after">
+                <separator/>
+                <filter string="Can Send WhatsApp"
+                        name="filter_can_send_whatsapp"
+                        domain="[('can_send_whatsapp', '=', True)]"
+                        help="Prescriptions where patient can receive WhatsApp"/>
+
+                <filter string="Cannot Send WhatsApp"
+                        name="filter_cannot_send_whatsapp"
+                        domain="[('can_send_whatsapp', '=', False)]"
+                        help="Prescriptions where patient cannot receive WhatsApp (no mobile/opt-in)"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Server Action: Bulk Send WhatsApp Notifications -->
+    <record id="action_prescription_send_whatsapp_notifications" model="ir.actions.server">
+        <field name="name">Send WhatsApp Notifications</field>
+        <field name="model_id" ref="clinic_prescription.model_clinic_prescription"/>
+        <field name="binding_model_id" ref="clinic_prescription.model_clinic_prescription"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_send_prescription_notification()
+        </field>
+    </record>
+
+</odoo>

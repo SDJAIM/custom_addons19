@@ -2,12 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 import logging
-import secrets
-import string
-import hashlib
-import hmac
-import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +25,8 @@ class TelemedicineSession(models.Model):
         'clinic.appointment',
         string='Related Appointment',
         required=True,
-        tracking=True
+        tracking=True,
+        ondelete='cascade'
     )
 
     patient_id = fields.Many2one(
@@ -69,43 +65,23 @@ class TelemedicineSession(models.Model):
         store=True
     )
 
-    # Platform Information
-    platform = fields.Selection([
-        ('zoom', 'Zoom'),
-        ('google_meet', 'Google Meet'),
-        ('jitsi', 'Jitsi Meet'),
-        ('teams', 'Microsoft Teams'),
-        ('custom', 'Custom Platform'),
-    ], string='Platform', compute='_compute_platform', store=True)
-
-    meeting_id = fields.Char(
-        string='Meeting ID',
-        readonly=True,
-        copy=False
-    )
-
-    meeting_url = fields.Char(
-        string='Meeting URL',
-        readonly=True,
-        copy=False
-    )
-
-    meeting_password = fields.Char(
-        string='Meeting Password',
-        readonly=True,
-        copy=False
+    # Discuss Integration
+    discuss_channel_id = fields.Many2one(
+        'discuss.channel',
+        string='Video Call Channel',
+        help='Discuss channel for video consultation',
+        tracking=True
     )
 
     # Status
     state = fields.Selection([
         ('draft', 'Draft'),
         ('scheduled', 'Scheduled'),
-        ('ready', 'Ready to Start'),
+        ('waiting', 'In Waiting Room'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('failed', 'Failed'),
-    ], string='Status', default='draft', tracking=True)
+    ], string='Status', default='draft', tracking=True, required=True)
 
     # Participants
     patient_joined = fields.Boolean(
@@ -131,65 +107,14 @@ class TelemedicineSession(models.Model):
     # Recording
     recording_enabled = fields.Boolean(
         string='Recording Enabled',
-        compute='_compute_recording_enabled'
+        default=False,
+        help='Enable session recording (if supported by configuration)'
     )
 
-    recording_url = fields.Char(
-        string='Recording URL',
-        readonly=True
-    )
-
-    recording_id = fields.Many2one(
-        'clinic.telemed.recording',
-        string='Recording',
-        readonly=True
-    )
-
-    # Session Security
-    session_token = fields.Char(
-        string='Session Token',
-        readonly=True,
-        copy=False,
-        help='Secure token for session validation'
-    )
-
-    session_secret = fields.Char(
-        string='Session Secret',
-        readonly=True,
-        copy=False,
-        help='Secret key for session signature'
-    )
-
-    token_expiry = fields.Datetime(
-        string='Token Expiry',
-        readonly=True,
-        help='When the session token expires'
-    )
-
-    # Technical Details
-    external_meeting_data = fields.Text(
-        string='External Meeting Data',
-        readonly=True,
-        help='JSON data from external platform'
-    )
-
-    error_message = fields.Text(
-        string='Error Message',
-        readonly=True
-    )
-
-    # Session Validation
-    validation_attempts = fields.Integer(
-        string='Validation Attempts',
-        default=0,
-        readonly=True,
-        help='Number of failed validation attempts'
-    )
-
-    max_validation_attempts = fields.Integer(
-        string='Max Validation Attempts',
-        default=3,
-        readonly=True
+    # Notes
+    session_notes = fields.Text(
+        string='Session Notes',
+        help='Private notes about the session'
     )
 
     # Invitations
@@ -201,11 +126,6 @@ class TelemedicineSession(models.Model):
     invitation_sent_date = fields.Datetime(
         string='Invitation Sent Date',
         readonly=True
-    )
-
-    reminder_sent = fields.Boolean(
-        string='Reminder Sent',
-        default=False
     )
 
     @api.depends('patient_id', 'doctor_id', 'session_date')
@@ -228,389 +148,118 @@ class TelemedicineSession(models.Model):
             else:
                 session.session_end_date = False
 
-    @api.depends()
-    def _compute_platform(self):
-        """Get platform from configuration"""
-        config_helper = self.env['clinic.telemed.config.helper']
-        platform = config_helper.get_config_value('platform', 'jitsi')
-        for session in self:
-            session.platform = platform
-
-    @api.depends()
-    def _compute_recording_enabled(self):
-        """Get recording setting from configuration"""
-        config_helper = self.env['clinic.telemed.config.helper']
-        recording_enabled = config_helper.get_config_value('recording_enabled', 'False') == 'True'
-        for session in self:
-            session.recording_enabled = recording_enabled
-
-    def action_schedule_session(self):
-        """Schedule the telemedicine session with enhanced error handling"""
+    def action_create_video_channel(self):
+        """Create Discuss channel with video call capability"""
         self.ensure_one()
 
-        if self.state != 'draft':
-            raise UserError(_("Only draft sessions can be scheduled."))
+        if self.discuss_channel_id:
+            raise UserError(_("Video channel already created for this session."))
 
-        # Get configuration
-        try:
-            config_helper = self.env['clinic.telemed.config.helper']
-            if not config_helper.is_configured():
-                raise UserError(_("Telemedicine platform is not configured. Please configure it in Settings."))
+        if not self.patient_id or not self.doctor_id:
+            raise UserError(_("Patient and doctor must be assigned before creating video channel."))
 
-            config = config_helper.get_platform_config()
-        except Exception as e:
-            _logger.error(f"Failed to get telemedicine configuration: {str(e)}")
-            raise UserError(_("Configuration error: %s") % str(e))
+        # Get patient partner (create if doesn't exist)
+        patient_partner = self.patient_id.partner_id
+        if not patient_partner:
+            raise UserError(_("Patient must have a related partner/user to join video calls."))
 
-        try:
-            # Generate session security tokens
-            self._generate_session_tokens()
+        # Get doctor partner
+        doctor_partner = self.doctor_id.user_id.partner_id if self.doctor_id.user_id else False
+        if not doctor_partner:
+            raise UserError(_("Doctor must have a related user account to host video calls."))
 
-            # Create meeting based on platform with error handling
-            platform = config.get('platform')
-            if platform == 'zoom':
-                self._create_zoom_meeting(config)
-            elif platform == 'google_meet':
-                self._create_google_meeting(config)
-            elif platform == 'teams':
-                self._create_teams_meeting(config)
-            elif platform == 'jitsi':
-                self._create_jitsi_meeting(config)
-            elif platform == 'custom':
-                self._create_custom_meeting(config)
-            else:
-                raise ValidationError(_("Unknown platform: %s") % platform)
-
-            self.state = 'scheduled'
-
-            # Send invitations if configured with error handling
-            try:
-                notification_config = config_helper.get_notification_config()
-                if notification_config.get('send_email_invites'):
-                    self._send_email_invitation()
-            except Exception as e:
-                _logger.warning(f"Failed to send invitation for session {self.id}: {str(e)}")
-                # Don't fail the whole scheduling if invitation fails
-
-            self.message_post(
-                body=_("Telemedicine session scheduled successfully. Meeting ID: %s") % self.meeting_id,
-                message_type='notification'
-            )
-
-        except (UserError, ValidationError):
-            raise  # Re-raise user-friendly errors
-        except Exception as e:
-            _logger.error(f"Failed to schedule telemedicine session {self.id}: {str(e)}", exc_info=True)
-            self.write({
-                'state': 'failed',
-                'error_message': str(e)
-            })
-            raise UserError(_("Failed to schedule session: %s") % str(e))
-
-        return True
-
-    def _generate_session_tokens(self):
-        """Generate secure session tokens for validation"""
-        # Generate secure session token
-        session_token = secrets.token_urlsafe(32)
-        session_secret = secrets.token_urlsafe(48)
-
-        # Set token expiry (24 hours from now)
-        token_expiry = fields.Datetime.now() + timedelta(hours=24)
-
-        self.write({
-            'session_token': session_token,
-            'session_secret': session_secret,
-            'token_expiry': token_expiry,
+        # Create private channel with patient + doctor
+        channel = self.env['discuss.channel'].sudo().create({
+            'name': f"🎥 Consultation: {self.patient_id.name}",
+            'description': f"Telemedicine session for appointment {self.appointment_id.name} on {self.session_date.strftime('%Y-%m-%d %H:%M')}",
+            'channel_type': 'group',
+            'public': 'private',  # Only invited members
+            'email_send': False,  # Don't send emails
         })
 
-    def validate_session_token(self, token, signature=None):
-        """Validate session token with signature verification"""
-        self.ensure_one()
+        # Add members to channel
+        channel.sudo().write({
+            'channel_member_ids': [
+                (0, 0, {'partner_id': patient_partner.id}),
+                (0, 0, {'partner_id': doctor_partner.id}),
+            ],
+        })
 
-        # Check if token hasn't expired
-        if self.token_expiry and fields.Datetime.now() > self.token_expiry:
-            raise ValidationError(_("Session token has expired"))
+        self.discuss_channel_id = channel.id
+        self.state = 'scheduled'
 
-        # Check validation attempts
-        if self.validation_attempts >= self.max_validation_attempts:
-            raise ValidationError(_("Maximum validation attempts exceeded. Session blocked."))
+        self.message_post(
+            body=_("✅ Video call channel created successfully. Channel: %s") % channel.name,
+            message_type='notification'
+        )
 
-        # Verify token
-        if not secrets.compare_digest(self.session_token or '', token):
-            self.validation_attempts += 1
-            _logger.warning(f"Invalid session token attempt {self.validation_attempts} for session {self.id}")
-            raise ValidationError(_("Invalid session token"))
-
-        # Verify signature if provided
-        if signature and self.session_secret:
-            expected_signature = self._generate_token_signature(token)
-            if not secrets.compare_digest(expected_signature, signature):
-                self.validation_attempts += 1
-                raise ValidationError(_("Invalid session signature"))
-
-        # Reset validation attempts on successful validation
-        if self.validation_attempts > 0:
-            self.validation_attempts = 0
-
+        _logger.info(f"Created Discuss channel {channel.id} for telemed session {self.id}")
         return True
 
-    def _generate_token_signature(self, token):
-        """Generate HMAC signature for token"""
-        if not self.session_secret:
-            return ''
-        return hmac.new(
-            self.session_secret.encode(),
-            token.encode(),
-            hashlib.sha256
-        ).hexdigest()
-
-    def _create_zoom_meeting(self, config):
-        """Create Zoom meeting with error handling"""
-        try:
-            if not config.get('api_key') or not config.get('api_secret'):
-                raise ValidationError(_("Zoom API credentials not configured."))
-
-            # Generate meeting password if required
-            password = self._generate_meeting_password() if config.get('require_password') else None
-
-            # Zoom API implementation would go here
-            # For now, we'll create a placeholder with error simulation
-            meeting_id = f"zoom_{secrets.token_hex(8)}"
-            meeting_url = f"https://zoom.us/j/{secrets.token_hex(10)}"
-
-            # Add session token to URL for validation
-            if self.session_token:
-                meeting_url += f"?token={self.session_token[:8]}"
-
-            self.write({
-                'meeting_id': meeting_id,
-                'meeting_url': meeting_url,
-                'meeting_password': password,
-            })
-        except Exception as e:
-            _logger.error(f"Zoom meeting creation failed: {str(e)}")
-            raise ValidationError(_("Failed to create Zoom meeting: %s") % str(e))
-
-    def _create_google_meeting(self, config):
-        """Create Google Meet meeting with error handling"""
-        try:
-            if not config.get('client_id') or not config.get('client_secret'):
-                raise ValidationError(_("Google API credentials not configured."))
-
-            # Google Calendar API implementation would go here
-            meeting_id = f"google_{secrets.token_hex(8)}"
-            meeting_url = f"https://meet.google.com/{secrets.token_urlsafe(12)}"
-
-            # Add session validation parameter
-            if self.session_token:
-                meeting_url += f"?authuser=0&token={self.session_token[:8]}"
-
-            self.write({
-                'meeting_id': meeting_id,
-                'meeting_url': meeting_url,
-                'meeting_password': None,  # Google Meet doesn't use passwords
-            })
-        except Exception as e:
-            _logger.error(f"Google Meet creation failed: {str(e)}")
-            raise ValidationError(_("Failed to create Google Meet: %s") % str(e))
-
-    def _create_teams_meeting(self, config):
-        """Create Microsoft Teams meeting with error handling"""
-        try:
-            if not config.get('tenant_id') or not config.get('client_id') or not config.get('client_secret'):
-                raise ValidationError(_("Microsoft Teams API credentials not configured."))
-
-            # Teams API implementation would go here
-            meeting_id = f"teams_{secrets.token_hex(8)}"
-            meeting_url = f"https://teams.microsoft.com/l/meetup-join/{secrets.token_urlsafe(20)}"
-
-            # Add session context
-            if self.session_token:
-                meeting_url += f"?context=%7B%22token%22%3A%22{self.session_token[:8]}%22%7D"
-
-            self.write({
-                'meeting_id': meeting_id,
-                'meeting_url': meeting_url,
-                'meeting_password': None,  # Teams uses different authentication
-            })
-        except Exception as e:
-            _logger.error(f"Teams meeting creation failed: {str(e)}")
-            raise ValidationError(_("Failed to create Teams meeting: %s") % str(e))
-
-    def _create_jitsi_meeting(self, config):
-        """Create Jitsi Meet meeting with error handling"""
-        try:
-            domain = config.get('domain', 'meet.jit.si')
-
-            # Validate domain
-            if not domain or not isinstance(domain, str):
-                raise ValidationError(_("Invalid Jitsi domain configuration"))
-
-            # Generate room name
-            room_name = f"clinic-{self.patient_id.id}-{self.id}-{secrets.token_hex(4)}"
-
-            # Generate password if required
-            password = self._generate_meeting_password() if config.get('require_password') else None
-
-            # Build URL with JWT if configured
-            meeting_url = f"https://{domain}/{room_name}"
-            if self.session_token:
-                # Add JWT token for Jitsi authentication
-                meeting_url += f"#config.token={self.session_token[:16]}"
-
-            self.write({
-                'meeting_id': room_name,
-                'meeting_url': meeting_url,
-                'meeting_password': password,
-            })
-        except Exception as e:
-            _logger.error(f"Jitsi meeting creation failed: {str(e)}")
-            raise ValidationError(_("Failed to create Jitsi meeting: %s") % str(e))
-
-    def _create_custom_meeting(self, config):
-        """Create custom platform meeting with error handling"""
-        try:
-            api_url = config.get('api_url')
-            if not api_url:
-                raise ValidationError(_("Custom platform API URL not configured."))
-
-            # Validate URL format
-            if not api_url.startswith(('http://', 'https://')):
-                raise ValidationError(_("Invalid API URL format. Must start with http:// or https://"))
-
-            # Custom API implementation would go here
-            meeting_id = f"custom_{secrets.token_hex(8)}"
-            meeting_token = secrets.token_hex(10)
-            meeting_url = f"{api_url.rstrip('/')}/meeting/{meeting_token}"
-
-            # Add session validation
-            if self.session_token:
-                meeting_url += f"?session={self.session_token}&sig={self._generate_token_signature(self.session_token)[:16]}"
-
-            self.write({
-                'meeting_id': meeting_id,
-                'meeting_url': meeting_url,
-                'meeting_password': self._generate_meeting_password() if config.get('require_password') else None,
-            })
-        except Exception as e:
-            _logger.error(f"Custom platform meeting creation failed: {str(e)}")
-            raise ValidationError(_("Failed to create meeting on custom platform: %s") % str(e))
-
-    def _generate_meeting_password(self):
-        """Generate secure meeting password"""
-        # Generate 8-character password with letters and numbers
-        alphabet = string.ascii_letters + string.digits
-        return ''.join(secrets.choice(alphabet) for i in range(8))
-
-    def _send_email_invitation(self):
-        """Send email invitation to patient and doctor"""
-        template = self.env.ref('clinic_integrations_telemed.email_template_telemed_invitation', raise_if_not_found=False)
-        if template:
-            template.send_mail(self.id, force_send=True)
-            self.write({
-                'invitation_sent': True,
-                'invitation_sent_date': fields.Datetime.now()
-            })
-
-    def action_start_session(self):
-        """Mark session as ready to start"""
+    def action_join_call(self):
+        """Open Discuss and start/join RTC session"""
         self.ensure_one()
 
-        if self.state != 'scheduled':
-            raise UserError(_("Only scheduled sessions can be started."))
+        if not self.discuss_channel_id:
+            self.action_create_video_channel()
 
-        self.state = 'ready'
-        return {
-            'type': 'ir.actions.act_url',
-            'url': self.meeting_url,
-            'target': 'new',
-        }
+        # Update state based on who's joining
+        current_user = self.env.user
 
-    def action_join_patient(self, token=None):
-        """Patient joins the session with token validation"""
-        self.ensure_one()
-
-        # Validate session if token provided
-        if token:
-            try:
-                self.validate_session_token(token)
-            except ValidationError as e:
-                _logger.warning(f"Patient join validation failed for session {self.id}: {str(e)}")
-                raise UserError(_("Session validation failed: %s") % str(e))
-
-        try:
+        if self.doctor_id and self.doctor_id.user_id == current_user:
+            if not self.doctor_joined:
+                self.write({
+                    'doctor_joined': True,
+                    'doctor_join_time': fields.Datetime.now()
+                })
+        elif self.patient_id and self.patient_id.partner_id == current_user.partner_id:
             if not self.patient_joined:
                 self.write({
                     'patient_joined': True,
                     'patient_join_time': fields.Datetime.now()
                 })
 
-            if self.doctor_joined and self.state != 'in_progress':
-                self.state = 'in_progress'
+        # Update session state
+        if self.state == 'scheduled':
+            self.state = 'waiting'
 
-            return {
-                'type': 'ir.actions.act_url',
-                'url': self.meeting_url,
-                'target': 'new',
-            }
-        except Exception as e:
-            _logger.error(f"Error joining patient to session {self.id}: {str(e)}")
-            raise UserError(_("Failed to join session: %s") % str(e))
+        if self.doctor_joined and self.patient_joined and self.state != 'in_progress':
+            self.state = 'in_progress'
 
-    def action_join_doctor(self, token=None):
-        """Doctor joins the session with token validation"""
+        # Open Discuss with RTC session
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'discuss.channel',
+            'res_id': self.discuss_channel_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+            'context': {
+                'start_rtc_session': True,  # Auto-start video call
+            },
+        }
+
+    def action_end_session(self):
+        """Complete the telemedicine session"""
         self.ensure_one()
 
-        # Validate session if token provided
-        if token:
-            try:
-                self.validate_session_token(token)
-            except ValidationError as e:
-                _logger.warning(f"Doctor join validation failed for session {self.id}: {str(e)}")
-                raise UserError(_("Session validation failed: %s") % str(e))
-
-        try:
-            if not self.doctor_joined:
-                self.write({
-                    'doctor_joined': True,
-                    'doctor_join_time': fields.Datetime.now()
-                })
-
-            if self.patient_joined and self.state != 'in_progress':
-                self.state = 'in_progress'
-
-            return {
-                'type': 'ir.actions.act_url',
-                'url': self.meeting_url,
-                'target': 'new',
-            }
-        except Exception as e:
-            _logger.error(f"Error joining doctor to session {self.id}: {str(e)}")
-            raise UserError(_("Failed to join session: %s") % str(e))
-
-    def action_complete_session(self):
-        """Complete the session"""
-        self.ensure_one()
-
-        if self.state not in ['ready', 'in_progress']:
+        if self.state not in ['waiting', 'in_progress']:
             raise UserError(_("Only active sessions can be completed."))
 
         self.state = 'completed'
 
         # Update appointment status
-        if self.appointment_id:
+        if self.appointment_id and self.appointment_id.state != 'done':
             self.appointment_id.write({'state': 'done'})
 
         self.message_post(
-            body=_("Telemedicine session completed successfully."),
+            body=_("✅ Telemedicine session completed successfully."),
             message_type='notification'
         )
 
         return True
 
     def action_cancel_session(self):
-        """Cancel the session"""
+        """Cancel the telemedicine session"""
         self.ensure_one()
 
         if self.state in ['completed', 'cancelled']:
@@ -619,65 +268,95 @@ class TelemedicineSession(models.Model):
         self.state = 'cancelled'
 
         self.message_post(
-            body=_("Telemedicine session cancelled."),
+            body=_("❌ Telemedicine session cancelled."),
             message_type='notification'
         )
 
         return True
 
+    def action_send_invitation(self):
+        """Send invitation email/SMS to patient and doctor"""
+        self.ensure_one()
+
+        if not self.discuss_channel_id:
+            raise UserError(_("Please create video channel first before sending invitations."))
+
+        # Send email invitation
+        template = self.env.ref(
+            'clinic_integrations_telemed.email_template_telemed_invitation',
+            raise_if_not_found=False
+        )
+
+        if template:
+            template.send_mail(self.id, force_send=True)
+            self.write({
+                'invitation_sent': True,
+                'invitation_sent_date': fields.Datetime.now()
+            })
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Invitation Sent'),
+                    'message': _('Video call invitation sent to patient and doctor.'),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        else:
+            raise UserError(_("Email template not found. Please configure the invitation template."))
+
     @api.model
     def send_session_reminders(self):
-        """Cron job to send session reminders with error handling"""
-        try:
-            config_helper = self.env['clinic.telemed.config.helper']
-            notification_config = config_helper.get_notification_config()
-            reminder_time = notification_config.get('reminder_time', 15)
-        except Exception as e:
-            _logger.error(f"Failed to get reminder configuration: {str(e)}")
-            reminder_time = 15  # Use default
+        """Cron job to send session reminders"""
+        # Find sessions starting in 15 minutes
+        reminder_cutoff = fields.Datetime.now() + timedelta(minutes=15)
 
-        # Find sessions starting soon
-        reminder_cutoff = fields.Datetime.now() + timedelta(minutes=reminder_time)
-
-        try:
-            sessions = self.search([
-                ('state', '=', 'scheduled'),
-                ('session_date', '<=', reminder_cutoff),
-                ('session_date', '>', fields.Datetime.now()),
-                ('reminder_sent', '=', False),
-            ])
-        except Exception as e:
-            _logger.error(f"Failed to search for sessions needing reminders: {str(e)}")
-            return
+        sessions = self.search([
+            ('state', '=', 'scheduled'),
+            ('session_date', '<=', reminder_cutoff),
+            ('session_date', '>', fields.Datetime.now()),
+        ])
 
         success_count = 0
-        failure_count = 0
 
         for session in sessions:
             try:
-                # Send reminder email
-                template = self.env.ref('clinic_integrations_telemed.email_template_telemed_reminder', raise_if_not_found=False)
-                if template:
-                    template.send_mail(session.id, force_send=True)
-                    session.reminder_sent = True
-                    success_count += 1
-                    _logger.info(f"Reminder sent for telemedicine session {session.id}")
-                else:
-                    _logger.warning("Reminder email template not found")
-                    failure_count += 1
+                # Create activity for doctor
+                if session.doctor_id and session.doctor_id.user_id:
+                    session.activity_schedule(
+                        'mail.mail_activity_data_todo',
+                        user_id=session.doctor_id.user_id.id,
+                        summary=_('Telemedicine session starting soon'),
+                        note=_('Session with %s starts in 15 minutes') % session.patient_id.name,
+                    )
+
+                # Send notification to discuss channel
+                if session.discuss_channel_id:
+                    session.discuss_channel_id.message_post(
+                        body=_("⏰ Reminder: Video consultation starts in 15 minutes!"),
+                        message_type='notification'
+                    )
+
+                success_count += 1
+                _logger.info(f"Reminder sent for telemedicine session {session.id}")
 
             except Exception as e:
-                _logger.error(f"Failed to send reminder for session {session.id}: {str(e)}", exc_info=True)
-                failure_count += 1
+                _logger.error(f"Failed to send reminder for session {session.id}: {str(e)}")
 
-        if success_count > 0 or failure_count > 0:
-            _logger.info(f"Reminder sending completed: {success_count} successful, {failure_count} failed")
+        if success_count > 0:
+            _logger.info(f"Sent {success_count} telemedicine session reminders")
 
     def name_get(self):
         return [(session.id, session.display_name) for session in self]
 
 
 class TelemedicineRecording(models.Model):
+    """
+    Recording model kept for future use
+    (Discuss recordings would be handled by mail/discuss modules)
+    """
     _name = 'clinic.telemed.recording'
     _description = 'Telemedicine Session Recording'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -703,7 +382,7 @@ class TelemedicineRecording(models.Model):
 
     recording_url = fields.Char(
         string='Recording URL',
-        required=True
+        help='URL or path to recording file'
     )
 
     recording_duration = fields.Integer(
@@ -721,14 +400,7 @@ class TelemedicineRecording(models.Model):
 
     expiry_date = fields.Datetime(
         string='Expiry Date',
-        help='Date when recording will be automatically deleted'
-    )
-
-    # Access Control
-    access_code = fields.Char(
-        string='Access Code',
-        default=lambda self: secrets.token_hex(8),
-        help='Code required to access recording'
+        help='Date when recording will be automatically deleted for compliance'
     )
 
     download_count = fields.Integer(
@@ -736,30 +408,7 @@ class TelemedicineRecording(models.Model):
         default=0
     )
 
-    # Technical
-    external_id = fields.Char(
-        string='External Recording ID',
-        help='ID from external platform'
+    notes = fields.Text(
+        string='Notes',
+        help='Additional notes about the recording'
     )
-
-    platform = fields.Selection([
-        ('zoom', 'Zoom'),
-        ('google_meet', 'Google Meet'),
-        ('teams', 'Microsoft Teams'),
-        ('custom', 'Custom Platform'),
-    ], string='Platform', related='session_id.platform')
-
-    def action_download_recording(self):
-        """Download recording"""
-        self.ensure_one()
-
-        if not self.recording_url:
-            raise UserError(_("Recording URL not available."))
-
-        self.download_count += 1
-
-        return {
-            'type': 'ir.actions.act_url',
-            'url': self.recording_url,
-            'target': 'new',
-        }

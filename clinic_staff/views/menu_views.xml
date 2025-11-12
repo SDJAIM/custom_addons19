@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Top Menu -->
+    <!-- Top Menu - Now under Clinic Root -->
     <menuitem id="menu_clinic_staff_root"
               name="Staff"
-              sequence="20"
-              web_icon="clinic_staff,static/description/icon.png"
+              parent="clinic_base.menu_clinic_root"
+              sequence="30"
               groups="group_clinic_staff_user"/>
     
     <!-- Staff Management -->

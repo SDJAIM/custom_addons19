@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Clinic Appointment Core",
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.2.0',
     'category': 'Services',
     'summary': 'Advanced appointment management system with slot booking and multi-view support',
     'sequence': 3,
@@ -73,8 +73,9 @@ Features:
         'views/website/booking_templates.xml',
         'views/website/manage_templates.xml',
     ],
-    
-    
+
+    'images': ['static/description/icon.png'],
+
     'installable': True,
     'application': False,
     'auto_install': False,

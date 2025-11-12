@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Updated WhatsApp Settings Configuration Form (Fase 1) -->
+    <record id="view_whatsapp_settings_form" model="ir.ui.view">
+        <field name="name">WhatsApp Settings</field>
+        <field name="model">clinic.whatsapp.settings</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Cloud API Configuration" class="o_whatsapp_settings">
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-plug"
+                            invisible="not is_configured"/>
+                    <field name="is_configured" widget="badge"
+                           decoration-success="is_configured == True"
+                           decoration-danger="is_configured == False"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="is_configured">
+                        <strong>⚙️ Setup Required:</strong> Configure your WhatsApp Cloud API credentials below to enable WhatsApp messaging.
+                    </div>
+
+                    <div class="alert alert-success" role="alert" invisible="not is_configured">
+                        <strong>✅ Configuration Complete:</strong> WhatsApp Cloud API is configured. Use "Test Connection" button to verify.
+                    </div>
+
+                    <group>
+                        <group string="📱 WhatsApp Cloud API Credentials" name="cloud_api">
+                            <div class="text-muted" colspan="2">
+                                Get these credentials from <a href="https://business.facebook.com" target="_blank">Meta Business Manager</a>
+                            </div>
+
+                            <field name="whatsapp_phone_number_id"
+                                   placeholder="e.g., 123456789012345"
+                                   required="True"/>
+
+                            <field name="whatsapp_access_token"
+                                   password="True"
+                                   placeholder="System User Access Token or Permanent Token"
+                                   required="True"/>
+
+                            <field name="whatsapp_business_account_id"
+                                   placeholder="WABA ID (optional, for template management)"/>
+
+                            <field name="whatsapp_app_id"
+                                   placeholder="App ID (optional)"/>
+
+                            <field name="whatsapp_app_secret"
+                                   password="True"
+                                   placeholder="App Secret (required for webhook security)"/>
+
+                            <field name="whatsapp_api_version"
+                                   widget="selection"/>
+
+                            <field name="whatsapp_api_url"
+                                   readonly="1"
+                                   string="Computed API URL"/>
+                        </group>
+
+                        <group string="🔗 Webhook Configuration" name="webhook">
+                            <div class="text-muted" colspan="2">
+                                Configure webhook in Meta App Dashboard > WhatsApp > Configuration
+                            </div>
+
+                            <field name="whatsapp_webhook_url"
+                                   readonly="1"
+                                   widget="CopyClipboardChar"
+                                   placeholder="Your webhook URL (save settings first)"/>
+
+                            <field name="whatsapp_webhook_verify_token"
+                                   password="True"
+                                   placeholder="Random string for verification"/>
+
+                            <button name="action_generate_verify_token"
+                                    string="Generate Token"
+                                    type="object"
+                                    class="btn-secondary btn-sm"
+                                    icon="fa-random"/>
+
+                            <field name="whatsapp_webhook_enabled"
+                                   widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Message Configuration" name="message_config">
+                            <group>
+                                <group string="Message Defaults">
+                                    <field name="whatsapp_default_country_code"/>
+                                </group>
+                                <group string="Retry Configuration">
+                                    <label for="whatsapp_max_retries"/>
+                                    <div class="o_row">
+                                        <field name="whatsapp_max_retries" class="oe_inline"/>
+                                        <span class="text-muted">attempts</span>
+                                    </div>
+
+                                    <label for="whatsapp_retry_delay"/>
+                                    <div class="o_row">
+                                        <field name="whatsapp_retry_delay" class="oe_inline"/>
+                                        <span class="text-muted">minutes between retries</span>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Features" name="features">
+                            <group>
+                                <group string="Automated Messages">
+                                    <field name="whatsapp_enable_reminders"/>
+                                    <field name="whatsapp_enable_confirmations"/>
+                                    <field name="whatsapp_enable_prescription_reminders"/>
+                                    <field name="whatsapp_enable_auto_responses"/>
+                                </group>
+                                <group string="Security &amp; Privacy">
+                                    <field name="whatsapp_require_opt_in"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Setup Guide" name="setup_guide">
+                            <div class="oe_chatter">
+                                <h3>📋 WhatsApp Cloud API Setup Guide</h3>
+
+                                <h4>1️⃣ Get Credentials from Meta</h4>
+                                <ol>
+                                    <li>Go to <a href="https://business.facebook.com" target="_blank">Meta Business Manager</a></li>
+                                    <li>Navigate to your WhatsApp App</li>
+                                    <li>Go to <strong>WhatsApp > Configuration</strong></li>
+                                    <li>Copy <strong>Phone Number ID</strong> (not the phone number itself!)</li>
+                                    <li>Generate a <strong>System User Access Token</strong> with <code>whatsapp_business_messaging</code> permission</li>
+                                    <li>Copy the <strong>App Secret</strong> from App Settings > Basic</li>
+                                </ol>
+
+                                <h4>2️⃣ Configure Webhook</h4>
+                                <ol>
+                                    <li>Save your settings in Odoo first</li>
+                                    <li>Copy the <strong>Webhook URL</strong> shown above</li>
+                                    <li>Copy the <strong>Webhook Verify Token</strong> (or generate a new one)</li>
+                                    <li>In Meta App Dashboard > WhatsApp > Configuration > Webhook:</li>
+                                    <ul>
+                                        <li><strong>Callback URL:</strong> Paste your Webhook URL</li>
+                                        <li><strong>Verify Token:</strong> Paste your verify token</li>
+                                        <li>Subscribe to: <code>messages</code> and <code>message_status</code> events</li>
+                                    </ul>
+                                </ol>
+
+                                <h4>3️⃣ Test Connection</h4>
+                                <p>Click the <strong>"Test Connection"</strong> button at the top to verify your configuration.</p>
+
+                                <div class="alert alert-warning" role="alert">
+                                    <strong>⚠️ Security Notes:</strong>
+                                    <ul>
+                                        <li>All credentials are stored securely in <code>ir.config_parameter</code></li>
+                                        <li>Webhook signature validation (HMAC-SHA256) is <strong>enabled by default</strong></li>
+                                        <li>App Secret is <strong>required</strong> for production webhook security</li>
+                                        <li>Access Tokens should be <strong>System User tokens</strong> (never expire)</li>
+                                    </ul>
+                                </div>
+
+                                <div class="alert alert-info" role="alert">
+                                    <strong>📚 Documentation:</strong>
+                                    <ul>
+                                        <li><a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank">WhatsApp Cloud API - Get Started</a></li>
+                                        <li><a href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks" target="_blank">Webhook Setup Guide</a></li>
+                                        <li><a href="https://developers.facebook.com/docs/whatsapp/business-management-api/get-started" target="_blank">Business Management API</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="Legacy (Deprecated)" name="legacy" groups="base.group_no_one">
+                            <div class="alert alert-warning" role="alert">
+                                <strong>⚠️ Deprecated:</strong> These fields are kept for backward compatibility only. Use Cloud API fields instead.
+                            </div>
+                            <group>
+                                <field name="whatsapp_api_token" password="True"/>
+                                <field name="whatsapp_phone_number"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for WhatsApp Settings (updated) -->
+    <record id="action_whatsapp_settings" model="ir.actions.act_window">
+        <field name="name">WhatsApp Cloud API Configuration</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">clinic.whatsapp.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'clinic_integrations_whatsapp'}</field>
+    </record>
+
+    <!-- Menu item in Settings (updated) -->
+    <menuitem id="menu_whatsapp_settings"
+              name="WhatsApp Configuration"
+              parent="base.menu_administration"
+              action="action_whatsapp_settings"
+              sequence="100"
+              groups="base.group_system"/>
+</odoo>

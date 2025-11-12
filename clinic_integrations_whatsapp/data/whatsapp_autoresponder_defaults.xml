@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 5.3: Default Auto-Responders -->
+
+    <!-- Welcome Message -->
+    <record id="autoresponder_welcome" model="clinic.whatsapp.autoresponder">
+        <field name="name">Welcome Message</field>
+        <field name="trigger_keywords">hola,hi,hello,buenos días,buenas tardes,buenas noches,good morning,good afternoon,good evening</field>
+        <field name="match_type">contains</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">¡Hola {{patient_name}}! 👋
+
+Gracias por contactarnos. Un miembro de nuestro equipo te atenderá en breve.
+
+¿En qué podemos ayudarte?</field>
+        <field name="priority">10</field>
+        <field name="active_hours_only" eval="False"/>
+        <field name="send_once_per_conversation" eval="True"/>
+        <field name="cooldown_minutes">60</field>
+        <field name="stop_on_match" eval="False"/>
+        <field name="only_for_new_threads" eval="True"/>
+    </record>
+
+    <!-- Business Hours Information -->
+    <record id="autoresponder_hours" model="clinic.whatsapp.autoresponder">
+        <field name="name">Business Hours Info</field>
+        <field name="trigger_keywords">horario,hours,schedule,cuando abren,when open,abierto,open</field>
+        <field name="match_type">contains</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">📅 **Horario de atención:**
+
+🕐 Lunes a Viernes: 8:00 AM - 6:00 PM
+🕐 Sábados: 9:00 AM - 1:00 PM
+❌ Domingos: Cerrado
+
+Para emergencias fuera de horario, llama al:
+📞 +52 55 1234 5678</field>
+        <field name="priority">20</field>
+        <field name="active_hours_only" eval="False"/>
+        <field name="send_once_per_conversation" eval="False"/>
+        <field name="cooldown_minutes">1440</field>
+        <field name="stop_on_match" eval="True"/>
+    </record>
+
+    <!-- Emergency Information -->
+    <record id="autoresponder_emergency" model="clinic.whatsapp.autoresponder">
+        <field name="name">Emergency Contact</field>
+        <field name="trigger_keywords">emergencia,emergency,urgente,urgent,ayuda,help</field>
+        <field name="match_type">contains</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">🚨 **EMERGENCIA**
+
+Si tienes una emergencia médica, por favor llama inmediatamente a:
+
+📞 **Línea de emergencias: +52 55 1234 5678**
+
+O acude a la sala de emergencias más cercana.
+
+WhatsApp NO debe usarse para emergencias médicas.</field>
+        <field name="priority">100</field>
+        <field name="active_hours_only" eval="False"/>
+        <field name="send_once_per_conversation" eval="False"/>
+        <field name="cooldown_minutes">0</field>
+        <field name="stop_on_match" eval="True"/>
+    </record>
+
+    <!-- Appointment Scheduling -->
+    <record id="autoresponder_appointment" model="clinic.whatsapp.autoresponder">
+        <field name="name">Appointment Request</field>
+        <field name="trigger_keywords">cita,appointment,agendar,schedule,consulta,consultation</field>
+        <field name="match_type">contains</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">📅 **Agendar una cita**
+
+Estaremos encantados de ayudarte a agendar una cita.
+
+Un miembro de nuestro equipo te contactará pronto para:
+✓ Confirmar fecha y hora disponible
+✓ Tipo de consulta
+✓ Doctor de preferencia
+
+Horario de atención:
+Lunes a Viernes: 8:00 AM - 6:00 PM</field>
+        <field name="priority">30</field>
+        <field name="active_hours_only" eval="True"/>
+        <field name="working_hours_start">8.0</field>
+        <field name="working_hours_end">18.0</field>
+        <field name="working_days">weekdays</field>
+        <field name="send_once_per_conversation" eval="False"/>
+        <field name="cooldown_minutes">120</field>
+        <field name="stop_on_match" eval="False"/>
+    </record>
+
+    <!-- Out of Office Hours -->
+    <record id="autoresponder_after_hours" model="clinic.whatsapp.autoresponder">
+        <field name="name">Out of Office Hours</field>
+        <field name="trigger_keywords">.*</field>
+        <field name="match_type">regex</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">🌙 **Fuera de horario de atención**
+
+Hola {{patient_name}},
+
+Hemos recibido tu mensaje fuera de nuestro horario de atención.
+
+📅 Horario:
+Lunes a Viernes: 8:00 AM - 6:00 PM
+Sábados: 9:00 AM - 1:00 PM
+
+Un miembro de nuestro equipo te responderá al inicio del siguiente día hábil.
+
+Para emergencias, llama al: 📞 +52 55 1234 5678</field>
+        <field name="priority">5</field>
+        <field name="active_hours_only" eval="False"/>
+        <field name="only_outside_hours" eval="True"/>
+        <field name="working_hours_start">8.0</field>
+        <field name="working_hours_end">18.0</field>
+        <field name="working_days">weekdays</field>
+        <field name="send_once_per_conversation" eval="True"/>
+        <field name="cooldown_minutes">0</field>
+        <field name="stop_on_match" eval="True"/>
+        <field name="only_for_new_threads" eval="True"/>
+    </record>
+
+    <!-- Cancel Appointment -->
+    <record id="autoresponder_cancel" model="clinic.whatsapp.autoresponder">
+        <field name="name">Cancel Appointment Request</field>
+        <field name="trigger_keywords">cancelar,cancel,reagendar,reschedule</field>
+        <field name="match_type">contains</field>
+        <field name="case_sensitive" eval="False"/>
+        <field name="response_template">❌ **Cancelación de cita**
+
+Entendemos que necesitas cancelar o reagendar tu cita.
+
+Un miembro de nuestro equipo te ayudará con:
+✓ Confirmar cuál cita deseas cancelar
+✓ Opciones de reagendamiento
+✓ Política de cancelación
+
+Te contactaremos pronto.</field>
+        <field name="priority">40</field>
+        <field name="active_hours_only" eval="True"/>
+        <field name="working_hours_start">8.0</field>
+        <field name="working_hours_end">18.0</field>
+        <field name="working_days">weekdays</field>
+        <field name="send_once_per_conversation" eval="False"/>
+        <field name="cooldown_minutes">60</field>
+        <field name="stop_on_match" eval="True"/>
+    </record>
+
+</odoo>

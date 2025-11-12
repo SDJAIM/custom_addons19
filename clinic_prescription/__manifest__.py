@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Clinic Prescription Management",
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services',
     'summary': 'Advanced prescription management with workflow, FEFO stock tracking, and QWeb printing',
     'sequence': 5,
@@ -58,6 +58,7 @@ Features:
         'data/cron_jobs.xml',
 
         # Views
+        'views/prescription_views.xml',
         'views/prescription_wizard_views.xml',
     ],
     

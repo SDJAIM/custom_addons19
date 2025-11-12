@@ -42,15 +42,10 @@
         <field name="view_id" ref="view_kpi_dashboard"/>
     </record>
 
-    <!-- Main Menu -->
+    <!-- Main Menu - Dashboard under Clinic Root -->
     <menuitem id="menu_kpi_root"
-        name="Analytics"
-        web_icon="clinic_kpis,static/description/icon.png"
-        sequence="100"/>
-
-    <menuitem id="menu_kpi_dashboard"
         name="Dashboard"
-        parent="menu_kpi_root"
+        parent="clinic_base.menu_clinic_root"
         action="action_kpi_dashboard"
-        sequence="1"/>
+        sequence="10"/>
 </odoo>

@@ -20,10 +20,10 @@ class ClinicInstaller(models.TransientModel):
        tracking=True)
     
     progress = fields.Integer(
-        string='Progress (%)', 
+        string='Progress (%)',
         default=0,
         help='Installation progress percentage (0-100)',
-        group_operator='avg'
+        aggregator='avg'
     )
     
     current_step = fields.Char(

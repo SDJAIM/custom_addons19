@@ -44,7 +44,7 @@ Features:
     ],
     
     'external_dependencies': {
-        'python': ['jwt', 'cryptography'],
+        'python': ['PyJWT', 'cryptography'],
     },
     
     'data': [

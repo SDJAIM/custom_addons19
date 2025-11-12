@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Top Menu -->
+    <!-- Top Menu - Now under Clinic Root -->
     <menuitem id="menu_clinic_patient_root"
               name="Patients"
-              sequence="10"
+              parent="clinic_base.menu_clinic_root"
+              sequence="20"
               groups="group_clinic_patient_user"/>
     
     <!-- Patient Management -->

@@ -130,7 +130,7 @@ class TreatmentPlan(models.Model):
         string='Progress (%)',
         compute='_compute_progress',
         store=True,
-        group_operator='avg'
+        aggregator='avg'
     )
     
     completed_procedures = fields.Integer(

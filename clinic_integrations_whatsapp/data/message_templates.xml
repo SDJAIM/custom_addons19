@@ -37,48 +37,49 @@ If you need to reschedule, please call us at {{6}}.</field>
             <field name="active">True</field>
         </record>
 
-        <!-- Prescription Reminder Template -->
+        <!-- Medication Reminder Template -->
         <record id="whatsapp_template_prescription_reminder" model="clinic.whatsapp.template">
-            <field name="name">Prescription Reminder</field>
-            <field name="template_type">prescription_reminder</field>            <field name="language_code">en_US</field>
+            <field name="name">Medication Reminder</field>
+            <field name="template_type">prescription_reminder</field>
+            <field name="language_code">en_US</field>
             <field name="message_body">Hi {{1}},
 
-This is a reminder to take your medication:
+This is a reminder about your medication schedule.
 
-Medicine: {{2}}
-Dosage: {{3}}
-Frequency: {{4}}
+Please check your patient portal for complete details and instructions.
+🔗 Portal: [Your Portal URL]
 
-Please follow the prescribed schedule for best results.
+Follow the schedule provided by your healthcare provider for best results.
 
-If you experience any side effects, contact your doctor immediately.</field>
+For inquiries or concerns, please contact us at {{2}}.</field>
             <field name="active">True</field>
         </record>
 
-        <!-- Lab Results Ready Template -->
+        <!-- Medical Information Available Template -->
         <record id="whatsapp_template_lab_results" model="clinic.whatsapp.template">
-            <field name="name">Lab Results Ready</field>
-            <field name="template_type">general</field>            <field name="language_code">en_US</field>
+            <field name="name">Medical Information Available</field>
+            <field name="template_type">general</field>
+            <field name="language_code">en_US</field>
             <field name="message_body">Dear {{1}},
 
-Your lab results from {{2}} are now available.
+New medical information from your visit on {{2}} is now available in your secure patient portal.
 
-Test: {{3}}
-Doctor: {{4}}
+Attending physician: {{4}}
 
-You can:
-- View results online at our patient portal
-- Pick up a printed copy at reception
-- Schedule a follow-up appointment to discuss results
+Please log in to view your complete information:
+🔗 Patient Portal: [Your Portal URL]
 
-For questions, please contact us at {{5}}.</field>
+You may also pick up a printed copy at reception or schedule a follow-up appointment.
+
+For inquiries, please contact us at {{5}}.</field>
             <field name="active">True</field>
         </record>
 
         <!-- Welcome Message Template -->
         <record id="whatsapp_template_welcome" model="clinic.whatsapp.template">
             <field name="name">Welcome Message</field>
-            <field name="template_type">general</field>            <field name="language_code">en_US</field>
+            <field name="template_type">general</field>
+            <field name="language_code">en_US</field>
             <field name="message_body">Dear {{1}},
 
 Welcome to {{2}}!
@@ -87,9 +88,9 @@ Thank you for registering with us. We're committed to providing you with the bes
 
 You can now:
 ✓ Book appointments online
-✓ Access your medical records
+✓ Access your secure patient portal
 ✓ Receive appointment reminders
-✓ Get prescription refill notifications
+✓ Get important notifications
 
 For assistance, reply HELP or call us at {{3}}.</field>
             <field name="active">True</field>

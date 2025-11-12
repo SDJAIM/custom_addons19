@@ -5,11 +5,37 @@
         <field name="name">clinic.whatsapp.template.tree</field>
         <field name="model">clinic.whatsapp.template</field>
         <field name="arch" type="xml">
-            <list>
+            <list string="WhatsApp Templates"
+                  decoration-success="meta_status == 'APPROVED'"
+                  decoration-warning="meta_status == 'PENDING'"
+                  decoration-danger="meta_status == 'REJECTED'"
+                  decoration-muted="not active">
+                <header>
+                    <button name="action_sync_templates"
+                            string="📥 Sync from Meta"
+                            type="object"
+                            class="btn-primary"
+                            help="Fetch and sync all templates from Meta Business Manager"/>
+                </header>
                 <field name="name"/>
                 <field name="template_name"/>
                 <field name="template_type"/>
                 <field name="language_code"/>
+                <field name="meta_status" widget="badge"
+                       decoration-success="meta_status == 'APPROVED'"
+                       decoration-warning="meta_status == 'PENDING'"
+                       decoration-danger="meta_status == 'REJECTED'"
+                       optional="show"/>
+                <field name="approval_status" widget="badge"
+                       decoration-success="approval_status == 'approved'"
+                       decoration-warning="approval_status == 'pending'"
+                       decoration-danger="approval_status == 'rejected'"
+                       optional="show"/>
+                <field name="phi_compliant" widget="boolean"
+                       decoration-success="phi_compliant == True"
+                       decoration-danger="phi_compliant == False"/>
+                <field name="meta_last_sync" optional="hide"/>
+                <field name="is_synced_from_meta" optional="hide"/>
                 <field name="active"/>
             </list>
         </field>
@@ -21,29 +47,163 @@
         <field name="model">clinic.whatsapp.template</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_check_phi_compliance"
+                            string="Check PHI Compliance"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-shield"/>
+                    <field name="approval_status" widget="statusbar"
+                           statusbar_visible="draft,pending,approved"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
                             <field name="active" widget="boolean_toggle"/>
                         </button>
                     </div>
+
+                    <!-- Alert for synced templates -->
+                    <div class="alert alert-info" role="alert" invisible="not is_synced_from_meta">
+                        <strong>📥 Synced from Meta:</strong> This template was imported from Meta Business Manager.
+                        Last sync: <field name="meta_last_sync" readonly="1"/>
+                    </div>
+
+                    <!-- Alert for PHI violations -->
+                    <div class="alert alert-danger" role="alert" invisible="phi_compliant">
+                        <strong>⚠️ PHI Violation Detected:</strong>
+                        <field name="phi_warnings" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <!-- Alert for rejected templates -->
+                    <div class="alert alert-warning" role="alert" invisible="meta_status != 'REJECTED'">
+                        <strong>❌ Rejected by Meta:</strong>
+                        <field name="meta_rejection_reason" readonly="1" nolabel="1"/>
+                    </div>
+
                     <div class="oe_title">
                         <h1>
                             <field name="name" placeholder="Template Name"/>
                         </h1>
                     </div>
+
                     <group>
                         <group string="Template Configuration">
                             <field name="template_name" placeholder="WhatsApp Template ID"/>
                             <field name="template_type"/>
                             <field name="language_code"/>
                         </group>
+                        <group string="Status">
+                            <field name="meta_status" widget="badge"
+                                   decoration-success="meta_status == 'APPROVED'"
+                                   decoration-warning="meta_status == 'PENDING'"
+                                   decoration-danger="meta_status == 'REJECTED'"/>
+                            <field name="meta_category"/>
+                            <field name="phi_compliant" widget="boolean"/>
+                        </group>
                     </group>
-                    <group string="Message">
-                        <field name="message_body" nolabel="1" placeholder="Message template"/>
-                    </group>
+
+                    <notebook>
+                        <page string="Message Content" name="content">
+                            <group>
+                                <group string="Header">
+                                    <field name="header" nolabel="1" placeholder="Optional header text"/>
+                                </group>
+                            </group>
+                            <group string="Body">
+                                <field name="message_body" nolabel="1" placeholder="Message template body (required)"/>
+                            </group>
+                            <group>
+                                <group string="Footer">
+                                    <field name="footer" nolabel="1" placeholder="Optional footer text"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Meta Sync Info" name="meta_sync" invisible="not is_synced_from_meta">
+                            <group>
+                                <group>
+                                    <field name="meta_template_id" readonly="1"/>
+                                    <field name="is_synced_from_meta" readonly="1"/>
+                                    <field name="meta_last_sync" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="meta_status" readonly="1"/>
+                                    <field name="meta_category" readonly="1"/>
+                                    <field name="meta_rejection_reason" readonly="1" invisible="meta_status != 'REJECTED'"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>ℹ️ About Meta Sync:</strong></p>
+                                <ul>
+                                    <li>Templates are automatically synced from Meta Business Manager</li>
+                                    <li>Only APPROVED templates can be used for messaging</li>
+                                    <li>Meta Template ID is the unique identifier in Meta's system</li>
+                                    <li>Click "Sync from Meta" in the list view to update all templates</li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
+        </field>
+    </record>
+
+    <!-- WhatsApp Template Search View -->
+    <record id="view_clinic_whatsapp_template_search" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.search</field>
+        <field name="model">clinic.whatsapp.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Template"
+                       filter_domain="['|', ('name','ilike',self), ('template_name','ilike',self)]"/>
+                <field name="template_type"/>
+                <field name="language_code"/>
+
+                <separator/>
+                <filter string="Active" name="active"
+                        domain="[('active','=',True)]"/>
+                <filter string="Inactive" name="inactive"
+                        domain="[('active','=',False)]"/>
+
+                <separator/>
+                <filter string="Approved by Meta" name="meta_approved"
+                        domain="[('meta_status','=','APPROVED')]"/>
+                <filter string="Pending Meta Review" name="meta_pending"
+                        domain="[('meta_status','=','PENDING')]"/>
+                <filter string="Rejected by Meta" name="meta_rejected"
+                        domain="[('meta_status','=','REJECTED')]"/>
+
+                <separator/>
+                <filter string="PHI Compliant" name="phi_compliant"
+                        domain="[('phi_compliant','=',True)]"/>
+                <filter string="PHI Violations" name="phi_violations"
+                        domain="[('phi_compliant','=',False)]"/>
+
+                <separator/>
+                <filter string="Synced from Meta" name="synced_from_meta"
+                        domain="[('is_synced_from_meta','=',True)]"/>
+                <filter string="Local Templates" name="local_templates"
+                        domain="[('is_synced_from_meta','=',False)]"/>
+
+                <separator/>
+                <group>
+                    <filter string="Type" name="group_type"
+                            context="{'group_by':'template_type'}"/>
+                    <filter string="Meta Status" name="group_meta_status"
+                            context="{'group_by':'meta_status'}"/>
+                    <filter string="Meta Category" name="group_meta_category"
+                            context="{'group_by':'meta_category'}"/>
+                    <filter string="Language" name="group_language"
+                            context="{'group_by':'language_code'}"/>
+                    <filter string="PHI Compliance" name="group_phi"
+                            context="{'group_by':'phi_compliant'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -52,12 +212,17 @@
         <field name="name">WhatsApp Templates</field>
         <field name="res_model">clinic.whatsapp.template</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1, 'search_default_meta_approved': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a WhatsApp Template
+                No WhatsApp Templates Found
             </p>
             <p>
-                Templates must be approved by WhatsApp before they can be used.
+                Click <strong>"📥 Sync from Meta"</strong> to import templates from Meta Business Manager,
+                or create a new template manually.
+            </p>
+            <p class="text-muted">
+                Note: Templates must be approved by Meta before they can be used for messaging.
             </p>
         </field>
     </record>

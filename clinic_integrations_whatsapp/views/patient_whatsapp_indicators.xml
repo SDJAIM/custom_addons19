@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 3.2: WhatsApp Window Indicators on Patient Form -->
+    <record id="view_clinic_patient_form_whatsapp_indicators" model="ir.ui.view">
+        <field name="name">clinic.patient.form.whatsapp.indicators</field>
+        <field name="model">clinic.patient</field>
+        <field name="inherit_id" ref="clinic_patient.view_clinic_patient_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp smart buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- WhatsApp Messages Count -->
+                <button name="action_view_whatsapp_messages"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-whatsapp"
+                        invisible="whatsapp_message_count == 0">
+                    <field name="whatsapp_message_count" widget="statinfo" string="WhatsApp"/>
+                </button>
+
+                <!-- WhatsApp Thread (when active) -->
+                <button name="action_view_whatsapp_thread"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-comments"
+                        invisible="not whatsapp_has_active_thread">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">WhatsApp</span>
+                        <span class="o_stat_text">Thread</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Add WhatsApp Window Status Alert (after sheet, before chatter) -->
+            <xpath expr="//sheet" position="after">
+                <div class="o_whatsapp_window_status_container">
+                    <!-- Window Open - Free Text OK -->
+                    <div class="alert alert-success" role="alert"
+                         style="margin: 16px; display: flex; align-items: center; justify-content: space-between;"
+                         invisible="not whatsapp_has_active_thread or whatsapp_urgency_level not in ['normal', 'warning', 'urgent']">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-check-circle fa-2x" style="color: #28a745;"></i>
+                            <div>
+                                <strong>WhatsApp Free Text Available</strong>
+                                <div style="font-size: 0.9em; margin-top: 4px;">
+                                    <field name="whatsapp_window_status" readonly="1" nolabel="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_send_whatsapp_message"
+                                string="📱 Send Message"
+                                type="object"
+                                class="btn btn-success"
+                                style="margin-left: auto;"/>
+                    </div>
+
+                    <!-- Window Closing Soon - Warning -->
+                    <div class="alert alert-warning" role="alert"
+                         style="margin: 16px; display: flex; align-items: center; justify-content: space-between;"
+                         invisible="not whatsapp_has_active_thread or whatsapp_urgency_level != 'warning'">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-exclamation-triangle fa-2x" style="color: #ffc107;"></i>
+                            <div>
+                                <strong>⚠️ WhatsApp Window Closing Soon</strong>
+                                <div style="font-size: 0.9em; margin-top: 4px;">
+                                    <field name="whatsapp_window_status" readonly="1" nolabel="1"/>
+                                    <br/>
+                                    <span class="text-muted">Send messages now before window closes!</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_send_whatsapp_message"
+                                string="📱 Send Now"
+                                type="object"
+                                class="btn btn-warning"
+                                style="margin-left: auto;"/>
+                    </div>
+
+                    <!-- Window Urgent - Last Minutes -->
+                    <div class="alert alert-danger" role="alert"
+                         style="margin: 16px; display: flex; align-items: center; justify-content: space-between; animation: pulse 2s infinite;"
+                         invisible="not whatsapp_has_active_thread or whatsapp_urgency_level != 'urgent'">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-fire fa-2x" style="color: #dc3545;"></i>
+                            <div>
+                                <strong>🔥 WhatsApp Window Closing SOON!</strong>
+                                <div style="font-size: 0.9em; margin-top: 4px;">
+                                    <field name="whatsapp_window_status" readonly="1" nolabel="1"/>
+                                    <br/>
+                                    <span class="text-muted font-weight-bold">URGENT: Send free text messages NOW or use templates!</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_send_whatsapp_message"
+                                string="🚨 SEND NOW"
+                                type="object"
+                                class="btn btn-danger"
+                                style="margin-left: auto; font-weight: bold;"/>
+                    </div>
+
+                    <!-- Window Closed - Templates Only -->
+                    <div class="alert alert-secondary" role="alert"
+                         style="margin: 16px; display: flex; align-items: center; justify-content: space-between;"
+                         invisible="not whatsapp_has_active_thread or whatsapp_urgency_level != 'expired'">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-clock-o fa-2x" style="color: #6c757d;"></i>
+                            <div>
+                                <strong>WhatsApp Window Closed</strong>
+                                <div style="font-size: 0.9em; margin-top: 4px;">
+                                    <field name="whatsapp_window_status" readonly="1" nolabel="1"/>
+                                    <br/>
+                                    <span class="text-muted">You must use an approved template to send messages.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_send_whatsapp_message"
+                                string="📋 Use Template"
+                                type="object"
+                                class="btn btn-secondary"
+                                style="margin-left: auto;"/>
+                    </div>
+
+                    <!-- No WhatsApp Thread Yet -->
+                    <div class="alert alert-info" role="alert"
+                         style="margin: 16px; display: flex; align-items: center; justify-content: space-between;"
+                         invisible="whatsapp_has_active_thread or not mobile and not phone">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa fa-info-circle fa-2x" style="color: #17a2b8;"></i>
+                            <div>
+                                <strong>No WhatsApp Conversation Yet</strong>
+                                <div style="font-size: 0.9em; margin-top: 4px;">
+                                    Start a conversation using an approved template.
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_send_whatsapp_message"
+                                string="📋 Send Template"
+                                type="object"
+                                class="btn btn-info"
+                                style="margin-left: auto;"/>
+                    </div>
+                </div>
+
+                <!-- CSS for pulse animation -->
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.85; }
+                    }
+                </style>
+            </xpath>
+
+            <!-- Add invisible fields for compute triggers -->
+            <xpath expr="//sheet" position="inside">
+                <group invisible="1">
+                    <field name="whatsapp_thread_id"/>
+                    <field name="whatsapp_has_active_thread"/>
+                    <field name="whatsapp_urgency_level"/>
+                    <field name="whatsapp_can_send_text"/>
+                    <field name="whatsapp_requires_template"/>
+                    <field name="whatsapp_time_remaining"/>
+                    <field name="whatsapp_last_message"/>
+                    <field name="whatsapp_message_count"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

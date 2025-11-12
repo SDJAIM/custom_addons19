@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree view for conversation threads -->
+    <record id="view_whatsapp_thread_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.thread.tree</field>
+        <field name="model">clinic.whatsapp.thread</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Conversations"
+                  decoration-success="is_within_24h_window and escalation_status == 'normal'"
+                  decoration-warning="escalation_status == 'warning'"
+                  decoration-danger="escalation_status == 'escalated'"
+                  decoration-muted="not is_within_24h_window">
+                <field name="patient_id"/>
+                <field name="phone_number"/>
+                <field name="assigned_operator_id"/>
+                <field name="escalation_status" widget="badge"
+                       decoration-success="escalation_status == 'normal'"
+                       decoration-warning="escalation_status == 'warning'"
+                       decoration-danger="escalation_status == 'escalated'"/>
+                <field name="last_inbound_at"/>
+                <field name="last_operator_reply_at"/>
+                <field name="escalation_deadline"/>
+                <field name="is_within_24h_window" widget="boolean_toggle"
+                       string="24h Window"/>
+                <field name="inbound_count"/>
+                <field name="outbound_count"/>
+                <field name="last_message_body"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view for conversation threads -->
+    <record id="view_whatsapp_thread_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.thread.form</field>
+        <field name="model">clinic.whatsapp.thread</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Conversation">
+                <header>
+                    <button name="action_view_messages"
+                            string="View Messages"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-comments"/>
+                    <button name="assign_to_operator"
+                            string="Assign to Me"
+                            type="object"
+                            invisible="assigned_operator_id"
+                            groups="clinic_integrations_whatsapp.group_whatsapp_operator"/>
+                    <button name="action_escalate_thread"
+                            string="Escalate"
+                            type="object"
+                            class="btn-warning"
+                            invisible="escalation_status == 'escalated'"
+                            groups="clinic_integrations_whatsapp.group_whatsapp_operator"/>
+                    <field name="escalation_status" widget="statusbar"
+                           statusbar_visible="normal,warning,escalated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_messages"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-comments">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="inbound_count" widget="integer"/> /
+                                    <field name="outbound_count" widget="integer"/>
+                                </span>
+                                <span class="o_stat_text">In / Out</span>
+                            </div>
+                        </button>
+                        <button name="action_open_discuss_channel"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-comments-o"
+                                invisible="not discuss_channel_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Chat Channel</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            invisible="active"/>
+                    <widget name="web_ribbon" title="Escalated" bg_color="bg-danger"
+                            invisible="escalation_status != 'escalated'"/>
+                    <widget name="web_ribbon" title="Warning" bg_color="bg-warning"
+                            invisible="escalation_status != 'warning'"/>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Contact">
+                            <field name="patient_id"/>
+                            <field name="phone_number"/>
+                            <field name="phone_number_id" groups="base.group_no_one"/>
+                        </group>
+                        <group string="24-Hour Window Status">
+                            <field name="is_within_24h_window" widget="boolean"/>
+                            <field name="window_expires_at"
+                                   invisible="not is_within_24h_window"/>
+                            <field name="last_inbound_at"/>
+                            <field name="last_outbound_at"/>
+                        </group>
+                    </group>
+
+                    <group string="Operator Assignment">
+                        <group>
+                            <field name="assigned_operator_id"/>
+                            <field name="discuss_channel_id" readonly="1"/>
+                            <field name="last_operator_reply_at" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="escalation_deadline" readonly="1"/>
+                            <field name="escalation_hours_threshold"/>
+                        </group>
+                    </group>
+
+                    <group string="Conversation Info">
+                        <group>
+                            <field name="first_message_at" readonly="1"/>
+                            <field name="last_message_direction"/>
+                        </group>
+                        <group>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Last Message" name="last_message">
+                            <field name="last_message_body" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Window Status" name="window_status">
+                            <div class="alert alert-success" role="alert"
+                                 invisible="not is_within_24h_window">
+                                <strong>✅ Within 24h Window</strong>
+                                <p>Free text messages can be sent to this customer.</p>
+                                <p>Window expires: <field name="window_expires_at" readonly="1"/></p>
+                            </div>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="is_within_24h_window">
+                                <strong>⚠️ Outside 24h Window</strong>
+                                <p>Only approved templates can be sent to this customer.</p>
+                                <p>Last customer message: <field name="last_inbound_at" readonly="1"/></p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" options="{'post_refresh': 'always'}"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view for conversation threads -->
+    <record id="view_whatsapp_thread_search" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.thread.search</field>
+        <field name="model">clinic.whatsapp.thread</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="phone_number"/>
+                <field name="assigned_operator_id"/>
+                <separator/>
+                <filter string="My Chats" name="filter_my_chats"
+                        domain="[('assigned_operator_id', '=', uid)]"/>
+                <filter string="Unassigned" name="filter_unassigned"
+                        domain="[('assigned_operator_id', '=', False)]"/>
+                <separator/>
+                <filter string="Normal" name="filter_normal"
+                        domain="[('escalation_status', '=', 'normal')]"/>
+                <filter string="Warning" name="filter_warning"
+                        domain="[('escalation_status', '=', 'warning')]"/>
+                <filter string="Escalated" name="filter_escalated"
+                        domain="[('escalation_status', '=', 'escalated')]"/>
+                <separator/>
+                <filter string="Within 24h Window" name="filter_within_window"
+                        domain="[('is_within_24h_window', '=', True)]"/>
+                <filter string="Outside 24h Window" name="filter_outside_window"
+                        domain="[('is_within_24h_window', '=', False)]"/>
+                <separator/>
+                <filter string="Active" name="filter_active"
+                        domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_archived"
+                        domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Recent Activity" name="filter_recent"
+                        domain="['|',
+                                 ('last_inbound_at', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
+                                 ('last_outbound_at', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group>
+                    <filter string="Operator" name="group_operator"
+                            context="{'group_by': 'assigned_operator_id'}"/>
+                    <filter string="Escalation Status" name="group_escalation"
+                            context="{'group_by': 'escalation_status'}"/>
+                    <filter string="Patient" name="group_patient"
+                            context="{'group_by': 'patient_id'}"/>
+                    <filter string="Window Status" name="group_window"
+                            context="{'group_by': 'is_within_24h_window'}"/>
+                    <filter string="Last Inbound Date" name="group_inbound_date"
+                            context="{'group_by': 'last_inbound_at:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for conversation threads -->
+    <record id="action_whatsapp_thread" model="ir.actions.act_window">
+        <field name="name">Conversations</field>
+        <field name="res_model">clinic.whatsapp.thread</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_filter_active': 1,
+            'search_default_filter_recent': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No WhatsApp conversations yet
+            </p>
+            <p>
+                Conversations track the 24-hour window rule:<br/>
+                • <strong>Within 24h</strong> of customer message → can send free text<br/>
+                • <strong>Outside 24h</strong> → must use approved template
+            </p>
+        </field>
+    </record>
+
+    <!-- Operator Queue Action -->
+    <record id="action_whatsapp_operator_queue" model="ir.actions.act_window">
+        <field name="name">My Queue</field>
+        <field name="res_model">clinic.whatsapp.thread</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_filter_active': 1,
+            'search_default_filter_my_chats': 1,
+            'search_default_filter_normal': 1
+        }</field>
+        <field name="domain">[('assigned_operator_id', '=', uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No chats assigned to you yet
+            </p>
+            <p>
+                Your assigned WhatsApp conversations will appear here.<br/>
+                Check the "Conversations" menu to see all unassigned chats.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu item (under WhatsApp) -->
+    <menuitem id="menu_whatsapp_thread"
+              name="Conversations"
+              parent="menu_clinic_whatsapp_root"
+              action="action_whatsapp_thread"
+              sequence="15"/>
+
+    <!-- Operator Queue Menu -->
+    <menuitem id="menu_whatsapp_operator_queue"
+              name="My Queue"
+              parent="menu_clinic_whatsapp_root"
+              action="action_whatsapp_operator_queue"
+              groups="clinic_integrations_whatsapp.group_whatsapp_operator"
+              sequence="14"/>
+</odoo>

@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Prescription Lines Action (moved before views that use it) -->
+    <record id="action_clinic_prescription_line" model="ir.actions.act_window">
+        <field name="name">Prescription Lines</field>
+        <field name="res_model">clinic.prescription.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Prescription Form View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_prescription_form" model="ir.ui.view">
+        <field name="name">clinic.prescription.form</field>
+        <field name="model">clinic.prescription</field>
+        <field name="arch" type="xml">
+            <form string="Prescription">
+                <header>
+                    <!-- Workflow Buttons -->
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"
+                            groups="clinic_prescription.group_prescription_user"/>
+
+                    <button name="action_send_to_pharmacy"
+                            string="Send to Pharmacy"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'confirmed'"
+                            groups="clinic_prescription.group_prescription_user"/>
+
+                    <button name="action_dispense"
+                            string="Mark as Dispensed"
+                            type="object"
+                            invisible="state != 'sent'"
+                            groups="clinic_prescription.group_prescription_pharmacist"/>
+
+                    <button name="action_refill"
+                            string="Refill"
+                            type="object"
+                            invisible="not can_refill"
+                            groups="clinic_prescription.group_prescription_user"/>
+
+                    <button name="action_print"
+                            string="Print"
+                            type="object"
+                            invisible="state == 'draft'"
+                            groups="clinic_prescription.group_prescription_user"/>
+
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ['cancelled', 'dispensed']"
+                            groups="clinic_prescription.group_prescription_user"/>
+
+                    <!-- Status Bar -->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,sent,dispensed"/>
+                </header>
+
+                <sheet>
+                    <!-- Button Box for Smart Buttons -->
+                    <div name="button_box" class="oe_button_box">
+                        <button name="%(action_clinic_prescription_line)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-pills"
+                                context="{'default_prescription_id': id}">
+                            <field name="medication_count" widget="statinfo"
+                                   string="Medications"/>
+                        </button>
+                    </div>
+
+                    <!-- Warning Alerts -->
+                    <div class="alert alert-danger" role="alert"
+                         invisible="not has_interactions or not interaction_warnings">
+                        <strong>⚠️ Drug Interaction Warning</strong>
+                        <field name="interaction_warnings" readonly="1"/>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not has_allergy_warning or not allergy_warning">
+                        <strong>⚠️ Allergy Warning</strong>
+                        <field name="allergy_warning" readonly="1"/>
+                    </div>
+
+                    <div class="alert alert-info" role="alert"
+                         invisible="not is_expired">
+                        <strong>Expired Prescription</strong>
+                        This prescription expired on <field name="valid_until" readonly="1"/>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <label for="prescription_number" string="Prescription Number"/>
+                        <h1>
+                            <field name="prescription_number" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group name="patient_info" string="Patient Information">
+                            <field name="patient_id"
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="patient_age" readonly="1"/>
+                            <field name="patient_weight"/>
+                            <field name="patient_allergies" readonly="1"
+                                   widget="text"
+                                   invisible="not patient_allergies"/>
+                        </group>
+
+                        <group name="prescription_info" string="Prescription Details">
+                            <field name="prescription_date"
+                                   readonly="state != 'draft'"/>
+                            <field name="doctor_id"
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="prescription_type"/>
+                            <field name="is_urgent"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group name="related_records" string="Related Records">
+                            <field name="appointment_id"
+                                   options="{'no_create': True}"/>
+                            <field name="treatment_plan_id"
+                                   options="{'no_create': True}"/>
+                            <field name="template_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                        </group>
+
+                        <group name="validity" string="Validity &amp; Refills">
+                            <field name="validity_days"
+                                   readonly="state != 'draft'"/>
+                            <field name="valid_until" readonly="1"/>
+                            <field name="is_expired" readonly="1" invisible="1"/>
+                            <field name="refills_allowed"
+                                   readonly="state != 'draft'"/>
+                            <field name="refills_used" readonly="1"/>
+                            <field name="refills_remaining" readonly="1"/>
+                            <field name="can_refill" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Medications Notebook -->
+                    <notebook>
+                        <page string="Medications" name="medications">
+                            <field name="prescription_line_ids"
+                                   readonly="state not in ['draft', 'confirmed']"
+                                   context="{'default_prescription_id': id}">
+                                <list editable="bottom">
+                                    <field name="medication_id"
+                                           options="{'no_create_edit': True}"/>
+                                    <field name="dose"/>
+                                    <field name="dose_unit_id"/>
+                                    <field name="route_id"/>
+                                    <field name="frequency_id"/>
+                                    <field name="duration"/>
+                                    <field name="quantity"/>
+                                    <field name="instructions"/>
+                                </list>
+                            </field>
+
+                            <group name="instructions">
+                                <field name="general_instructions"
+                                       placeholder="General instructions for patient..."
+                                       readonly="state not in ['draft', 'confirmed']"/>
+                            </group>
+                        </page>
+
+                        <page string="Pharmacy" name="pharmacy">
+                            <group>
+                                <group>
+                                    <field name="is_electronic"/>
+                                    <field name="sent_to_pharmacy_date" readonly="1"/>
+                                    <field name="dispensed_date" readonly="1"/>
+                                    <field name="dispensed_by" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="pharmacy_reference" readonly="1"/>
+                                    <field name="pharmacy_sent_date" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <field name="pharmacy_notes"
+                                       placeholder="Special instructions for pharmacist..."
+                                       readonly="state not in ['draft', 'confirmed']"/>
+                            </group>
+                        </page>
+
+                        <page string="Clinical Information" name="clinical">
+                            <group>
+                                <group>
+                                    <field name="diagnosis"/>
+                                    <field name="icd_code"/>
+                                </group>
+                                <group>
+                                    <field name="has_interactions" invisible="1"/>
+                                    <field name="has_allergy_warning" invisible="1"/>
+                                    <field name="warning_message"
+                                           readonly="1"
+                                           invisible="not warning_message"
+                                           widget="text"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <field name="notes"
+                                       placeholder="Internal notes (not visible to patient)..."/>
+                            </group>
+                        </page>
+
+                        <page string="E-Prescription" name="eprescription"
+                              invisible="not is_electronic">
+                            <group>
+                                <field name="signature" widget="image"/>
+                                <field name="qr_code" widget="image" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Prescription Tree/List View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_prescription_tree" model="ir.ui.view">
+        <field name="name">clinic.prescription.tree</field>
+        <field name="model">clinic.prescription</field>
+        <field name="arch" type="xml">
+            <list string="Prescriptions"
+                  decoration-success="state == 'dispensed'"
+                  decoration-info="state == 'confirmed'"
+                  decoration-warning="state == 'sent'"
+                  decoration-danger="is_expired or has_interactions"
+                  decoration-muted="state in ['cancelled', 'expired']">
+
+                <field name="prescription_number"/>
+                <field name="prescription_date"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="prescription_type"/>
+                <field name="medication_count"/>
+                <field name="valid_until"/>
+                <field name="is_urgent" widget="boolean_toggle" optional="hide"/>
+                <field name="is_expired" invisible="1"/>
+                <field name="has_interactions" invisible="1"/>
+                <field name="has_allergy_warning" invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'dispensed'"
+                       decoration-info="state == 'confirmed'"
+                       decoration-warning="state in ['sent', 'draft']"
+                       decoration-danger="state in ['cancelled', 'expired']"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Prescription Search View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_prescription_search" model="ir.ui.view">
+        <field name="name">clinic.prescription.search</field>
+        <field name="model">clinic.prescription</field>
+        <field name="arch" type="xml">
+            <search>
+                <!-- Search Fields -->
+                <field name="prescription_number"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="appointment_id"/>
+
+                <!-- Filters -->
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="filter_confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Sent to Pharmacy" name="filter_sent"
+                        domain="[('state', '=', 'sent')]"/>
+                <filter string="Dispensed" name="filter_dispensed"
+                        domain="[('state', '=', 'dispensed')]"/>
+
+                <separator/>
+
+                <filter string="Urgent" name="filter_urgent"
+                        domain="[('is_urgent', '=', True)]"/>
+                <filter string="Expired" name="filter_expired"
+                        domain="[('is_expired', '=', True)]"/>
+                <filter string="Has Interactions" name="filter_interactions"
+                        domain="[('has_interactions', '=', True)]"/>
+                <filter string="Has Allergy Warnings" name="filter_allergies"
+                        domain="[('has_allergy_warning', '=', True)]"/>
+
+                <separator/>
+
+                <filter string="Today" name="filter_today"
+                        domain="[('prescription_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                 ('prescription_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="This Week" name="filter_week"
+                        domain="[('prescription_date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" name="filter_month"
+                        domain="[('prescription_date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d'))]"/>
+
+                <separator/>
+
+                <filter string="Acute" name="filter_acute"
+                        domain="[('prescription_type', '=', 'acute')]"/>
+                <filter string="Chronic" name="filter_chronic"
+                        domain="[('prescription_type', '=', 'chronic')]"/>
+                <filter string="Controlled Substance" name="filter_controlled"
+                        domain="[('prescription_type', '=', 'controlled')]"/>
+
+                <separator/>
+
+                <!-- Group By -->
+                <group>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Patient" name="group_patient"
+                            context="{'group_by': 'patient_id'}"/>
+                    <filter string="Doctor" name="group_doctor"
+                            context="{'group_by': 'doctor_id'}"/>
+                    <filter string="Type" name="group_type"
+                            context="{'group_by': 'prescription_type'}"/>
+                    <filter string="Prescription Date" name="group_date"
+                            context="{'group_by': 'prescription_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Prescription Line Tree View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_prescription_line_tree" model="ir.ui.view">
+        <field name="name">clinic.prescription.line.tree</field>
+        <field name="model">clinic.prescription.line</field>
+        <field name="arch" type="xml">
+            <list string="Prescription Lines">
+                <field name="prescription_id"/>
+                <field name="medication_id"/>
+                <field name="dose"/>
+                <field name="dose_unit_id"/>
+                <field name="route_id"/>
+                <field name="frequency_id"/>
+                <field name="duration"/>
+                <field name="quantity"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Prescription Line Form View -->
+    <!-- ========================================== -->
+    <record id="view_clinic_prescription_line_form" model="ir.ui.view">
+        <field name="name">clinic.prescription.line.form</field>
+        <field name="model">clinic.prescription.line</field>
+        <field name="arch" type="xml">
+            <form string="Prescription Line">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="prescription_id" readonly="1"/>
+                            <field name="medication_id"/>
+                            <field name="dose"/>
+                            <field name="dose_unit_id"/>
+                            <field name="route_id"/>
+                        </group>
+                        <group>
+                            <field name="frequency_id"/>
+                            <field name="duration"/>
+                            <field name="quantity"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="instructions" placeholder="Instructions for taking this medication..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Actions -->
+    <!-- ========================================== -->
+
+    <!-- Main Prescription Action -->
+    <record id="action_clinic_prescription" model="ir.actions.act_window">
+        <field name="name">Prescriptions</field>
+        <field name="res_model">clinic.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{
+            'search_default_filter_draft': 1,
+            'search_default_filter_confirmed': 1,
+            'search_default_filter_sent': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first prescription
+            </p>
+            <p>
+                Create and manage medical prescriptions for patients.
+            </p>
+        </field>
+    </record>
+
+    <!-- Prescription Lines Action -->
+
+    <!-- ========================================== -->
+    <!-- Menu Items -->
+    <!-- ========================================== -->
+
+    <!-- Root Menu (if doesn't exist) -->
+    <menuitem id="menu_clinic_prescription_root"
+              name="Prescriptions"
+              sequence="40"
+              web_icon="clinic_prescription,static/description/icon.png"/>
+
+    <!-- Prescriptions Menu -->
+    <menuitem id="menu_clinic_prescriptions"
+              name="Prescriptions"
+              parent="menu_clinic_prescription_root"
+              action="action_clinic_prescription"
+              sequence="10"/>
+
+    <!-- All Prescriptions -->
+    <menuitem id="menu_clinic_prescriptions_all"
+              name="All Prescriptions"
+              parent="menu_clinic_prescription_root"
+              action="action_clinic_prescription"
+              sequence="11"/>
+
+</odoo>

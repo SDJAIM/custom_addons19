@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 3.5: WhatsApp Active Conversations Dashboard -->
+
+    <!-- Dashboard Kanban View -->
+    <record id="view_whatsapp_thread_dashboard_kanban" model="ir.ui.view">
+        <field name="name">whatsapp.thread.dashboard.kanban</field>
+        <field name="model">clinic.whatsapp.thread</field>
+        <field name="arch" type="xml">
+            <kanban class="o_whatsapp_dashboard" create="false" quick_create="false">
+                <field name="patient_id"/>
+                <field name="phone_number"/>
+                <field name="last_inbound_at"/>
+                <field name="window_expires_at"/>
+                <field name="is_within_24h_window"/>
+                <field name="window_status_text"/>
+                <field name="window_time_remaining"/>
+                <field name="window_urgency_level"/>
+                <field name="can_send_text"/>
+                <field name="requires_template"/>
+                <field name="outbound_count"/>
+                <field name="inbound_count"/>
+                <field name="last_message_body"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill"
+                             t-att-class="
+                                window_urgency_level == 'urgent' ? 'border-danger' :
+                                window_urgency_level == 'warning' ? 'border-warning' :
+                                window_urgency_level == 'normal' ? 'border-success' :
+                                'border-secondary'
+                             ">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <i class="fa fa-user"/> <field name="patient_id"/>
+                                    </strong>
+                                    <br/>
+                                    <small class="text-muted">
+                                        <i class="fa fa-phone"/> <field name="phone_number"/>
+                                    </small>
+                                </div>
+                                <div class="o_kanban_record_top_right">
+                                    <!-- Urgency Badge -->
+                                    <span class="badge"
+                                          t-att-class="
+                                              window_urgency_level == 'urgent' ? 'badge-danger' :
+                                              window_urgency_level == 'warning' ? 'badge-warning' :
+                                              window_urgency_level == 'normal' ? 'badge-success' :
+                                              window_urgency_level == 'expired' ? 'badge-secondary' :
+                                              'badge-light'
+                                          ">
+                                        <t t-if="window_urgency_level == 'urgent'">🔥 URGENT</t>
+                                        <t t-elif="window_urgency_level == 'warning'">⚠️ WARNING</t>
+                                        <t t-elif="window_urgency_level == 'normal'">✅ OPEN</t>
+                                        <t t-elif="window_urgency_level == 'expired'">⏰ EXPIRED</t>
+                                        <t t-else="">💤 NONE</t>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="o_kanban_record_body">
+                                <!-- Window Status -->
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <strong>Window Status:</strong><br/>
+                                        <field name="window_status_text"/>
+                                    </div>
+                                </div>
+
+                                <!-- Time Remaining (if within window) -->
+                                <div class="row mb-2" t-if="is_within_24h_window">
+                                    <div class="col-12">
+                                        <i class="fa fa-clock-o"/> <strong>Time Remaining:</strong>
+                                        <field name="window_time_remaining"/>
+                                    </div>
+                                </div>
+
+                                <!-- Last Message Preview -->
+                                <div class="row mb-2" t-if="last_message_body">
+                                    <div class="col-12">
+                                        <small class="text-muted">
+                                            <i class="fa fa-comment-o"/> Last message:<br/>
+                                            <field name="last_message_body"/>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Message Counters -->
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span class="badge badge-primary">
+                                            <i class="fa fa-arrow-up"/> <field name="outbound_count"/> sent
+                                        </span>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="badge badge-info">
+                                            <i class="fa fa-arrow-down"/> <field name="inbound_count"/> received
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <small class="text-muted">
+                                        Last inbound: <field name="last_inbound_at" widget="relative"/>
+                                    </small>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <!-- Quick Send Button -->
+                                    <button name="action_send_message_from_dashboard"
+                                            type="object"
+                                            class="btn btn-sm"
+                                            t-att-class="
+                                                can_send_text ? 'btn-success' : 'btn-secondary'
+                                            ">
+                                        <i class="fa fa-paper-plane"/>
+                                        <t t-if="can_send_text">Send Text</t>
+                                        <t t-else="">Use Template</t>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Search View with Filters -->
+    <record id="view_whatsapp_thread_dashboard_search" model="ir.ui.view">
+        <field name="name">whatsapp.thread.dashboard.search</field>
+        <field name="model">clinic.whatsapp.thread</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="phone_number"/>
+
+                <separator/>
+
+                <!-- Window Status Filters -->
+                <filter string="🔥 Urgent (Closing Soon!)"
+                        name="filter_urgent"
+                        domain="[('window_urgency_level', '=', 'urgent')]"/>
+
+                <filter string="⚠️ Warning (Expires in 3-6h)"
+                        name="filter_warning"
+                        domain="[('window_urgency_level', '=', 'warning')]"/>
+
+                <filter string="✅ Normal (Window Open)"
+                        name="filter_normal"
+                        domain="[('window_urgency_level', '=', 'normal')]"/>
+
+                <separator/>
+
+                <filter string="🟢 All Open Windows"
+                        name="filter_open_windows"
+                        domain="[('is_within_24h_window', '=', True)]"/>
+
+                <filter string="⏰ Expired Windows"
+                        name="filter_expired"
+                        domain="[('window_urgency_level', '=', 'expired')]"/>
+
+                <filter string="💤 No Window Yet"
+                        name="filter_no_window"
+                        domain="[('window_urgency_level', '=', 'none')]"/>
+
+                <separator/>
+
+                <filter string="📅 Active Today"
+                        name="filter_today"
+                        domain="[('last_inbound_at', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+
+                <filter string="📆 Active This Week"
+                        name="filter_week"
+                        domain="[('last_inbound_at', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+
+                <separator/>
+
+                <group>
+                    <filter string="Urgency Level"
+                            name="group_urgency"
+                            context="{'group_by': 'window_urgency_level'}"/>
+
+                    <filter string="Window Status"
+                            name="group_window_status"
+                            context="{'group_by': 'is_within_24h_window'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_whatsapp_dashboard" model="ir.actions.act_window">
+        <field name="name">WhatsApp Active Conversations</field>
+        <field name="res_model">clinic.whatsapp.thread</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_whatsapp_thread_dashboard_kanban"/>
+        <field name="search_view_id" ref="view_whatsapp_thread_dashboard_search"/>
+        <field name="context">{
+            'search_default_filter_open_windows': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No active WhatsApp conversations
+            </p>
+            <p>
+                When patients send WhatsApp messages, they will appear here.<br/>
+                Monitor 24-hour windows and respond quickly!
+            </p>
+        </field>
+    </record>
+
+    <!-- Add to Menu -->
+    <menuitem id="menu_whatsapp_dashboard"
+              name="📊 Active Conversations"
+              parent="clinic_integrations_whatsapp.menu_clinic_whatsapp_root"
+              action="action_whatsapp_dashboard"
+              sequence="1"/>
+
+</odoo>

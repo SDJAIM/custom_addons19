@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 4.1: WhatsApp Integration in Appointments -->
+
+    <!-- Extend Appointment Form View -->
+    <record id="view_clinic_appointment_form_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.appointment.form.whatsapp</field>
+        <field name="model">clinic.appointment</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add button_box if not exists, or add to existing one -->
+            <xpath expr="//form//sheet" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <!-- WhatsApp Messages Count Button -->
+                    <button name="action_send_whatsapp_message"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-whatsapp"
+                            invisible="not can_send_whatsapp"
+                            help="Send WhatsApp message to patient">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="whatsapp_message_count" widget="integer"/>
+                            </span>
+                            <span class="o_stat_text">WhatsApp</span>
+                        </div>
+                    </button>
+                </div>
+            </xpath>
+
+            <!-- Add invisible fields for computation -->
+            <xpath expr="//sheet" position="inside">
+                <group invisible="1">
+                    <field name="whatsapp_phone"/>
+                    <field name="can_send_whatsapp"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Extend Appointment Tree View - Add WhatsApp Action -->
+    <record id="view_clinic_appointment_tree_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.appointment.tree.whatsapp</field>
+        <field name="model">clinic.appointment</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_tree"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp icon indicator -->
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">can_send_whatsapp</attribute>
+            </xpath>
+
+            <!-- Add can_send_whatsapp field to list for filtering -->
+            <xpath expr="//list/field[@name='state']" position="after">
+                <field name="can_send_whatsapp" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Add WhatsApp Filter to Search View -->
+    <record id="view_clinic_appointment_search_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.appointment.search.whatsapp</field>
+        <field name="model">clinic.appointment</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_search"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp filters -->
+            <xpath expr="//search/filter[last()]" position="after">
+                <separator/>
+                <filter string="Can Send WhatsApp"
+                        name="filter_can_send_whatsapp"
+                        domain="[('can_send_whatsapp', '=', True)]"
+                        help="Appointments where patient can receive WhatsApp"/>
+
+                <filter string="Cannot Send WhatsApp"
+                        name="filter_cannot_send_whatsapp"
+                        domain="[('can_send_whatsapp', '=', False)]"
+                        help="Appointments where patient cannot receive WhatsApp (no mobile/opt-in)"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Server Action: Bulk Send WhatsApp Reminders -->
+    <record id="action_appointment_send_whatsapp_reminders" model="ir.actions.server">
+        <field name="name">Send WhatsApp Reminders</field>
+        <field name="model_id" ref="clinic_appointment_core.model_clinic_appointment"/>
+        <field name="binding_model_id" ref="clinic_appointment_core.model_clinic_appointment"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_send_appointment_reminder()
+        </field>
+    </record>
+
+</odoo>

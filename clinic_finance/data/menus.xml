@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ======================== -->
-    <!-- Finance Main Menu -->
+    <!-- Finance Main Menu - Now under Clinic Root -->
     <!-- ======================== -->
     <menuitem id="menu_clinic_finance"
               name="Finance"
-              sequence="50"/>
+              parent="clinic_base.menu_clinic_root"
+              sequence="60"/>
 </odoo>

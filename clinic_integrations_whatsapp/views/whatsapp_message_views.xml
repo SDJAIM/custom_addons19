@@ -27,13 +27,26 @@
                     <field name="state" widget="statusbar" statusbar_visible="pending,queued,sent,delivered"/>
                 </header>
                 <sheet>
+                    <!-- Alert for template selection -->
+                    <div class="alert alert-info" role="alert" invisible="message_type != 'template'">
+                        <strong>📋 Template Message:</strong>
+                        Only APPROVED templates from Meta Business Manager can be used.
+                        Templates are required when messaging outside the 24-hour customer service window.
+                    </div>
+
                     <group>
                         <group string="Message Information">
                             <field name="phone_number"/>
                             <field name="patient_id"/>
                             <field name="direction"/>
                             <field name="message_type"/>
-                            <field name="template_id" invisible="message_type != 'template'"/>
+                            <!-- Fase 2.3: Improved template selector -->
+                            <field name="template_id"
+                                   invisible="message_type != 'template'"
+                                   domain="[('meta_status', '=', 'APPROVED'), ('active', '=', True), ('phi_compliant', '=', True)]"
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   context="{'search_default_meta_approved': 1}"
+                                   required="message_type == 'template'"/>
                         </group>
                         <group string="Status">
                             <field name="state"/>
@@ -43,9 +56,57 @@
                             <field name="read_date"/>
                         </group>
                     </group>
-                    <group string="Content">
+
+                    <!-- Template Preview (Fase 2.4) -->
+                    <group string="Template Preview" invisible="not template_id or message_type != 'template'">
+                        <div class="o_whatsapp_template_preview" style="background-color: #DCF8C6; padding: 15px; border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px;">
+                            <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 1.2em;">📱</span>
+                                <strong style="color: #075E54; font-size: 0.95em;">WhatsApp Message Preview</strong>
+                            </div>
+                            <div style="background-color: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <!-- Template Name Badge -->
+                                <div style="margin-bottom: 10px; padding: 6px 10px; background-color: #E3F2FD; border-left: 3px solid #2196F3; border-radius: 4px;">
+                                    <span style="font-size: 0.85em; color: #1976D2; font-weight: 500;">Template: </span>
+                                    <field name="template_id" readonly="1" nolabel="1"
+                                           options="{'no_open': True}" widget="many2one"/>
+                                    <field name="template_meta_status" invisible="1"/>
+                                    <span style="margin-left: 8px; padding: 2px 8px; background-color: #4CAF50; color: white; border-radius: 10px; font-size: 0.75em;"
+                                          invisible="template_meta_status != 'APPROVED'">✓ APPROVED</span>
+                                </div>
+
+                                <!-- Header -->
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #1f1f1f; font-size: 1.05em;"
+                                     invisible="not template_header">
+                                    <field name="template_header" readonly="1" nolabel="1"
+                                           style="white-space: pre-wrap;"/>
+                                </div>
+
+                                <!-- Body -->
+                                <div style="white-space: pre-wrap; color: #262626; line-height: 1.5; font-size: 0.95em;">
+                                    <field name="message_body" readonly="message_type == 'template'" nolabel="1"
+                                           placeholder="Template body will appear here..."/>
+                                </div>
+
+                                <!-- Footer -->
+                                <div style="margin-top: 12px; font-size: 0.8em; color: #8696a0; font-style: italic; border-top: 1px solid #e9ecef; padding-top: 8px;"
+                                     invisible="not template_footer">
+                                    <field name="template_footer" readonly="1" nolabel="1"
+                                           style="white-space: pre-wrap;"/>
+                                </div>
+
+                                <!-- Timestamp -->
+                                <div style="margin-top: 8px; text-align: right; font-size: 0.7em; color: #667781;">
+                                    <span>Now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+
+                    <group string="Content" invisible="message_type == 'template'">
                         <field name="message_body" nolabel="1"/>
                     </group>
+
                     <group string="Error Information" invisible="state != 'failed'">
                         <field name="error_message" nolabel="1" readonly="1"/>
                         <field name="retry_count"/>

@@ -16,4 +16,65 @@
         <field name="implied_ids" eval="[(4, ref('group_clinic_whatsapp_user'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+
+    <!-- Fase 5.1: Operator & Supervisor Groups -->
+    <record id="group_whatsapp_operator" model="res.groups">
+        <field name="name">WhatsApp Operator</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Can handle incoming WhatsApp conversations and reply to customers</field>
+    </record>
+
+    <record id="group_whatsapp_supervisor" model="res.groups">
+        <field name="name">WhatsApp Supervisor</field>
+        <field name="implied_ids" eval="[(4, ref('group_whatsapp_operator'))]"/>
+        <field name="comment">Can view all conversations, escalate threads, and manage operators</field>
+    </record>
+
+    <!-- Record Rules for Operator Access -->
+    <record id="rule_thread_operator" model="ir.rule">
+        <field name="name">WhatsApp Thread: Operator Access</field>
+        <field name="model_id" ref="model_clinic_whatsapp_thread"/>
+        <field name="groups" eval="[(4, ref('group_whatsapp_operator'))]"/>
+        <field name="domain_force">[('assigned_operator_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Record Rules for Supervisor Access -->
+    <record id="rule_thread_supervisor" model="ir.rule">
+        <field name="name">WhatsApp Thread: Supervisor Access</field>
+        <field name="model_id" ref="model_clinic_whatsapp_thread"/>
+        <field name="groups" eval="[(4, ref('group_whatsapp_supervisor'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Operator Assignment: Only supervisors can manage -->
+    <record id="rule_operator_assignment_supervisor" model="ir.rule">
+        <field name="name">WhatsApp Operator Assignment: Supervisor Only</field>
+        <field name="model_id" ref="model_clinic_whatsapp_operator_assignment"/>
+        <field name="groups" eval="[(4, ref('group_whatsapp_supervisor'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Operators can read their own assignment -->
+    <record id="rule_operator_assignment_operator" model="ir.rule">
+        <field name="name">WhatsApp Operator Assignment: Operator Read-Only</field>
+        <field name="model_id" ref="model_clinic_whatsapp_operator_assignment"/>
+        <field name="groups" eval="[(4, ref('group_whatsapp_operator'))]"/>
+        <field name="domain_force">[('operator_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

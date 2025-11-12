@@ -1,6 +1,6 @@
 {
     'name': '🏥 Clinic System Complete',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services',
     'summary': 'Complete Clinic Management System - Auto-installs all modules',
     'author': 'Clinic System',
@@ -84,7 +84,7 @@
     },
 
     'external_dependencies': {
-        'python': ['jwt', 'cryptography', 'phonenumbers', 'requests'],
+        'python': ['PyJWT', 'cryptography', 'phonenumbers', 'requests'],
     },
 
     'images': ['static/description/icon.png'],

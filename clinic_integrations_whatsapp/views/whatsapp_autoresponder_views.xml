@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fase 5.5: Auto-Responder Views -->
+
+    <!-- Tree View -->
+    <record id="view_whatsapp_autoresponder_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.autoresponder.tree</field>
+        <field name="model">clinic.whatsapp.autoresponder</field>
+        <field name="arch" type="xml">
+            <list string="Auto-Responders"
+                  decoration-muted="not active">
+                <field name="priority" widget="priority"/>
+                <field name="name"/>
+                <field name="trigger_keywords"/>
+                <field name="match_type"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="active_hours_only"/>
+                <field name="total_triggered"/>
+                <field name="last_triggered_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_whatsapp_autoresponder_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.autoresponder.form</field>
+        <field name="model">clinic.whatsapp.autoresponder</field>
+        <field name="arch" type="xml">
+            <form string="Auto-Responder">
+                <header>
+                    <button name="action_test_response"
+                            string="Test Response"
+                            type="object"
+                            class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_statistics"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-bar-chart">
+                            <field name="total_triggered" widget="statinfo" string="Triggered"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Inactive" bg_color="bg-danger"
+                            invisible="active"/>
+
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group>
+                            <field name="total_triggered" readonly="1"/>
+                            <field name="last_triggered_at" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Trigger Configuration">
+                            <group>
+                                <group>
+                                    <field name="trigger_keywords"/>
+                                    <field name="match_type"/>
+                                    <field name="case_sensitive"/>
+                                </group>
+                                <group>
+                                    <field name="stop_on_match"/>
+                                    <field name="send_once_per_conversation"/>
+                                    <field name="cooldown_minutes"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Response Message">
+                            <field name="response_template" widget="text" placeholder="Enter your auto-response message here...&#10;&#10;Use {{patient_name}} to personalize."/>
+                        </page>
+
+                        <page string="Business Hours">
+                            <group>
+                                <group>
+                                    <field name="active_hours_only"/>
+                                    <field name="only_outside_hours"/>
+                                    <field name="only_for_new_threads"/>
+                                </group>
+                                <group>
+                                    <field name="working_hours_start" widget="float_time"
+                                           invisible="not active_hours_only and not only_outside_hours"/>
+                                    <field name="working_hours_end" widget="float_time"
+                                           invisible="not active_hours_only and not only_outside_hours"/>
+                                    <field name="working_days"
+                                           invisible="not active_hours_only and not only_outside_hours"/>
+                                    <field name="custom_working_days"
+                                           invisible="working_days != 'custom'"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Notes">
+                            <field name="notes" placeholder="Internal notes about this auto-responder..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_whatsapp_autoresponder" model="ir.actions.act_window">
+        <field name="name">Auto-Responders</field>
+        <field name="res_model">clinic.whatsapp.autoresponder</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure Auto-Responders
+            </p>
+            <p>
+                Set up automatic responses based on keywords and business hours.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_whatsapp_autoresponders"
+              name="Auto-Responders"
+              parent="clinic_integrations_whatsapp.menu_clinic_whatsapp_root"
+              action="action_whatsapp_autoresponder"
+              sequence="35"
+              groups="clinic_integrations_whatsapp.group_whatsapp_supervisor"/>
+
+</odoo>

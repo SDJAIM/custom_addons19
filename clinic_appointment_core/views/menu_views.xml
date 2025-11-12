@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Top Menu -->
+        <!-- Top Menu - Now under Clinic Root -->
         <menuitem id="menu_clinic_appointment_root"
                   name="Appointments"
-                  sequence="30"
-                  web_icon="clinic_appointment_core,static/description/icon.png"/>
+                  parent="clinic_base.menu_clinic_root"
+                  sequence="40"/>
 
         <!-- Main Appointment Menu -->
         <menuitem id="menu_clinic_appointment_main"

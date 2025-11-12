@@ -13,12 +13,12 @@ class Medication(models.Model):
     _order = 'name'
     _rec_name = 'display_name'
 
-    # Database-level uniqueness constraints
-    # Reference: Odoo 19 SQL constraints
-    # https://www.odoo.com/documentation/19.0/developer/reference/backend/orm.html#sql-constraints
-    _sql_constraints = [
-        ('med_code_uniq', 'UNIQUE(code)', 'Medication code must be unique'),
-    ]
+    # Database-level uniqueness constraints (Odoo 19 Constraint API)
+    # Reference: https://www.odoo.com/documentation/19.0/developer/reference/backend/orm.html#constraints
+    _med_code_uniq = models.Constraint(
+        'UNIQUE(code)',
+        'Medication code must be unique'
+    )
     
     # Basic Information
     name = fields.Char(

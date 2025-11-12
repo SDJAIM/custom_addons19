@@ -5,220 +5,48 @@
         <field name="name">Telemedicine Settings</field>
         <field name="model">clinic.telemed.settings</field>
         <field name="arch" type="xml">
-            <form string="Telemedicine Settings">
+            <form string="Telemedicine Settings" class="oe_form_configuration">
+                <header>
+                    <button string="Save" type="object" name="execute" class="oe_highlight"/>
+                    <button string="Cancel" type="object" name="cancel" class="btn-secondary"/>
+                </header>
                 <div class="row mt16 o_settings_container">
-                    <!-- Platform Selection -->
-                    <div class="col-12 o_setting_box">
-                        <div class="o_setting_left_pane">
-                            <field name="id" invisible="1"/>
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Video Platform</span>
-                                <div class="col-lg-9">
-                                    <field name="telemed_platform" widget="radio"/>
-                                    <div class="text-muted">
-                                        Choose your preferred video conferencing platform
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-9 offset-lg-3">
-                                    <button name="action_test_platform_connection" string="Test Platform Connection"
-                                            type="object" class="btn btn-secondary" icon="fa-plug"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Zoom Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'zoom'">
-                        <div class="o_setting_left_pane">
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Zoom Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure your Zoom API credentials
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <label for="zoom_api_key" class="col-lg-3 o_light_label"/>
-                                <field name="zoom_api_key" class="col-lg-9" password="True"/>
-                            </div>
-                            <div class="row">
-                                <label for="zoom_api_secret" class="col-lg-3 o_light_label"/>
-                                <field name="zoom_api_secret" class="col-lg-9" password="True"/>
-                            </div>
-                            <div class="row">
-                                <label for="zoom_webhook_secret" class="col-lg-3 o_light_label"/>
-                                <field name="zoom_webhook_secret" class="col-lg-9" password="True"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Google Meet Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'google_meet'">
-                        <div class="o_setting_left_pane">
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Google Meet Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure your Google OAuth credentials
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <label for="google_client_id" class="col-lg-3 o_light_label"/>
-                                <field name="google_client_id" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="google_client_secret" class="col-lg-3 o_light_label"/>
-                                <field name="google_client_secret" class="col-lg-9" password="True"/>
-                            </div>
-                            <div class="row">
-                                <label for="google_refresh_token" class="col-lg-3 o_light_label"/>
-                                <field name="google_refresh_token" class="col-lg-9" password="True"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Microsoft Teams Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'teams'">
-                        <div class="o_setting_left_pane">
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Microsoft Teams Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure your Microsoft Teams app credentials
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <label for="teams_tenant_id" class="col-lg-3 o_light_label"/>
-                                <field name="teams_tenant_id" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="teams_client_id" class="col-lg-3 o_light_label"/>
-                                <field name="teams_client_id" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="teams_client_secret" class="col-lg-3 o_light_label"/>
-                                <field name="teams_client_secret" class="col-lg-9" password="True"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Jitsi Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'jitsi'">
-                        <div class="o_setting_left_pane">
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Jitsi Meet Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure Jitsi Meet domain and authentication (optional)
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <label for="jitsi_domain" class="col-lg-3 o_light_label"/>
-                                <field name="jitsi_domain" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="jitsi_app_id" class="col-lg-3 o_light_label"/>
-                                <field name="jitsi_app_id" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="jitsi_app_secret" class="col-lg-3 o_light_label"/>
-                                <field name="jitsi_app_secret" class="col-lg-9" password="True"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Custom Platform Configuration -->
-                    <div class="col-12 col-lg-6 o_setting_box" invisible="telemed_platform != 'custom'">
-                        <div class="o_setting_left_pane">
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Custom Platform Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure your custom video platform API
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <label for="custom_api_url" class="col-lg-3 o_light_label"/>
-                                <field name="custom_api_url" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="custom_api_key" class="col-lg-3 o_light_label"/>
-                                <field name="custom_api_key" class="col-lg-9" password="True"/>
-                            </div>
-                            <div class="row">
-                                <label for="custom_api_secret" class="col-lg-3 o_light_label"/>
-                                <field name="custom_api_secret" class="col-lg-9" password="True"/>
-                            </div>
-                        </div>
+                    <!-- Module Information -->
+                    <div class="col-12">
+                        <field name="module_info" nolabel="1"/>
                     </div>
 
                     <!-- Session Configuration -->
                     <div class="col-12 col-lg-6 o_setting_box">
                         <div class="o_setting_left_pane">
+                            <field name="id" invisible="1"/>
                         </div>
                         <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Session Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure default session settings
-                                    </div>
-                                </div>
+                            <label for="default_session_duration"/>
+                            <div class="text-muted">
+                                Default duration for new telemedicine sessions
                             </div>
-                            <div class="row">
-                                <label for="default_session_duration" class="col-lg-3 o_light_label"/>
-                                <field name="default_session_duration" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="waiting_room_enabled" class="col-lg-3 o_light_label"/>
-                                <field name="waiting_room_enabled" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="recording_enabled" class="col-lg-3 o_light_label"/>
-                                <field name="recording_enabled" class="col-lg-9"/>
+                            <div class="content-group">
+                                <field name="default_session_duration" class="oe_inline"/> minutes
                             </div>
                         </div>
                     </div>
 
-                    <!-- Security Configuration -->
+                    <!-- Recording Configuration -->
                     <div class="col-12 col-lg-6 o_setting_box">
                         <div class="o_setting_left_pane">
+                            <field name="recording_enabled"/>
                         </div>
                         <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Security Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure security and access settings
-                                    </div>
+                            <label for="recording_enabled"/>
+                            <div class="text-muted">
+                                Enable session recording (depends on Discuss capabilities)
+                            </div>
+                            <div class="content-group" invisible="not recording_enabled">
+                                <div class="mt8">
+                                    <label for="recording_retention_days" class="o_light_label"/>
+                                    <field name="recording_retention_days" class="oe_inline"/> days
                                 </div>
-                            </div>
-                            <div class="row">
-                                <label for="require_password" class="col-lg-3 o_light_label"/>
-                                <field name="require_password" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="auto_generate_password" class="col-lg-3 o_light_label"/>
-                                <field name="auto_generate_password" class="col-lg-9"/>
                             </div>
                         </div>
                     </div>
@@ -226,27 +54,43 @@
                     <!-- Notification Configuration -->
                     <div class="col-12 o_setting_box">
                         <div class="o_setting_left_pane">
+                            <field name="send_email_invites"/>
                         </div>
                         <div class="o_setting_right_pane">
-                            <div class="row">
-                                <span class="col-lg-3 o_form_label">Notification Configuration</span>
-                                <div class="col-lg-9">
-                                    <div class="text-muted">
-                                        Configure invitation and reminder settings
-                                    </div>
+                            <label for="send_email_invites"/>
+                            <div class="text-muted">
+                                Automatically send email invitations to patients and doctors
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="send_sms_reminders"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="send_sms_reminders"/>
+                            <div class="text-muted">
+                                Send SMS reminders before telemedicine sessions start
+                            </div>
+                            <div class="content-group" invisible="not send_sms_reminders">
+                                <div class="mt8">
+                                    <label for="reminder_time" class="o_light_label"/>
+                                    <field name="reminder_time" class="oe_inline"/> minutes before
                                 </div>
                             </div>
-                            <div class="row">
-                                <label for="send_email_invites" class="col-lg-3 o_light_label"/>
-                                <field name="send_email_invites" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="send_sms_invites" class="col-lg-3 o_light_label"/>
-                                <field name="send_sms_invites" class="col-lg-9"/>
-                            </div>
-                            <div class="row">
-                                <label for="reminder_time_minutes" class="col-lg-3 o_light_label"/>
-                                <field name="reminder_time_minutes" class="col-lg-9"/>
+                        </div>
+                    </div>
+
+                    <!-- Auto-create Channel -->
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="auto_create_channel"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="auto_create_channel"/>
+                            <div class="text-muted">
+                                Automatically create Discuss channel when creating telemedicine session
                             </div>
                         </div>
                     </div>
@@ -261,7 +105,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">clinic.telemed.settings</field>
         <field name="view_mode">form</field>
-        <field name="target">current</field>
+        <field name="target">inline</field>
         <field name="context">{'module': 'clinic_integrations_telemed'}</field>
     </record>
 

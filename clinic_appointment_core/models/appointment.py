@@ -5,6 +5,9 @@ from datetime import datetime, timedelta, date
 from odoo.exceptions import ValidationError, UserError
 import pytz
 import secrets
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class ClinicAppointment(models.Model):
@@ -749,9 +752,12 @@ class ClinicAppointment(models.Model):
     @api.model
     def _cron_send_appointment_reminders(self):
         """Send reminders for tomorrow's appointments"""
+        self = self.sudo()
         tomorrow = date.today() + timedelta(days=1)
         tomorrow_start = datetime.combine(tomorrow, datetime.min.time())
         tomorrow_end = datetime.combine(tomorrow, datetime.max.time())
+
+        _logger.info("Starting appointment reminder cron job for %s", tomorrow)
 
         appointments = self.search([
             ('start', '>=', tomorrow_start),
@@ -760,26 +766,45 @@ class ClinicAppointment(models.Model):
             ('reminder_sent', '=', False)
         ])
 
+        _logger.info("Found %d appointments to send reminders for", len(appointments))
+
         for appointment in appointments:
-            appointment._send_reminder_email()
-            appointment._send_reminder_sms()
-            appointment.write({
-                'reminder_sent': True,
-                'reminder_sent_date': fields.Datetime.now()
-            })
+            try:
+                appointment._send_reminder_email()
+                appointment._send_reminder_sms()
+                appointment.write({
+                    'reminder_sent': True,
+                    'reminder_sent_date': fields.Datetime.now()
+                })
+                _logger.debug("Reminder sent for appointment %s", appointment.appointment_number)
+            except Exception as e:
+                _logger.error("Failed to send reminder for appointment %s: %s", appointment.appointment_number, e)
+
+        _logger.info("Completed appointment reminder cron job. Processed: %d", len(appointments))
 
     @api.model
     def _cron_mark_no_shows(self):
         """Mark past confirmed appointments as no-show"""
+        self = self.sudo()
         cutoff_time = fields.Datetime.now() - timedelta(hours=1)
+
+        _logger.info("Starting no-show marking cron job with cutoff time: %s", cutoff_time)
 
         appointments = self.search([
             ('start', '<', cutoff_time),
             ('state', '=', 'confirmed')
         ])
 
+        _logger.info("Found %d appointments to mark as no-show", len(appointments))
+
         for appointment in appointments:
-            appointment.action_no_show()
+            try:
+                appointment.action_no_show()
+                _logger.debug("Marked appointment %s as no-show", appointment.appointment_number)
+            except Exception as e:
+                _logger.error("Failed to mark appointment %s as no-show: %s", appointment.appointment_number, e)
+
+        _logger.info("Completed no-show marking cron job. Processed: %d", len(appointments))
 
     # ========================
     # Portal

@@ -7,20 +7,22 @@
             <field name="model_id" ref="model_clinic_whatsapp_message"/>
             <field name="state">code</field>
             <field name="code">model.send_pending_messages()</field>
-            <field name="user_id" ref="base.user_root"/>
+            <field name="user_id" ref="base.user_admin"/>
             <field name="interval_number">5</field>
-            <field name="interval_type">minutes</field>            <field name="active" eval="True"/>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
         </record>
 
-        <!-- Cron job for appointment reminders -->
+        <!-- Cron job for appointment reminders (delegated to appointment model) -->
         <record id="ir_cron_whatsapp_appointment_reminders" model="ir.cron">
-            <field name="name">WhatsApp: Send Appointment Reminders</field>
-            <field name="model_id" ref="model_clinic_whatsapp_message"/>
+            <field name="name">Appointments: Send Reminders (WhatsApp/SMS/Email)</field>
+            <field name="model_id" ref="clinic_appointment_core.model_clinic_appointment"/>
             <field name="state">code</field>
-            <field name="code">model.send_appointment_reminders()</field>
-            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_send_appointment_reminders()</field>
+            <field name="user_id" ref="base.user_admin"/>
             <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>            <field name="active" eval="True"/>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for retry failed messages -->
@@ -29,9 +31,10 @@
             <field name="model_id" ref="model_clinic_whatsapp_message"/>
             <field name="state">code</field>
             <field name="code">model.retry_failed_messages()</field>
-            <field name="user_id" ref="base.user_root"/>
+            <field name="user_id" ref="base.user_admin"/>
             <field name="interval_number">30</field>
-            <field name="interval_type">minutes</field>            <field name="active" eval="True"/>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
         </record>
 
         <!-- Cron job for cleaning old messages -->
@@ -40,20 +43,23 @@
             <field name="model_id" ref="model_clinic_whatsapp_message"/>
             <field name="state">code</field>
             <field name="code">model.clean_old_messages(days=90)</field>
-            <field name="user_id" ref="base.user_root"/>
+            <field name="user_id" ref="base.user_admin"/>
             <field name="interval_number">1</field>
-            <field name="interval_type">days</field>            <field name="nextcall" eval="(DateTime.now().replace(hour=2, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>            <field name="active" eval="True"/>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2025-11-12 02:00:00</field>
+            <field name="active" eval="True"/>
         </record>
 
-        <!-- Cron job for syncing template status -->
+        <!-- Cron job for syncing templates from Meta (Fase 2.1) -->
         <record id="ir_cron_sync_whatsapp_templates" model="ir.cron">
-            <field name="name">WhatsApp: Sync Template Status</field>
+            <field name="name">WhatsApp: Sync Templates from Meta</field>
             <field name="model_id" ref="model_clinic_whatsapp_template"/>
             <field name="state">code</field>
-            <field name="code">model.sync_template_status()</field>
-            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model.sync_templates_from_meta()</field>
+            <field name="user_id" ref="base.user_admin"/>
             <field name="interval_number">6</field>
-            <field name="interval_type">hours</field>            <field name="active" eval="False"/>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
         </record>
     </data>
 </odoo>
