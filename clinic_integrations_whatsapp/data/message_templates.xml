@@ -70,8 +70,8 @@ For inquiries, contact us.</field>
 
 Please log in to view details. You may also pick up a copy at reception.
 
-For assistance, contact us.</field>
-            <field name="footer">Thank you for trusting us with your care</field>
+For help, contact us.</field>
+            <field name="footer">Thank you for choosing us for your care</field>
             <field name="active">True</field>
             <field name="approval_status">draft</field>
         </record>
@@ -89,7 +89,7 @@ Thank you for registering. You can now:
 ✓ Access your secure patient portal
 ✓ Receive reminders
 
-For assistance, reply HELP.</field>
+For help, reply HELP.</field>
             <field name="footer">We're here for your health</field>
             <field name="active">True</field>
             <field name="approval_status">draft</field>

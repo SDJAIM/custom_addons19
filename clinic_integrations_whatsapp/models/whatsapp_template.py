@@ -55,6 +55,18 @@ class WhatsAppTemplate(models.Model):
         help='Optional footer text for template'
     )
 
+    # Message type - base field for extension
+    message_type = fields.Selection(
+        selection=[
+            ('text', 'Text Message'),
+            ('template', 'WhatsApp Template'),
+        ],
+        string='Message Type',
+        default='text',
+        required=True,
+        help='Type of WhatsApp message'
+    )
+
     # Status tracking
     active = fields.Boolean(
         string='Active',

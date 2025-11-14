@@ -73,6 +73,15 @@ class TelemedicineSession(models.Model):
         tracking=True
     )
 
+    # Telemedicine Provider
+    provider = fields.Selection(
+        selection=[('discuss', 'Odoo Discuss')],
+        string='Provider',
+        default='discuss',
+        required=True,
+        help='Telemedicine platform provider'
+    )
+
     # Status
     state = fields.Selection([
         ('draft', 'Draft'),

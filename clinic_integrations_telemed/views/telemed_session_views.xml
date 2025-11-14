@@ -62,7 +62,7 @@
                             </div>
                         </button>
 
-                        <button name="%(discuss.discuss_channel_action)d"
+                        <button name="%(mail.action_discuss)d"
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-comments"
@@ -255,7 +255,7 @@
                 <separator/>
 
                 <!-- Group By -->
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="State" name="group_state"
                             context="{'group_by': 'state'}"/>
                     <filter string="Patient" name="group_patient"

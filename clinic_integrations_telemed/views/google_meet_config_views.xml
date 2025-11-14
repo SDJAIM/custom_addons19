@@ -2,6 +2,13 @@
 <odoo>
     <!-- TASK-F3-002: Google Meet Configuration Views -->
 
+    <!-- Action to redirect to OAuth - MUST BE DEFINED FIRST -->
+    <record id="action_google_auth_redirect" model="ir.actions.act_url">
+        <field name="name">Connect Google Account</field>
+        <field name="url">/google/auth/start</field>
+        <field name="target">self</field>
+    </record>
+
     <!-- Form View -->
     <record id="view_google_meet_config_form" model="ir.ui.view">
         <field name="name">clinic.google.meet.config.form</field>
@@ -13,13 +20,13 @@
                             string="Test Connection"
                             type="object"
                             class="btn-secondary"
-                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                            invisible="not is_connected"/>
                     <button name="action_disconnect"
                             string="Disconnect"
                             type="object"
                             confirm="Are you sure you want to disconnect your Google account?"
                             class="btn-secondary"
-                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                            invisible="not is_connected"/>
                     <field name="is_connected" invisible="1"/>
                 </header>
                 <sheet>
@@ -28,7 +35,7 @@
                                 type="action"
                                 name="%(action_google_auth_redirect)d"
                                 icon="fa-google"
-                                attrs="{'invisible': [('is_connected', '=', True)]}">
+                                invisible="is_connected">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Connect Google</span>
                             </div>
@@ -36,9 +43,9 @@
                     </div>
 
                     <widget name="web_ribbon" title="Connected" bg_color="bg-success"
-                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                            invisible="not is_connected"/>
                     <widget name="web_ribbon" title="Not Connected" bg_color="bg-danger"
-                            attrs="{'invisible': [('is_connected', '=', True)]}"/>
+                            invisible="is_connected"/>
 
                     <group>
                         <group>
@@ -49,13 +56,13 @@
                         <group>
                             <field name="google_calendar_id"/>
                             <field name="token_expiry" readonly="1"
-                                   attrs="{'invisible': [('token_expiry', '=', False)]}"/>
+                                   invisible="not token_expiry"/>
                             <field name="last_sync_date" readonly="1"
-                                   attrs="{'invisible': [('last_sync_date', '=', False)]}"/>
+                                   invisible="not last_sync_date"/>
                         </group>
                     </group>
 
-                    <group string="Instructions" attrs="{'invisible': [('is_connected', '=', True)]}">
+                    <group string="Instructions" invisible="is_connected">
                         <div class="alert alert-info" role="alert">
                             <h4>How to Connect Google Meet:</h4>
                             <ol>
@@ -68,7 +75,7 @@
                         </div>
                     </group>
 
-                    <group string="Connection Details" attrs="{'invisible': [('is_connected', '=', False)]}">
+                    <group string="Connection Details" invisible="not is_connected">
                         <div class="alert alert-success" role="alert">
                             <p><i class="fa fa-check-circle"/> Your Google account is connected and ready to use.</p>
                             <p>You can now create Google Meet links for telemedicine sessions.</p>
@@ -84,12 +91,12 @@
         <field name="name">clinic.google.meet.config.tree</field>
         <field name="model">clinic.google.meet.config</field>
         <field name="arch" type="xml">
-            <tree string="Google Meet Configurations">
+            <list string="Google Meet Configurations">
                 <field name="staff_id"/>
                 <field name="google_email"/>
                 <field name="is_connected" widget="boolean_toggle"/>
                 <field name="last_sync_date"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -108,17 +115,10 @@
         </field>
     </record>
 
-    <!-- Action to redirect to OAuth -->
-    <record id="action_google_auth_redirect" model="ir.actions.act_url">
-        <field name="name">Connect Google Account</field>
-        <field name="url">/google/auth/start</field>
-        <field name="target">self</field>
-    </record>
-
     <!-- Menu Item -->
     <menuitem id="menu_google_meet_config"
               name="Google Meet"
-              parent="clinic_integrations_telemed.menu_telemed_config"
+              parent="clinic_integrations_telemed.menu_clinic_telemed_root"
               action="action_google_meet_config"
               sequence="20"/>
 

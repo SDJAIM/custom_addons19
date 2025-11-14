@@ -11,7 +11,7 @@
             <xpath expr="//header" position="inside">
                 <!-- Setup Telemedicine Button (for non-telemed appointments) -->
                 <button name="action_setup_telemedicine"
-                        string="🎥 Setup Video Call"
+                        string="Setup Video Call"
                         type="object"
                         class="oe_highlight"
                         invisible="service_type == 'telemed' or has_telemed_session"
@@ -28,45 +28,18 @@
 
                 <!-- Join Video Call (for active sessions) -->
                 <button name="action_join_telemed_call"
-                        string="🎥 Join Video Call"
+                        string="Join Video Call"
                         type="object"
                         class="oe_highlight"
                         invisible="not has_telemed_session or telemed_session_state in ['draft', 'completed', 'cancelled']"
                         groups="clinic_staff.group_clinic_staff_user"/>
             </xpath>
 
-            <!-- Add Telemedicine Smart Button -->
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_open_telemed_session"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-video-camera"
-                        invisible="not has_telemed_session">
-                    <div class="o_stat_info">
-                        <field name="telemed_session_state" widget="badge"
-                               decoration-info="telemed_session_state == 'scheduled'"
-                               decoration-success="telemed_session_state == 'completed'"
-                               decoration-warning="telemed_session_state in ['waiting', 'in_progress']"/>
-                        <span class="o_stat_text">Video Session</span>
-                    </div>
-                </button>
-
-                <button name="action_join_telemed_call"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-phone"
-                        invisible="not telemed_channel_id">
-                    <div class="o_stat_info">
-                        <span class="o_stat_text">Join Call</span>
-                    </div>
-                </button>
-            </xpath>
-
             <!-- Add Alert for Telemedicine Appointments -->
             <xpath expr="//sheet" position="before">
                 <div class="alert alert-info" role="alert"
                      invisible="service_type != 'telemed' or has_telemed_session">
-                    <strong>📹 Telemedicine Appointment</strong>
+                    <strong>Telemedicine Appointment</strong>
                     <p class="mb-0">
                         This is a video consultation. Click "Create Video Session" to set up the video call.
                     </p>
@@ -74,7 +47,7 @@
 
                 <div class="alert alert-success" role="alert"
                      invisible="not has_telemed_session or telemed_session_state != 'scheduled'">
-                    <strong>✅ Video Session Ready</strong>
+                    <strong>Video Session Ready</strong>
                     <p class="mb-0">
                         Video call is scheduled. Click "Join Video Call" when it's time to start.
                     </p>
@@ -82,32 +55,19 @@
 
                 <div class="alert alert-warning" role="alert"
                      invisible="not has_telemed_session or telemed_session_state not in ['waiting', 'in_progress']">
-                    <strong>🔴 Video Session Active</strong>
+                    <strong>Video Session Active</strong>
                     <p class="mb-0">
                         The video consultation is currently active. Click "Join Video Call" to participate.
                     </p>
                 </div>
             </xpath>
 
-            <!-- Add Telemedicine Fields to Form -->
-            <xpath expr="//group[@name='appointment_details']" position="after">
-                <group name="telemedicine_details" string="Telemedicine Details"
-                       invisible="service_type != 'telemed'">
-                    <field name="telemed_session_id" readonly="1"
-                           invisible="not has_telemed_session"/>
-                    <field name="telemed_channel_id" readonly="1"
-                           invisible="not telemed_channel_id"/>
-                    <field name="has_telemed_session" invisible="1"/>
-                    <field name="is_telemedicine_appointment" invisible="1"/>
-                </group>
-            </xpath>
-
-            <!-- Hide old telemed fields (deprecated) -->
-            <xpath expr="//field[@name='telemed_platform']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//field[@name='telemed_link']" position="attributes">
-                <attribute name="invisible">1</attribute>
+            <!-- Add Telemedicine Fields after staff_id field -->
+            <xpath expr="//field[@name='staff_id']" position="after">
+                <field name="has_telemed_session" invisible="1"/>
+                <field name="is_telemedicine_appointment" invisible="1"/>
+                <field name="telemed_session_state" invisible="1"/>
+                <field name="telemed_channel_id" invisible="1"/>
             </xpath>
 
         </field>
@@ -146,7 +106,7 @@
         <field name="arch" type="xml">
 
             <!-- Add Telemedicine Filters -->
-            <xpath expr="//filter[@name='filter_confirmed']" position="after">
+            <xpath expr="//filter[@name='confirmed']" position="after">
                 <separator/>
                 <filter string="Telemedicine" name="filter_telemedicine"
                         domain="[('service_type', '=', 'telemed')]"/>

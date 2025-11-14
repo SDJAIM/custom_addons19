@@ -66,7 +66,7 @@ Features:
         'views/whatsapp_config_views.xml',
         'views/whatsapp_message_views.xml',
         'views/whatsapp_template_views.xml',
-        'views/whatsapp_template_interactive_views.xml',  # TASK-F3-003
+        #         'views/whatsapp_template_interactive_views.xml',  # TASK-F3-003
         'views/patient_whatsapp_views.xml',
         'views/appointment_reminder_views.xml',  # Extend appointment reminder views
 

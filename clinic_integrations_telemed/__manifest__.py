@@ -33,7 +33,7 @@ Features:
     
     'depends': [
         'base',
-        'mail',
+        'mail',  # Provides discuss.channel for video calls in Odoo CE
         'clinic_patient',
         'clinic_staff',
         'clinic_appointment_core',
