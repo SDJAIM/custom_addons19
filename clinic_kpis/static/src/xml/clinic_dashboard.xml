@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- TASK-F3-004: Advanced Analytics Dashboard Template -->
+    <t t-name="clinic_kpis.ClinicDashboard">
+        <div class="o_clinic_dashboard">
+            <!-- Header -->
+            <div class="o_dashboard_header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">
+                        <i class="fa fa-chart-line me-2"/>
+                        <t t-esc="state.dashboardName"/>
+                    </h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Period Selector -->
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    t-att-class="{'active': state.period === 'week'}"
+                                    t-on-click="() => this.onPeriodChange('week')">
+                                Week
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    t-att-class="{'active': state.period === 'month'}"
+                                    t-on-click="() => this.onPeriodChange('month')">
+                                Month
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    t-att-class="{'active': state.period === 'year'}"
+                                    t-on-click="() => this.onPeriodChange('year')">
+                                Year
+                            </button>
+                        </div>
+                        <!-- Refresh Button -->
+                        <button class="btn btn-sm btn-primary" t-on-click="onRefresh">
+                            <i class="fa fa-refresh me-1"/>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="text-muted small" t-if="state.lastRefresh">
+                    Last updated: <t t-esc="state.lastRefresh"/>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <t t-if="state.loading">
+                <div class="text-center py-5">
+                    <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                    <p class="mt-3 text-muted">Loading dashboard data...</p>
+                </div>
+            </t>
+
+            <!-- Dashboard Content -->
+            <t t-else="">
+                <!-- KPI Cards Row -->
+                <div class="row g-3 mb-4">
+                    <!-- Today's Appointments -->
+                    <t t-if="state.kpis.appointments_today">
+                        <div class="col-md-3">
+                            <div class="card kpi-card clickable"
+                                 t-on-click="() => this.onKpiClick('appointments_today')">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="text-muted small mb-1">
+                                                <t t-esc="state.kpis.appointments_today.title"/>
+                                            </div>
+                                            <h3 class="mb-0">
+                                                <t t-esc="state.kpis.appointments_today.value"/>
+                                            </h3>
+                                            <t t-if="state.kpis.appointments_today.trend">
+                                                <small t-att-class="getTrendClass(state.kpis.appointments_today.trend)">
+                                                    <t t-esc="getTrendIcon(state.kpis.appointments_today.trend)"/>
+                                                    <t t-esc="state.kpis.appointments_today.trend.percentage"/>%
+                                                </small>
+                                            </t>
+                                        </div>
+                                        <div t-att-class="'kpi-icon bg-' + state.kpis.appointments_today.color">
+                                            <i t-att-class="'fa ' + state.kpis.appointments_today.icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 small text-muted" t-if="state.kpis.appointments_today.details">
+                                        <span class="badge bg-success me-1">
+                                            <t t-esc="state.kpis.appointments_today.details.done"/> Done
+                                        </span>
+                                        <span class="badge bg-warning me-1">
+                                            <t t-esc="state.kpis.appointments_today.details.in_progress"/> In Progress
+                                        </span>
+                                        <span class="badge bg-danger me-1">
+                                            <t t-esc="state.kpis.appointments_today.details.no_show"/> No-Show
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Revenue MTD -->
+                    <t t-if="state.kpis.revenue_mtd">
+                        <div class="col-md-3">
+                            <div class="card kpi-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="text-muted small mb-1">
+                                                <t t-esc="state.kpis.revenue_mtd.title"/>
+                                            </div>
+                                            <h3 class="mb-0">
+                                                <t t-esc="state.kpis.revenue_mtd.formatted_value"/>
+                                            </h3>
+                                            <t t-if="state.kpis.revenue_mtd.trend">
+                                                <small t-att-class="getTrendClass(state.kpis.revenue_mtd.trend)">
+                                                    <t t-esc="getTrendIcon(state.kpis.revenue_mtd.trend)"/>
+                                                    <t t-esc="state.kpis.revenue_mtd.trend.percentage"/>%
+                                                </small>
+                                            </t>
+                                        </div>
+                                        <div t-att-class="'kpi-icon bg-' + state.kpis.revenue_mtd.color">
+                                            <i t-att-class="'fa ' + state.kpis.revenue_mtd.icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 small text-muted" t-if="state.kpis.revenue_mtd.details">
+                                        <t t-esc="state.kpis.revenue_mtd.details.invoices"/> invoices
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- New Patients -->
+                    <t t-if="state.kpis.new_patients">
+                        <div class="col-md-3">
+                            <div class="card kpi-card clickable"
+                                 t-on-click="() => this.onKpiClick('new_patients')">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="text-muted small mb-1">
+                                                <t t-esc="state.kpis.new_patients.title"/>
+                                            </div>
+                                            <h3 class="mb-0">
+                                                <t t-esc="state.kpis.new_patients.value"/>
+                                            </h3>
+                                            <t t-if="state.kpis.new_patients.trend">
+                                                <small t-att-class="getTrendClass(state.kpis.new_patients.trend)">
+                                                    <t t-esc="getTrendIcon(state.kpis.new_patients.trend)"/>
+                                                    <t t-esc="state.kpis.new_patients.trend.percentage"/>%
+                                                </small>
+                                            </t>
+                                        </div>
+                                        <div t-att-class="'kpi-icon bg-' + state.kpis.new_patients.color">
+                                            <i t-att-class="'fa ' + state.kpis.new_patients.icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 small text-muted" t-if="state.kpis.new_patients.period">
+                                        <t t-esc="state.kpis.new_patients.period"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- No-Show Rate -->
+                    <t t-if="state.kpis.no_show_rate">
+                        <div class="col-md-3">
+                            <div class="card kpi-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="text-muted small mb-1">
+                                                <t t-esc="state.kpis.no_show_rate.title"/>
+                                            </div>
+                                            <h3 class="mb-0">
+                                                <t t-esc="state.kpis.no_show_rate.value"/>
+                                            </h3>
+                                        </div>
+                                        <div t-att-class="'kpi-icon bg-' + state.kpis.no_show_rate.color">
+                                            <i t-att-class="'fa ' + state.kpis.no_show_rate.icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 small text-muted" t-if="state.kpis.no_show_rate.details">
+                                        <t t-esc="state.kpis.no_show_rate.details.no_shows"/> /
+                                        <t t-esc="state.kpis.no_show_rate.details.total"/> appointments
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row g-3">
+                    <!-- Revenue Trend Chart -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="height: 300px; position: relative;">
+                                    <canvas t-ref="revenueChart"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Procedures Chart -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="height: 300px; position: relative;">
+                                    <canvas t-ref="proceduresChart"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Utilization Chart -->
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div style="height: 250px; position: relative;">
+                                    <canvas t-ref="utilizationChart"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -150,13 +150,11 @@ class WhatsAppWebhook(http.Controller):
         )
 
         if not app_secret:
-            _logger.warning(
-                "⚠️ App secret not configured - SKIPPING SIGNATURE VERIFICATION\n"
-                "🔴 THIS IS UNSAFE FOR PRODUCTION!\n"
+            _logger.error(
+                "❌ App secret not configured - SIGNATURE VERIFICATION FAILED\n"
                 "Configure app_secret in Settings > WhatsApp Configuration"
             )
-            # Only allow in development (remove in production)
-            return True  # TODO: Change to False for production
+            return False
 
         # Compute expected signature
         expected_signature = 'sha256=' + hmac.new(

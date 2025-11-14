@@ -462,30 +462,41 @@ class ClinicWaitingList(models.Model):
         return whatsapp_msg.send()
 
     def _send_sms_notification(self, slot_info):
-        """Send SMS notification to patient"""
+        """
+        Send SMS notification to patient
+        TASK-F1-006: Updated to use Odoo CE's sms.template
+        """
         self.ensure_one()
 
         if not self.patient_id.phone:
+            _logger.warning("Cannot send SMS for waiting list %s: patient has no phone", self.name)
             return False
 
-        # SMS implementation would depend on the SMS gateway being used
-        # This is a placeholder that can be implemented based on the SMS provider
-
-        message = _(
-            "Hi %s, appointment available for %s. "
-            "Call us to schedule. Ref: %s"
-        ) % (
-            self.patient_id.name.split()[0],  # First name only for SMS
-            self.appointment_type_id.name,
-            self.name
+        # Get the SMS template for waiting list notification
+        template = self.env.ref(
+            'clinic_appointment_core.sms_template_waiting_list_notification',
+            raise_if_not_found=False
         )
 
-        # Log that SMS would be sent
-        _logger.info(f"SMS notification would be sent to {self.patient_id.phone}: {message}")
+        if not template:
+            _logger.warning("SMS template for waiting list notification not found")
+            return False
 
-        # In production, this would integrate with an SMS gateway
-        # For now, we'll just return True to indicate success
-        return True
+        # Send SMS using template
+        try:
+            sms_message = self._message_sms_with_template(
+                template=template,
+                partner_ids=self.patient_id.partner_id.ids if self.patient_id.partner_id else False,
+                number_field='patient_phone',
+            )
+
+            if sms_message:
+                _logger.info("SMS notification sent to %s for waiting list %s", self.patient_id.phone, self.name)
+                return True
+        except Exception as e:
+            _logger.error("Failed to send SMS for waiting list %s: %s", self.name, str(e))
+
+        return False
     
     def action_schedule_appointment(self):
         """Open wizard to schedule appointment from waiting list"""

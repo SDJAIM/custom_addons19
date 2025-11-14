@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- TASK-F2-010: Dental Chart OWL Template -->
+    <t t-name="clinic_dental_chart.DentalChart">
+        <div class="o_dental_chart_container">
+            <!-- Loading Spinner -->
+            <t t-if="state.loading">
+                <div class="text-center p-5">
+                    <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                    <p class="mt-3">Loading dental chart...</p>
+                </div>
+            </t>
+
+            <!-- Chart Controls -->
+            <t t-else="">
+                <div class="o_dental_chart_controls mb-3">
+                    <div class="row">
+                        <!-- Notation System Selector -->
+                        <div class="col-md-4">
+                            <label class="form-label">Notation System:</label>
+                            <div class="btn-group" role="group">
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        t-att-class="state.notationSystem === 'universal' ? 'btn-primary' : 'btn-outline-primary'"
+                                        t-on-click="() => this.changeNotation('universal')">
+                                    Universal
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        t-att-class="state.notationSystem === 'palmer' ? 'btn-primary' : 'btn-outline-primary'"
+                                        t-on-click="() => this.changeNotation('palmer')">
+                                    Palmer
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        t-att-class="state.notationSystem === 'fdi' ? 'btn-primary' : 'btn-outline-primary'"
+                                        t-on-click="() => this.changeNotation('fdi')">
+                                    FDI
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quadrant Filter -->
+                        <div class="col-md-5">
+                            <label class="form-label">View Quadrant:</label>
+                            <select class="form-select form-select-sm"
+                                    t-model="state.quadrant"
+                                    t-on-change="(ev) => this.changeQuadrant(ev.target.value)">
+                                <option value="all">All Teeth</option>
+                                <option value="upper">Upper Arch</option>
+                                <option value="lower">Lower Arch</option>
+                                <option value="upper_right">Upper Right</option>
+                                <option value="upper_left">Upper Left</option>
+                                <option value="lower_left">Lower Left</option>
+                                <option value="lower_right">Lower Right</option>
+                            </select>
+                        </div>
+
+                        <!-- Refresh Button -->
+                        <div class="col-md-3 text-end">
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    t-on-click="() => this.refreshChart()">
+                                <i class="fa fa-refresh"/> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dental Chart Grid -->
+                <div class="o_dental_chart_grid">
+                    <!-- Upper Arch -->
+                    <div class="o_dental_arch o_dental_arch_upper">
+                        <h5 class="text-center mb-3">Upper Arch</h5>
+                        <div class="o_dental_teeth_row">
+                            <t t-foreach="getFilteredTeeth().filter(t => t.tooth_number >= 1 &amp;&amp; t.tooth_number &lt;= 16)" t-as="tooth" t-key="tooth.id">
+                                <div class="o_dental_tooth_wrapper"
+                                     t-att-title="getToothTooltip(tooth)"
+                                     t-on-click="() => this.onToothClick(tooth)">
+                                    <div t-att-class="getToothClass(tooth)">
+                                        <div class="o_dental_tooth_number">
+                                            <t t-esc="tooth.tooth_number"/>
+                                        </div>
+                                        <div class="o_dental_tooth_status">
+                                            <i t-if="tooth.status === 'missing'" class="fa fa-times"/>
+                                            <i t-elif="tooth.status === 'cavity'" class="fa fa-warning"/>
+                                            <i t-elif="tooth.status === 'filled'" class="fa fa-check"/>
+                                            <i t-elif="tooth.status === 'crown'" class="fa fa-certificate"/>
+                                            <i t-elif="tooth.status === 'implant'" class="fa fa-wrench"/>
+                                            <i t-else="" class="fa fa-tooth"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Lower Arch -->
+                    <div class="o_dental_arch o_dental_arch_lower mt-4">
+                        <h5 class="text-center mb-3">Lower Arch</h5>
+                        <div class="o_dental_teeth_row">
+                            <t t-foreach="getFilteredTeeth().filter(t => t.tooth_number >= 17 &amp;&amp; t.tooth_number &lt;= 32)" t-as="tooth" t-key="tooth.id">
+                                <div class="o_dental_tooth_wrapper"
+                                     t-att-title="getToothTooltip(tooth)"
+                                     t-on-click="() => this.onToothClick(tooth)">
+                                    <div t-att-class="getToothClass(tooth)">
+                                        <div class="o_dental_tooth_number">
+                                            <t t-esc="tooth.tooth_number"/>
+                                        </div>
+                                        <div class="o_dental_tooth_status">
+                                            <i t-if="tooth.status === 'missing'" class="fa fa-times"/>
+                                            <i t-elif="tooth.status === 'cavity'" class="fa fa-warning"/>
+                                            <i t-elif="tooth.status === 'filled'" class="fa fa-check"/>
+                                            <i t-elif="tooth.status === 'crown'" class="fa fa-certificate"/>
+                                            <i t-elif="tooth.status === 'implant'" class="fa fa-wrench"/>
+                                            <i t-else="" class="fa fa-tooth"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="o_dental_chart_legend mt-4">
+                    <h6>Tooth Status Legend:</h6>
+                    <div class="row">
+                        <div class="col-md-2"><span class="badge bg-success">Healthy</span></div>
+                        <div class="col-md-2"><span class="badge bg-warning">Cavity</span></div>
+                        <div class="col-md-2"><span class="badge bg-info">Filled</span></div>
+                        <div class="col-md-2"><span class="badge bg-primary">Crown</span></div>
+                        <div class="col-md-2"><span class="badge bg-secondary">Implant</span></div>
+                        <div class="col-md-2"><span class="badge bg-danger">Missing</span></div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

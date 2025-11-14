@@ -38,14 +38,14 @@ Features:
         'security/base_security.xml',
         'security/ir.model.access.csv',
 
-        # Views
-        # 'views/audit_log_views.xml',  # Temporarily disabled due to XML parsing issue
-        'views/menu_views.xml',       # Re-enabled with menu_clinic_root defined
-
-        # Wizards
-        # 'wizard/data_import_wizard_views.xml',
-        # 'wizard/batch_operation_wizard_views.xml',
+        # Views - TASK-F2-009: Enabled audit log views (XML is valid)
+        'views/audit_log_views.xml',
+        'views/menu_views.xml',
     ],
+
+    'external_dependencies': {
+        'python': ['cryptography'],  # TASK-F3-007: Required for field encryption
+    },
 
     'installable': True,
     'application': False,

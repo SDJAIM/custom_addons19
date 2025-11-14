@@ -356,10 +356,6 @@ class WhatsAppOperatorAssignment(models.Model):
         if department_id:
             domain.append(('department_id', '=', department_id))
 
-        # TODO: Add language filtering when needed
-        # if language_code:
-        #     domain.append(('language_ids.code', '=', language_code))
-
         # Get available operators sorted by load (ascending)
         assignments = self.search(domain, order='current_chats_count asc', limit=1)
 

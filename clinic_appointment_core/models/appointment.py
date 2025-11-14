@@ -76,7 +76,8 @@ class ClinicAppointment(models.Model):
         string='Status',
         store=True,
         readonly=True,
-        tracking=True
+        tracking=True,
+        index=True  # ⚡ PERFORMANCE: Frequently used in searches
     )
 
     # ========================
@@ -122,6 +123,13 @@ class ClinicAppointment(models.Model):
         help='Token for online confirmation/reschedule/cancel without login'
     )
 
+    # Token Expiration (TASK-F1-008)
+    access_token_expires_at = fields.Datetime(
+        string='Token Expires At',
+        copy=False,
+        help='Security: Token valid for 7 days from generation'
+    )
+
     booking_method = fields.Selection([
         ('manual', 'Manual'),
         ('online', 'Online Booking'),
@@ -163,6 +171,25 @@ class ClinicAppointment(models.Model):
         tracking=True,
         ondelete='restrict',
         index=True
+    )
+
+    # GUESTS (TASK-F2-002)
+    allow_guests = fields.Boolean(
+        string='Allow Guests',
+        related='appointment_type_id.allow_guests',
+        store=True,
+        help='Indicates if guests are allowed for this appointment type'
+    )
+
+    guest_count = fields.Integer(
+        string='Number of Guests',
+        default=0,
+        help='Number of accompanying guests (0-3)'
+    )
+
+    guest_names = fields.Text(
+        string='Guest Names',
+        help='Names of accompanying guests (one per line)'
     )
 
     staff_id = fields.Many2one(
@@ -240,16 +267,19 @@ class ClinicAppointment(models.Model):
         store=True
     )
 
+    # CC Emails for notifications (TASK-F1-005)
+    cc_emails = fields.Char(
+        string='CC Emails',
+        help='Comma-separated email addresses for CC notifications'
+    )
+
     # ========================
     # Insurance
     # ========================
     insurance_flag = fields.Boolean(string='Insurance Coverage', default=False)
 
-    insurance_id = fields.Many2one(
-        'clinic.patient.insurance',
-        string='Insurance',
-        domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]"
-    )
+    # insurance_id moved to clinic_finance to avoid circular dependency
+    # insurance_id = fields.Many2one('clinic.patient.insurance', ...)
 
     requires_authorization = fields.Boolean(string='Requires Authorization')
     insurance_auth_number = fields.Char(string='Authorization Number')
@@ -276,6 +306,26 @@ class ClinicAppointment(models.Model):
     ], string='Platform')
 
     telemed_link = fields.Char(string='Meeting Link')
+
+    # Google Meet Integration (TASK-F3-002)
+    google_meet_id = fields.Char(
+        string='Google Meet ID',
+        copy=False,
+        help='Unique identifier for the Google Meet session'
+    )
+
+    google_meet_url = fields.Char(
+        string='Google Meet URL',
+        compute='_compute_google_meet_url',
+        store=True,
+        help='Full URL for the Google Meet video conference'
+    )
+
+    auto_generate_meet = fields.Boolean(
+        string='Auto-generate Google Meet',
+        default=True,
+        help='Automatically generate Google Meet link for telemedicine appointments'
+    )
 
     # ========================
     # Follow-up
@@ -320,8 +370,16 @@ class ClinicAppointment(models.Model):
     # ========================
     # Notifications
     # ========================
-    reminder_sent = fields.Boolean(string='Reminder Sent', default=False)
-    reminder_sent_date = fields.Datetime(string='Reminder Sent Date')
+    reminder_sent = fields.Boolean(string='Reminder Sent', default=False)  # Legacy - kept for backward compatibility
+    reminder_sent_date = fields.Datetime(string='Reminder Sent Date')  # Legacy - kept for backward compatibility
+
+    # TASK-F1-003: Multiple Reminders Support
+    sent_reminder_ids = fields.One2many(
+        'clinic.appointment.reminder.sent',
+        'appointment_id',
+        string='Sent Reminders',
+        help='Track which reminders have been sent for this appointment'
+    )
 
     # ========================
     # Approval
@@ -391,6 +449,15 @@ class ClinicAppointment(models.Model):
             else:
                 record.resource_id = False
 
+    @api.depends('google_meet_id')
+    def _compute_google_meet_url(self):
+        """Compute full Google Meet URL from ID (TASK-F3-002)"""
+        for record in self:
+            if record.google_meet_id:
+                record.google_meet_url = f"https://meet.google.com/{record.google_meet_id}"
+            else:
+                record.google_meet_url = False
+
     @api.depends('urgency', 'service_type')
     def _compute_requires_approval(self):
         for record in self:
@@ -440,11 +507,26 @@ class ClinicAppointment(models.Model):
     # Token Management (Enterprise-like)
     # ========================
     def _generate_access_token(self):
-        """Generate secure access token for online booking"""
+        """Generate secure access token with expiration (TASK-F1-008)"""
         self.ensure_one()
         token = secrets.token_urlsafe(32)
-        self.access_token = token
+        expires_at = fields.Datetime.now() + timedelta(days=7)  # 7 days validity
+        self.write({
+            'access_token': token,
+            'access_token_expires_at': expires_at
+        })
         return token
+
+    def _verify_token(self, token):
+        """Verify token validity (existence + expiration check)"""
+        self.ensure_one()
+        # Check token matches
+        if not self.access_token or self.access_token != token:
+            return False
+        # Check expiration (TASK-F1-008)
+        if self.access_token_expires_at and self.access_token_expires_at < fields.Datetime.now():
+            return False
+        return True
 
     def get_booking_url(self, action='view'):
         """Get public URL for online booking actions"""
@@ -454,6 +536,86 @@ class ClinicAppointment(models.Model):
 
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         return f"{base_url}/appointment/{action}/{self.id}/{self.access_token}"
+
+    def _generate_google_meet_id(self):
+        """
+        Generate unique Google Meet ID (TASK-F3-002)
+
+        Note: This generates a meet-style ID format.
+        For full Google Calendar API integration with proper meet.google.com links,
+        you would need:
+        1. OAuth2 credentials configured in Odoo
+        2. Google Calendar API enabled
+        3. Service account or user consent
+
+        This implementation creates a valid meet-style ID that can be used
+        as a placeholder or with manual meet creation.
+
+        Returns:
+            str: Google Meet ID in format xxx-yyyy-zzz
+        """
+        import string
+        import random
+
+        # Generate 3 groups of random characters (Google Meet format: xxx-yyyy-zzz)
+        chars = string.ascii_lowercase + string.digits
+        part1 = ''.join(random.choices(chars, k=3))
+        part2 = ''.join(random.choices(chars, k=4))
+        part3 = ''.join(random.choices(chars, k=3))
+
+        return f"{part1}-{part2}-{part3}"
+
+    def action_generate_google_meet(self):
+        """
+        Manually generate/regenerate Google Meet link (TASK-F3-002)
+
+        Can be called from button action to generate or refresh the Meet link.
+        """
+        self.ensure_one()
+
+        if self.service_type != 'telemed':
+            raise ValidationError(
+                _('Google Meet links can only be generated for Telemedicine appointments.')
+            )
+
+        # Generate new Meet ID
+        meet_id = self._generate_google_meet_id()
+
+        self.write({
+            'telemed_platform': 'meet',
+            'google_meet_id': meet_id,
+            'telemed_link': f"https://meet.google.com/{meet_id}"
+        })
+
+        # Send notification to patient with new link
+        if self.patient_id.email:
+            self._send_meet_link_email()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Google Meet Link Generated'),
+                'message': _('Meeting link: %s') % self.google_meet_url,
+                'type': 'success',
+                'sticky': True,
+            }
+        }
+
+    def _send_meet_link_email(self):
+        """Send Google Meet link to patient via email (TASK-F3-002)"""
+        self.ensure_one()
+
+        if not self.patient_id.email:
+            return
+
+        template = self.env.ref(
+            'clinic_appointment_core.email_template_google_meet_link',
+            raise_if_not_found=False
+        )
+
+        if template:
+            template.send_mail(self.id, force_send=True)
 
     # ========================
     # CRUD
@@ -476,9 +638,19 @@ class ClinicAppointment(models.Model):
             else:
                 vals['name'] = _('New Appointment')
 
-        # Generate token for online bookings
+        # Generate token for online bookings (TASK-F1-008: with expiration)
         if vals.get('booking_method') == 'online' and not vals.get('access_token'):
             vals['access_token'] = secrets.token_urlsafe(32)
+            vals['access_token_expires_at'] = fields.Datetime.now() + timedelta(days=7)
+
+        # Generate Google Meet link for telemedicine (TASK-F3-002)
+        if (vals.get('service_type') == 'telemed' and
+            vals.get('telemed_platform') == 'meet' and
+            vals.get('auto_generate_meet', True) and
+            not vals.get('google_meet_id')):
+            meet_id = self._generate_google_meet_id()
+            vals['google_meet_id'] = meet_id
+            vals['telemed_link'] = f"https://meet.google.com/{meet_id}"
 
         appointment = super().create(vals)
 
@@ -489,6 +661,9 @@ class ClinicAppointment(models.Model):
         # Set organizer
         if appointment.staff_id and appointment.staff_id.user_id and not appointment.user_id:
             appointment.user_id = appointment.staff_id.user_id
+
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache when appointment is created
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
 
         return appointment
 
@@ -506,11 +681,38 @@ class ClinicAppointment(models.Model):
                 if appointment.stage_id.send_email and appointment.stage_id.mail_template_id:
                     appointment.stage_id.mail_template_id.send_mail(appointment.id, force_send=True)
 
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache when appointment is modified
+        # (especially if start/stop/staff_id/state changed)
+        if any(key in vals for key in ['start', 'stop', 'staff_id', 'state', 'stage_id']):
+            self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
         return result
+
+    def unlink(self):
+        """Delete appointment and invalidate cache"""
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache before deletion
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
+        return super().unlink()
 
     # ========================
     # Constraints
     # ========================
+    @api.constrains('cc_emails')
+    def _check_cc_emails_format(self):
+        """Validate CC emails format (TASK-F1-005)"""
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+        for appointment in self:
+            if appointment.cc_emails:
+                emails = [e.strip() for e in appointment.cc_emails.split(',') if e.strip()]
+                for email in emails:
+                    if not re.match(email_pattern, email):
+                        raise ValidationError(
+                            _('Invalid email format in CC: %s') % email
+                        )
+
     @api.constrains('start', 'stop', 'staff_id')
     def _check_appointment_overlap(self):
         """Check staff availability"""
@@ -555,6 +757,55 @@ class ClinicAppointment(models.Model):
                     "Room %s is already booked"
                 ) % record.room_id.name)
 
+    @api.constrains('guest_count', 'appointment_type_id')
+    def _check_guest_capacity(self):
+        """
+        Validate guest capacity (TASK-F2-002)
+
+        Ensures:
+        1. Guest count is non-negative
+        2. Total people (patient + guests) doesn't exceed slot capacity
+        3. Guest count doesn't exceed maximum allowed guests
+        """
+        for record in self:
+            # Check guest count is non-negative
+            if record.guest_count < 0:
+                raise ValidationError(
+                    _('Guest count cannot be negative.\n\nGuest count: %d') % record.guest_count
+                )
+
+            # Check guests are allowed for this appointment type
+            if record.guest_count > 0 and not record.allow_guests:
+                raise ValidationError(
+                    _('Guests are not allowed for this appointment type.\n\n'
+                      'Appointment Type: %s\n'
+                      'Guest Count: %d') % (record.appointment_type_id.name, record.guest_count)
+                )
+
+            # Check total capacity (patient + guests)
+            if record.appointment_type_id:
+                total_people = 1 + record.guest_count  # Patient + guests
+                max_capacity = record.appointment_type_id.capacity_per_slot
+
+                if total_people > max_capacity:
+                    raise ValidationError(
+                        _('Total number of people exceeds slot capacity.\n\n'
+                          'Total People: %d (1 patient + %d guests)\n'
+                          'Maximum Capacity: %d\n\n'
+                          'Please reduce the number of guests.') % (
+                              total_people, record.guest_count, max_capacity
+                          )
+                    )
+
+                # Check maximum guests limit
+                max_guests = record.appointment_type_id.max_guests
+                if record.guest_count > max_guests:
+                    raise ValidationError(
+                        _('Number of guests exceeds the maximum allowed.\n\n'
+                          'Guests: %d\n'
+                          'Maximum Allowed: %d') % (record.guest_count, max_guests)
+                    )
+
     # ========================
     # Business Logic
     # ========================
@@ -589,8 +840,40 @@ class ClinicAppointment(models.Model):
             })
 
     def action_cancel(self):
-        """Cancel appointment"""
+        """
+        Cancel appointment with deadline enforcement (TASK-F2-007)
+
+        Raises:
+            UserError: If cancellation deadline has passed
+        """
         self.ensure_one()
+
+        # ⚠️ DEADLINE ENFORCEMENT (TASK-F2-007)
+        appt_type = self.appointment_type_id
+
+        if appt_type.allow_cancel:
+            # Calculate hours until appointment
+            hours_until = (self.start - fields.Datetime.now()).total_seconds() / 3600
+
+            # Check if within deadline
+            if hours_until < appt_type.cancel_limit_hours:
+                raise UserError(
+                    _('Cancellation deadline has passed.\n\n'
+                      'This appointment requires cancellation at least %d hours in advance.\n'
+                      'Time remaining: %.1f hours\n\n'
+                      'Please contact the clinic directly.') % (
+                          appt_type.cancel_limit_hours,
+                          hours_until
+                      )
+                )
+        else:
+            # Cancellation not allowed at all
+            raise UserError(
+                _('Cancellation is not allowed for this appointment type.\n\n'
+                  'Please contact the clinic directly.')
+            )
+
+        # Proceed with cancellation
         cancelled_stage = self.env['clinic.appointment.stage'].search(
             [('stage_type', '=', 'cancelled')], limit=1
         )
@@ -652,7 +935,7 @@ class ClinicAppointment(models.Model):
         return ics_generator.update_ics_attachment(self)
 
     def _send_confirmation_email(self):
-        """Send confirmation email with ICS attachment"""
+        """Send confirmation email with ICS attachment (and CC if provided)"""
         template = self.env.ref(
             'clinic_appointment_core.email_template_appointment_confirmation',
             raise_if_not_found=False
@@ -661,8 +944,13 @@ class ClinicAppointment(models.Model):
             # Generate/update ICS attachment
             ics_attachment = self._generate_and_attach_ics()
 
+            # Prepare context with CC emails (TASK-F1-005)
+            ctx = dict(self.env.context)
+            if self.cc_emails:
+                ctx['email_cc'] = self.cc_emails
+
             # Send email with ICS attachment
-            mail_id = template.send_mail(self.id, force_send=True)
+            mail_id = template.with_context(ctx).send_mail(self.id, force_send=True)
 
             # Attach ICS to email
             if mail_id and ics_attachment:
@@ -729,58 +1017,267 @@ class ClinicAppointment(models.Model):
                     })
 
     # ========================
-    # SMS Notifications
+    # SMS Notifications (TASK-F1-006: Migrated to Odoo CE's sms module)
     # ========================
     def _send_confirmation_sms(self):
-        """Send confirmation SMS"""
-        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
-        return sms_manager.send_appointment_confirmation_sms(self)
+        """Send confirmation SMS using Odoo CE's sms.template"""
+        self.ensure_one()
+        if not self.patient_phone:
+            _logger.warning("Cannot send confirmation SMS for appointment %s: no phone number", self.appointment_number)
+            return False
+
+        template = self.env.ref('clinic_appointment_core.sms_template_appointment_confirmation', raise_if_not_found=False)
+        if template:
+            return self._message_sms_with_template(
+                template=template,
+                partner_ids=self.patient_id.partner_id.ids if self.patient_id.partner_id else False,
+                number_field='patient_phone',
+            )
+        return False
 
     def _send_reminder_sms(self):
-        """Send reminder SMS"""
-        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
-        return sms_manager.send_appointment_reminder_sms(self)
+        """Send reminder SMS using Odoo CE's sms.template"""
+        self.ensure_one()
+        if not self.patient_phone:
+            _logger.warning("Cannot send reminder SMS for appointment %s: no phone number", self.appointment_number)
+            return False
+
+        template = self.env.ref('clinic_appointment_core.sms_template_appointment_reminder', raise_if_not_found=False)
+        if template:
+            return self._message_sms_with_template(
+                template=template,
+                partner_ids=self.patient_id.partner_id.ids if self.patient_id.partner_id else False,
+                number_field='patient_phone',
+            )
+        return False
 
     def _send_cancellation_sms(self):
-        """Send cancellation SMS"""
-        sms_manager = self.env['clinic.appointment.sms.manager'].sudo()
-        return sms_manager.send_appointment_cancelled_sms(self)
+        """Send cancellation SMS using Odoo CE's sms.template"""
+        self.ensure_one()
+        if not self.patient_phone:
+            _logger.warning("Cannot send cancellation SMS for appointment %s: no phone number", self.appointment_number)
+            return False
+
+        template = self.env.ref('clinic_appointment_core.sms_template_appointment_cancelled', raise_if_not_found=False)
+        if template:
+            return self._message_sms_with_template(
+                template=template,
+                partner_ids=self.patient_id.partner_id.ids if self.patient_id.partner_id else False,
+                number_field='patient_phone',
+            )
+        return False
 
     # ========================
     # Cron
     # ========================
     @api.model
     def _cron_send_appointment_reminders(self):
-        """Send reminders for tomorrow's appointments"""
+        """
+        TASK-F1-003: Send multiple reminders based on reminder configurations
+        Checks all future appointments and sends reminders according to their type's reminder_ids
+        """
         self = self.sudo()
-        tomorrow = date.today() + timedelta(days=1)
-        tomorrow_start = datetime.combine(tomorrow, datetime.min.time())
-        tomorrow_end = datetime.combine(tomorrow, datetime.max.time())
+        now = fields.Datetime.now()
 
-        _logger.info("Starting appointment reminder cron job for %s", tomorrow)
-
+        # Get all future confirmed appointments (next 30 days)
+        future_limit = now + timedelta(days=30)
         appointments = self.search([
-            ('start', '>=', tomorrow_start),
-            ('start', '<=', tomorrow_end),
+            ('start', '>', now),
+            ('start', '<=', future_limit),
             ('state', '=', 'confirmed'),
-            ('reminder_sent', '=', False)
         ])
 
-        _logger.info("Found %d appointments to send reminders for", len(appointments))
+        _logger.info("Starting appointment reminder cron job. Checking %d appointments", len(appointments))
+
+        reminders_sent_count = 0
 
         for appointment in appointments:
-            try:
-                appointment._send_reminder_email()
-                appointment._send_reminder_sms()
-                appointment.write({
-                    'reminder_sent': True,
-                    'reminder_sent_date': fields.Datetime.now()
-                })
-                _logger.debug("Reminder sent for appointment %s", appointment.appointment_number)
-            except Exception as e:
-                _logger.error("Failed to send reminder for appointment %s: %s", appointment.appointment_number, e)
+            # Get reminder configurations for this appointment type
+            reminder_configs = appointment.appointment_type_id.reminder_ids.filtered(lambda r: r.active)
 
-        _logger.info("Completed appointment reminder cron job. Processed: %d", len(appointments))
+            if not reminder_configs:
+                continue  # No reminders configured for this type
+
+            # Calculate time until appointment
+            time_until_appointment = appointment.start - now
+            hours_until = time_until_appointment.total_seconds() / 3600
+
+            for config in reminder_configs:
+                # Check if it's time to send this reminder (within 1 hour window)
+                # Allow 1-hour tolerance to account for cron frequency
+                if not (config.hours_before - 1 <= hours_until <= config.hours_before + 1):
+                    continue  # Not time yet or already passed
+
+                # Check if this reminder has already been sent
+                already_sent = appointment.sent_reminder_ids.filtered(
+                    lambda r: r.reminder_config_id == config and r.status == 'success'
+                )
+                if already_sent:
+                    continue  # Already sent this reminder
+
+                # Send reminder based on channel
+                try:
+                    success = False
+                    error_msg = None
+                    mail_msg_id = sms_msg_id = whatsapp_msg_id = None
+
+                    if config.channel == 'email':
+                        mail_msg_id = self._send_reminder_by_email(appointment, config)
+                        success = bool(mail_msg_id)
+                    elif config.channel == 'sms':
+                        sms_msg_id = self._send_reminder_by_sms(appointment, config)
+                        success = bool(sms_msg_id)
+                    elif config.channel == 'whatsapp':
+                        whatsapp_msg_id = self._send_reminder_by_whatsapp(appointment, config)
+                        success = bool(whatsapp_msg_id)
+
+                    # Log the sent reminder
+                    self.env['clinic.appointment.reminder.sent'].create({
+                        'appointment_id': appointment.id,
+                        'reminder_config_id': config.id,
+                        'sent_date': fields.Datetime.now(),
+                        'status': 'success' if success else 'failed',
+                        'error_message': error_msg,
+                        'mail_message_id': mail_msg_id,
+                        'sms_message_id': sms_msg_id,
+                        'whatsapp_message_id': whatsapp_msg_id,
+                    })
+
+                    if success:
+                        reminders_sent_count += 1
+                        _logger.info("Reminder sent for appointment %s: %s channel, %d hours before",
+                                   appointment.appointment_number, config.channel, config.hours_before)
+                    else:
+                        _logger.warning("Failed to send reminder for appointment %s: %s channel",
+                                      appointment.appointment_number, config.channel)
+
+                except Exception as e:
+                    _logger.error("Error sending reminder for appointment %s: %s",
+                                appointment.appointment_number, str(e))
+                    # Log the failed attempt
+                    self.env['clinic.appointment.reminder.sent'].create({
+                        'appointment_id': appointment.id,
+                        'reminder_config_id': config.id,
+                        'sent_date': fields.Datetime.now(),
+                        'status': 'failed',
+                        'error_message': str(e),
+                    })
+
+        _logger.info("Completed appointment reminder cron job. Sent %d reminders", reminders_sent_count)
+        return True
+
+    def _send_reminder_by_email(self, appointment, config):
+        """Send email reminder using template from config or default"""
+        template = config.email_template_id or self.env.ref(
+            'clinic_appointment_core.email_template_appointment_reminder',
+            raise_if_not_found=False
+        )
+        if template and appointment.patient_email:
+            mail_id = template.send_mail(appointment.id, force_send=True)
+            return mail_id
+        return None
+
+    def _send_reminder_by_sms(self, appointment, config):
+        """
+        Send SMS reminder using template from config or default
+        TASK-F1-006: Updated to use Odoo CE's sms.template
+        """
+        # Use template from config if specified, otherwise use default
+        template = config.sms_template_id or self.env.ref(
+            'clinic_appointment_core.sms_template_appointment_reminder',
+            raise_if_not_found=False
+        )
+
+        if not template or not appointment.patient_phone:
+            return None
+
+        # Send SMS and return the created sms.sms record ID
+        sms_message = appointment._message_sms_with_template(
+            template=template,
+            partner_ids=appointment.patient_id.partner_id.ids if appointment.patient_id.partner_id else False,
+            number_field='patient_phone',
+        )
+
+        # Return the ID of the first SMS record created
+        if sms_message and hasattr(sms_message, 'id'):
+            return sms_message.id
+        return None
+
+    def _send_reminder_by_whatsapp(self, appointment, config):
+        """
+        Send WhatsApp reminder using template from config
+        TASK-F1-009: Implemented with template variable substitution
+        """
+        if not config.whatsapp_template_id:
+            _logger.warning("No WhatsApp template configured for reminder config %s", config.id)
+            return None
+
+        if not appointment.patient_phone:
+            _logger.warning("Patient has no phone for appointment %s", appointment.appointment_number)
+            return None
+
+        template = config.whatsapp_template_id
+
+        # Prepare template parameters using appointment data
+        template_params = self._get_whatsapp_template_params(appointment)
+
+        # Render template with parameters
+        try:
+            rendered_body = template.render_template(**template_params)
+        except Exception as e:
+            _logger.error("Failed to render WhatsApp template for appointment %s: %s",
+                         appointment.appointment_number, str(e))
+            return None
+
+        # Create WhatsApp message
+        try:
+            whatsapp_message = self.env['clinic.whatsapp.message'].sudo().create({
+                'patient_id': appointment.patient_id.id,
+                'phone_number': appointment.patient_phone,
+                'message_type': 'template',
+                'template_id': template.id,
+                'message_body': rendered_body,  # Rendered body for preview/logging
+                'appointment_id': appointment.id,
+                'category': 'appointment_reminder',
+                'priority': 'normal',
+                'state': 'queued',  # Will be sent by cron
+            })
+
+            _logger.info("Created WhatsApp reminder for appointment %s: message ID %s",
+                        appointment.appointment_number, whatsapp_message.id)
+            return whatsapp_message.id
+
+        except Exception as e:
+            _logger.error("Failed to create WhatsApp message for appointment %s: %s",
+                         appointment.appointment_number, str(e))
+            return None
+
+    def _get_whatsapp_template_params(self, appointment):
+        """
+        Get template parameters for WhatsApp template rendering
+        TASK-F1-009: Maps appointment data to template placeholders
+
+        Returns:
+            dict: Parameters for template.render_template()
+        """
+        params = {
+            'patient_name': appointment.patient_id.name,
+            'appointment_date': appointment.start.strftime('%B %d, %Y'),
+            'appointment_time': appointment.start.strftime('%I:%M %p'),
+            'doctor_name': appointment.staff_id.name if appointment.staff_id else 'your provider',
+            'appointment_type': appointment.appointment_type_id.name,
+            'location': appointment.branch_id.name if appointment.branch_id else 'our clinic',
+            'confirmation_number': appointment.appointment_number,
+        }
+
+        # Add optional booking URL if available
+        if hasattr(appointment, 'get_booking_url') and callable(appointment.get_booking_url):
+            try:
+                params['booking_url'] = appointment.get_booking_url('view')
+            except:
+                params['booking_url'] = ''
+
+        return params
 
     @api.model
     def _cron_mark_no_shows(self):

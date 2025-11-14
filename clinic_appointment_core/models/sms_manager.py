@@ -1,20 +1,31 @@
 # -*- coding: utf-8 -*-
+"""
+TASK-F1-006: Deprecated SMS Manager
+====================================
+This module has been deprecated in favor of Odoo CE's built-in 'sms' module.
+
+The methods in this class now act as compatibility wrappers that:
+1. Log deprecation warnings
+2. Delegate to Odoo's native SMS functionality
+
+Future versions will remove this module entirely.
+Use sms.template and _message_sms() methods instead.
+"""
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
-import requests
 
 _logger = logging.getLogger(__name__)
 
 
 class SMSManager(models.AbstractModel):
     """
-    SMS Manager - Abstract model for sending SMS notifications
-    Supports multiple providers (Twilio, AWS SNS, custom)
+    DEPRECATED: SMS Manager - Compatibility wrapper for legacy code
+    Use Odoo CE's sms.template and mail.thread._message_sms() instead
     """
     _name = 'clinic.appointment.sms.manager'
-    _description = 'SMS Manager for Appointments'
+    _description = 'SMS Manager for Appointments (DEPRECATED)'
 
     @api.model
     def get_sms_config(self):
@@ -51,7 +62,8 @@ class SMSManager(models.AbstractModel):
     @api.model
     def send_sms(self, phone_number, message, appointment=None):
         """
-        Send SMS message
+        DEPRECATED: Send SMS message
+        Use sms.sms.create() or _message_sms() instead
 
         Args:
             phone_number (str): Destination phone number (E.164 format recommended)
@@ -61,15 +73,10 @@ class SMSManager(models.AbstractModel):
         Returns:
             dict: Result with success status and message_id or error
         """
-        config = self.get_sms_config()
-
-        if not config['enabled']:
-            _logger.info("SMS disabled in config, skipping send to %s", phone_number)
-            return {
-                'success': False,
-                'error': 'SMS service is not enabled',
-                'skipped': True
-            }
+        _logger.warning(
+            "DEPRECATED: clinic.appointment.sms.manager.send_sms() is deprecated. "
+            "Use Odoo CE's sms.sms model instead."
+        )
 
         if not phone_number:
             return {
@@ -77,31 +84,29 @@ class SMSManager(models.AbstractModel):
                 'error': 'No phone number provided'
             }
 
-        # Clean phone number
-        phone_number = self._clean_phone_number(phone_number)
-
-        # Select provider
-        provider = config['provider']
-
         try:
-            if provider == 'twilio':
-                result = self._send_via_twilio(phone_number, message, config)
-            elif provider == 'aws_sns':
-                result = self._send_via_aws_sns(phone_number, message, config)
-            elif provider == 'http_api':
-                result = self._send_via_http_api(phone_number, message, config)
+            # Use Odoo CE's SMS system
+            sms_record = self.env['sms.sms'].sudo().create({
+                'number': phone_number,
+                'body': message,
+            })
+
+            # Send immediately
+            sms_record.send()
+
+            # Check if sent successfully
+            if sms_record.state in ['pending', 'sent']:
+                _logger.info("SMS sent successfully via Odoo CE to %s: %s", phone_number, sms_record.uuid)
+                return {
+                    'success': True,
+                    'message_id': sms_record.uuid,
+                    'provider': 'odoo_ce'
+                }
             else:
-                raise UserError(_('Unknown SMS provider: %s') % provider)
-
-            # Log success
-            if result.get('success'):
-                _logger.info("SMS sent successfully to %s via %s: %s",
-                           phone_number, provider, result.get('message_id'))
-
-                # Create SMS log record
-                self._create_sms_log(phone_number, message, appointment, result)
-
-            return result
+                return {
+                    'success': False,
+                    'error': f'SMS failed with state: {sms_record.state}',
+                }
 
         except Exception as e:
             _logger.error("Error sending SMS to %s: %s", phone_number, str(e))
@@ -308,7 +313,8 @@ class SMSManager(models.AbstractModel):
     @api.model
     def send_appointment_reminder_sms(self, appointment):
         """
-        Send appointment reminder SMS
+        DEPRECATED: Send appointment reminder SMS
+        Use appointment._send_reminder_sms() instead
 
         Args:
             appointment (clinic.appointment): Appointment record
@@ -316,29 +322,29 @@ class SMSManager(models.AbstractModel):
         Returns:
             dict: Result
         """
+        _logger.warning(
+            "DEPRECATED: send_appointment_reminder_sms() is deprecated. "
+            "Use appointment._send_reminder_sms() or _message_sms_with_template() instead."
+        )
+
         if not appointment.patient_phone:
             return {
                 'success': False,
                 'error': 'Patient has no phone number'
             }
 
-        # Build reminder message
-        start_time = appointment.start.strftime('%B %d at %H:%M')
-        message = f"""Reminder: You have an appointment on {start_time} with {appointment.staff_id.name}.
-
-Type: {appointment.appointment_type_id.name}
-Location: {appointment.branch_id.name if appointment.branch_id else 'TBD'}
-
-View details: {appointment.get_booking_url('view')}
-
-To reschedule or cancel, use the link above."""
-
-        return self.send_sms(appointment.patient_phone, message, appointment)
+        # Delegate to the new method
+        result = appointment._send_reminder_sms()
+        return {
+            'success': bool(result),
+            'message_id': result if result else None,
+        }
 
     @api.model
     def send_appointment_confirmation_sms(self, appointment):
         """
-        Send appointment confirmation SMS
+        DEPRECATED: Send appointment confirmation SMS
+        Use appointment._send_confirmation_sms() instead
 
         Args:
             appointment (clinic.appointment): Appointment record
@@ -346,29 +352,29 @@ To reschedule or cancel, use the link above."""
         Returns:
             dict: Result
         """
+        _logger.warning(
+            "DEPRECATED: send_appointment_confirmation_sms() is deprecated. "
+            "Use appointment._send_confirmation_sms() or _message_sms_with_template() instead."
+        )
+
         if not appointment.patient_phone:
             return {
                 'success': False,
                 'error': 'Patient has no phone number'
             }
 
-        start_time = appointment.start.strftime('%B %d at %H:%M')
-        message = f"""Your appointment is confirmed!
-
-Date: {start_time}
-Doctor: {appointment.staff_id.name}
-Location: {appointment.branch_id.name if appointment.branch_id else 'TBD'}
-
-Confirmation #: {appointment.appointment_number}
-
-Manage: {appointment.get_booking_url('view')}"""
-
-        return self.send_sms(appointment.patient_phone, message, appointment)
+        # Delegate to the new method
+        result = appointment._send_confirmation_sms()
+        return {
+            'success': bool(result),
+            'message_id': result if result else None,
+        }
 
     @api.model
     def send_appointment_cancelled_sms(self, appointment):
         """
-        Send appointment cancellation SMS
+        DEPRECATED: Send appointment cancellation SMS
+        Use appointment._send_cancellation_sms() instead
 
         Args:
             appointment (clinic.appointment): Appointment record
@@ -376,17 +382,23 @@ Manage: {appointment.get_booking_url('view')}"""
         Returns:
             dict: Result
         """
+        _logger.warning(
+            "DEPRECATED: send_appointment_cancelled_sms() is deprecated. "
+            "Use appointment._send_cancellation_sms() or _message_sms_with_template() instead."
+        )
+
         if not appointment.patient_phone:
             return {
                 'success': False,
                 'error': 'Patient has no phone number'
             }
 
-        message = f"""Your appointment on {appointment.start.strftime('%B %d at %H:%M')} has been cancelled.
-
-To book a new appointment, visit our website or call us."""
-
-        return self.send_sms(appointment.patient_phone, message, appointment)
+        # Delegate to the new method
+        result = appointment._send_cancellation_sms()
+        return {
+            'success': bool(result),
+            'message_id': result if result else None,
+        }
 
 
 class AppointmentSMSLog(models.Model):

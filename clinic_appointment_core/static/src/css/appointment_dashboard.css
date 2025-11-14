@@ -1,0 +1,121 @@
+/* Advanced Analytics Dashboard Styles (TASK-F3-004) */
+
+.o_appointment_dashboard {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.o_dashboard_header {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.o_dashboard_content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* KPI Cards */
+.o_appointment_dashboard .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.o_appointment_dashboard .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.o_appointment_dashboard .card-header {
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Charts */
+.o_appointment_dashboard canvas {
+    max-height: 100%;
+}
+
+/* Tables */
+.o_appointment_dashboard .table {
+    margin-bottom: 0;
+}
+
+.o_appointment_dashboard .table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border-top: none;
+}
+
+.o_appointment_dashboard .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badges */
+.o_appointment_dashboard .badge {
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+}
+
+/* Loading State */
+.o_appointment_dashboard .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .o_dashboard_header .row {
+        flex-direction: column;
+    }
+
+    .o_dashboard_header .text-end {
+        text-align: left !important;
+        margin-top: 1rem;
+    }
+
+    .o_appointment_dashboard .col-md-3,
+    .o_appointment_dashboard .col-md-4,
+    .o_appointment_dashboard .col-md-6,
+    .o_appointment_dashboard .col-md-8 {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Filter Controls */
+.o_dashboard_header .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.o_dashboard_header .form-control,
+.o_dashboard_header .form-select {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+.o_dashboard_header .form-control:focus,
+.o_dashboard_header .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Progress Bars */
+.o_appointment_dashboard .progress {
+    background-color: #e9ecef;
+}
+
+.o_appointment_dashboard .progress-bar {
+    font-size: 0.75rem;
+    font-weight: 600;
+}

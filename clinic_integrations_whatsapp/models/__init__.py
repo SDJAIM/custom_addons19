@@ -5,6 +5,8 @@ from . import whatsapp_config_helper
 from . import whatsapp_settings
 from . import whatsapp_message
 from . import whatsapp_template
+from . import appointment_reminder_extension  # Extend reminder config with WhatsApp template
+from . import whatsapp_interactive  # TASK-F3-003
 from . import patient_whatsapp
 from . import whatsapp_rate_limit
 from . import whatsapp_webhook_event

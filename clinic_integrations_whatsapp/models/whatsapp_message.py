@@ -61,6 +61,9 @@ class WhatsAppMessage(models.Model):
         ('audio', 'Audio'),
         ('video', 'Video'),
         ('location', 'Location'),
+        ('interactive', 'Interactive'),  # TASK-F3-003: Button/List responses
+        ('interactive_buttons', 'Interactive Buttons'),  # TASK-F3-003: Outbound
+        ('interactive_list', 'Interactive List'),  # TASK-F3-003: Outbound
     ], string='Type', default='text', required=True)
     
     template_id = fields.Many2one(
@@ -105,7 +108,7 @@ class WhatsAppMessage(models.Model):
     direction = fields.Selection([
         ('outbound', 'Outbound'),
         ('inbound', 'Inbound'),
-    ], string='Direction', default='outbound', required=True)
+    ], string='Direction', default='outbound', required=True, index=True)  # ⚡ PERFORMANCE
     
     # Status
     state = fields.Selection([
@@ -933,6 +936,26 @@ Thank you!
             elif message_type == 'location':
                 location = message_data.get('location', {})
                 message_body = f"Location: {location.get('latitude')}, {location.get('longitude')}"
+            elif message_type == 'interactive':
+                # TASK-F3-003: Handle interactive button/list responses
+                interactive_data = message_data.get('interactive', {})
+                interactive_type = interactive_data.get('type')
+
+                if interactive_type == 'button_reply':
+                    button_reply = interactive_data.get('button_reply', {})
+                    button_id = button_reply.get('id')
+                    button_title = button_reply.get('title')
+                    message_body = f"Button clicked: {button_title} ({button_id})"
+                elif interactive_type == 'list_reply':
+                    list_reply = interactive_data.get('list_reply', {})
+                    row_id = list_reply.get('id')
+                    row_title = list_reply.get('title')
+                    row_description = list_reply.get('description', '')
+                    message_body = f"List selected: {row_title} ({row_id})"
+                    if row_description:
+                        message_body += f" - {row_description}"
+                else:
+                    message_body = f"(Interactive response: {interactive_type})"
             else:
                 message_body = f"(Unsupported message type: {message_type})"
 
@@ -1002,6 +1025,10 @@ Thank you!
             # Fase 5.2: Route to Discuss channel
             if thread:
                 self._route_to_discuss_channel(thread, new_message)
+
+            # TASK-F3-003: Handle interactive responses (buttons/lists)
+            if message_type == 'interactive':
+                self._handle_interactive_response(new_message, message_data, patient)
 
             # Check for automated responses (Fase 5.3)
             if thread and message_type == 'text':
@@ -1153,12 +1180,15 @@ Thank you!
             _logger.warning(f"Cannot update thread for patient {patient.id}: no phone number")
             return self.env['clinic.whatsapp.thread']
 
+        # Get default phone_number_id from config
+        phone_number_id = self.env['ir.config_parameter'].sudo().get_param('clinic.whatsapp.phone_number_id')
+
         # Get or create thread
         Thread = self.env['clinic.whatsapp.thread'].sudo()
         thread = Thread.get_or_create_thread(
             patient_id=patient.id,
             phone_number=phone,
-            phone_number_id=None  # TODO: Add multi-account support
+            phone_number_id=phone_number_id
         )
 
         # Update thread based on message direction
@@ -1674,3 +1704,776 @@ Thank you!
         }
 
         return type_extensions.get(message_type, '')
+
+    # ========================
+    # Document/PDF Sending (TASK-F1-010)
+    # ========================
+    def send_document(self, phone, document_binary, filename, caption=''):
+        """
+        Send PDF/document via WhatsApp Cloud API (TASK-F1-010)
+
+        This is a 2-step process:
+        1. Upload media to Meta Cloud API
+        2. Send document message with media ID
+
+        Args:
+            phone (str): Phone number in international format (e.g., '15551234567')
+            document_binary (bytes): Binary content of the document
+            filename (str): Document filename (e.g., 'prescription.pdf')
+            caption (str): Optional caption for the document
+
+        Returns:
+            dict: Response from WhatsApp API with message ID
+
+        Raises:
+            UserError: If media upload or message sending fails
+
+        Example:
+            # Send prescription PDF
+            with open('/path/to/prescription.pdf', 'rb') as f:
+                pdf_data = f.read()
+
+            message.send_document(
+                phone='15551234567',
+                document_binary=pdf_data,
+                filename='prescription_12345.pdf',
+                caption='Your prescription from Dr. Smith'
+            )
+        """
+        # Get configuration
+        config_helper = self.env['clinic.whatsapp.config.helper'].sudo()
+        config = config_helper.get_config()
+
+        if not config.get('api_token') or not config.get('phone_number_id'):
+            raise UserError(_('WhatsApp API is not configured. Please configure in Settings.'))
+
+        api_url = config.get('api_url', 'https://graph.facebook.com/v18.0')
+        phone_number_id = config['phone_number_id']
+        api_token = config['api_token']
+
+        headers = {
+            'Authorization': f'Bearer {api_token}'
+        }
+
+        try:
+            # ========================
+            # STEP 1: Upload media to Meta
+            # ========================
+            media_url = f"{api_url}/{phone_number_id}/media"
+
+            # Prepare file for upload
+            files = {
+                'file': (filename, document_binary, 'application/pdf'),
+                'type': (None, 'application/pdf'),
+                'messaging_product': (None, 'whatsapp')
+            }
+
+            _logger.info(f"Uploading document to WhatsApp: {filename} ({len(document_binary)} bytes)")
+
+            media_response = requests.post(
+                media_url,
+                headers=headers,
+                files=files,
+                timeout=30
+            )
+
+            if media_response.status_code != 200:
+                error_msg = media_response.json().get('error', {}).get('message', 'Unknown error')
+                raise UserError(
+                    _("Failed to upload media to WhatsApp.\n\nError: %s") % error_msg
+                )
+
+            media_data = media_response.json()
+            media_id = media_data.get('id')
+
+            if not media_id:
+                raise UserError(_("Media upload succeeded but no media ID was returned"))
+
+            _logger.info(f"Media uploaded successfully. Media ID: {media_id}")
+
+            # ========================
+            # STEP 2: Send document message
+            # ========================
+            message_payload = {
+                'messaging_product': 'whatsapp',
+                'recipient_type': 'individual',
+                'to': phone,
+                'type': 'document',
+                'document': {
+                    'id': media_id,
+                    'filename': filename,
+                }
+            }
+
+            # Add caption if provided (max 1024 characters)
+            if caption:
+                message_payload['document']['caption'] = caption[:1024]
+
+            message_response = requests.post(
+                f"{api_url}/{phone_number_id}/messages",
+                headers={**headers, 'Content-Type': 'application/json'},
+                json=message_payload,
+                timeout=30
+            )
+
+            if message_response.status_code != 200:
+                error_msg = message_response.json().get('error', {}).get('message', 'Unknown error')
+                raise UserError(
+                    _("Failed to send document message.\n\nError: %s") % error_msg
+                )
+
+            result = message_response.json()
+            message_id = result.get('messages', [{}])[0].get('id')
+
+            # Update message record
+            self.write({
+                'message_id': message_id,
+                'message_type': 'document',
+                'state': 'sent',
+                'sent_date': fields.Datetime.now(),
+                'media_url': media_id,  # Store media_id for reference
+            })
+
+            _logger.info(f"Document sent successfully. Message ID: {message_id}")
+
+            return result
+
+        except requests.exceptions.Timeout:
+            raise UserError(_("Request timed out. Please try again."))
+
+        except requests.exceptions.RequestException as e:
+            _logger.error(f"Request error sending document: {str(e)}")
+            raise UserError(_("Network error occurred:\n%s") % str(e))
+
+        except Exception as e:
+            _logger.error(f"Unexpected error sending document: {str(e)}")
+            raise UserError(_("Failed to send document:\n%s") % str(e))
+
+    @api.model
+    def send_prescription_pdf(self, prescription_id):
+        """
+        Helper method to send prescription PDF via WhatsApp
+
+        Args:
+            prescription_id (int): ID of clinic.prescription record
+
+        Returns:
+            bool: True if sent successfully
+        """
+        Prescription = self.env['clinic.prescription'].sudo()
+        prescription = Prescription.browse(prescription_id)
+
+        if not prescription.exists():
+            raise UserError(_('Prescription not found'))
+
+        if not prescription.patient_id.mobile:
+            raise UserError(_('Patient has no mobile number'))
+
+        # Generate PDF (assuming prescription has a report)
+        report = self.env.ref('clinic_prescription.report_prescription', raise_if_not_found=False)
+
+        if not report:
+            raise UserError(_('Prescription report not configured'))
+
+        pdf_content, _ = report.sudo()._render_qweb_pdf([prescription.id])
+
+        # Create WhatsApp message record
+        message = self.create({
+            'patient_id': prescription.patient_id.id,
+            'phone_number': prescription.patient_id.mobile,
+            'message_body': f"Your prescription #{prescription.name}",
+            'message_type': 'document',
+            'direction': 'outbound',
+        })
+
+        # Send document
+        filename = f"prescription_{prescription.name}.pdf"
+        caption = f"Your prescription from {prescription.staff_id.name or 'the clinic'}"
+
+        message.send_document(
+            phone=prescription.patient_id.mobile,
+            document_binary=pdf_content,
+            filename=filename,
+            caption=caption
+        )
+
+        return True
+
+    def send_interactive_buttons(self, phone, body_text, buttons, header_text=None, footer_text=None):
+        """
+        Send WhatsApp message with interactive buttons (TASK-F3-003)
+
+        Args:
+            phone (str): Recipient phone number
+            body_text (str): Main message text
+            buttons (list): List of dicts with button data [{'id': '1', 'title': 'Yes'}, ...]
+                           Maximum 3 buttons
+            header_text (str, optional): Header text
+            footer_text (str, optional): Footer text
+
+        Returns:
+            dict: API response
+
+        Example:
+            message.send_interactive_buttons(
+                phone='+1234567890',
+                body_text='Would you like to confirm your appointment?',
+                buttons=[
+                    {'id': 'confirm', 'title': 'Confirm'},
+                    {'id': 'reschedule', 'title': 'Reschedule'},
+                    {'id': 'cancel', 'title': 'Cancel'}
+                ],
+                footer_text='Reply within 24 hours'
+            )
+        """
+        self.ensure_one()
+
+        if len(buttons) > 3:
+            raise ValidationError(_('WhatsApp buttons are limited to 3 buttons maximum'))
+
+        if not buttons:
+            raise ValidationError(_('At least one button is required'))
+
+        # Get WhatsApp config
+        config = self._get_whatsapp_config()
+        if not config:
+            raise UserError(_('WhatsApp is not configured'))
+
+        api_url = config['api_url']
+        phone_number_id = config['phone_number_id']
+        token = config['api_token']
+
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
+
+        # Build interactive message payload
+        interactive_message = {
+            'type': 'button',
+            'body': {
+                'text': body_text
+            },
+            'action': {
+                'buttons': [
+                    {
+                        'type': 'reply',
+                        'reply': {
+                            'id': btn['id'],
+                            'title': btn['title'][:20]  # WhatsApp limit: 20 chars
+                        }
+                    }
+                    for btn in buttons
+                ]
+            }
+        }
+
+        # Add optional header
+        if header_text:
+            interactive_message['header'] = {
+                'type': 'text',
+                'text': header_text[:60]  # WhatsApp limit: 60 chars
+            }
+
+        # Add optional footer
+        if footer_text:
+            interactive_message['footer'] = {
+                'text': footer_text[:60]  # WhatsApp limit: 60 chars
+            }
+
+        payload = {
+            'messaging_product': 'whatsapp',
+            'recipient_type': 'individual',
+            'to': phone,
+            'type': 'interactive',
+            'interactive': interactive_message
+        }
+
+        # Send message
+        url = f"{api_url}/{phone_number_id}/messages"
+
+        try:
+            response = requests.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            # Update message record
+            self.write({
+                'state': 'sent',
+                'sent_date': fields.Datetime.now(),
+                'whatsapp_message_id': result.get('messages', [{}])[0].get('id'),
+                'message_type': 'interactive_buttons'
+            })
+
+            _logger.info(f"Interactive buttons sent successfully to {phone}")
+            return result
+
+        except requests.exceptions.RequestException as e:
+            error_msg = str(e)
+            self.write({
+                'state': 'error',
+                'error_message': error_msg
+            })
+            _logger.error(f"Failed to send interactive buttons to {phone}: {error_msg}")
+            raise UserError(_('Failed to send WhatsApp message: %s') % error_msg)
+
+    def send_interactive_list(self, phone, body_text, button_text, sections, header_text=None, footer_text=None):
+        """
+        Send WhatsApp message with interactive list (TASK-F3-003)
+
+        Args:
+            phone (str): Recipient phone number
+            body_text (str): Main message text
+            button_text (str): Text for the list button
+            sections (list): List of sections with rows
+                            [{'title': 'Section 1', 'rows': [{'id': '1', 'title': 'Row 1', 'description': 'Desc'}]}]
+            header_text (str, optional): Header text
+            footer_text (str, optional): Footer text
+
+        Returns:
+            dict: API response
+
+        Example:
+            message.send_interactive_list(
+                phone='+1234567890',
+                body_text='Select your preferred appointment time:',
+                button_text='View Times',
+                sections=[
+                    {
+                        'title': 'Morning Slots',
+                        'rows': [
+                            {'id': 'slot_1', 'title': '9:00 AM', 'description': 'Available'},
+                            {'id': 'slot_2', 'title': '10:00 AM', 'description': 'Available'}
+                        ]
+                    },
+                    {
+                        'title': 'Afternoon Slots',
+                        'rows': [
+                            {'id': 'slot_3', 'title': '2:00 PM', 'description': 'Available'},
+                            {'id': 'slot_4', 'title': '3:00 PM', 'description': 'Available'}
+                        ]
+                    }
+                ]
+            )
+        """
+        self.ensure_one()
+
+        if not sections or not any(section.get('rows') for section in sections):
+            raise ValidationError(_('At least one section with rows is required'))
+
+        # Get WhatsApp config
+        config = self._get_whatsapp_config()
+        if not config:
+            raise UserError(_('WhatsApp is not configured'))
+
+        api_url = config['api_url']
+        phone_number_id = config['phone_number_id']
+        token = config['api_token']
+
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
+
+        # Build interactive list message payload
+        interactive_message = {
+            'type': 'list',
+            'body': {
+                'text': body_text
+            },
+            'action': {
+                'button': button_text[:20],  # WhatsApp limit: 20 chars
+                'sections': [
+                    {
+                        'title': section.get('title', 'Options')[:24],  # WhatsApp limit: 24 chars
+                        'rows': [
+                            {
+                                'id': row['id'][:200],  # WhatsApp limit: 200 chars
+                                'title': row['title'][:24],  # WhatsApp limit: 24 chars
+                                'description': row.get('description', '')[:72]  # WhatsApp limit: 72 chars
+                            }
+                            for row in section.get('rows', [])[:10]  # Max 10 rows per section
+                        ]
+                    }
+                    for section in sections[:10]  # Max 10 sections
+                ]
+            }
+        }
+
+        # Add optional header
+        if header_text:
+            interactive_message['header'] = {
+                'type': 'text',
+                'text': header_text[:60]  # WhatsApp limit: 60 chars
+            }
+
+        # Add optional footer
+        if footer_text:
+            interactive_message['footer'] = {
+                'text': footer_text[:60]  # WhatsApp limit: 60 chars
+            }
+
+        payload = {
+            'messaging_product': 'whatsapp',
+            'recipient_type': 'individual',
+            'to': phone,
+            'type': 'interactive',
+            'interactive': interactive_message
+        }
+
+        # Send message
+        url = f"{api_url}/{phone_number_id}/messages"
+
+        try:
+            response = requests.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            # Update message record
+            self.write({
+                'state': 'sent',
+                'sent_date': fields.Datetime.now(),
+                'whatsapp_message_id': result.get('messages', [{}])[0].get('id'),
+                'message_type': 'interactive_list'
+            })
+
+            _logger.info(f"Interactive list sent successfully to {phone}")
+            return result
+
+        except requests.exceptions.RequestException as e:
+            error_msg = str(e)
+            self.write({
+                'state': 'error',
+                'error_message': error_msg
+            })
+            _logger.error(f"Failed to send interactive list to {phone}: {error_msg}")
+            raise UserError(_('Failed to send WhatsApp message: %s') % error_msg)
+
+    @api.model
+    def send_appointment_confirmation_buttons(self, appointment_id):
+        """
+        Send appointment confirmation with interactive buttons (TASK-F3-003)
+
+        Args:
+            appointment_id (int): Appointment ID
+
+        Returns:
+            bool: True if sent successfully
+        """
+        appointment = self.env['clinic.appointment'].browse(appointment_id)
+
+        if not appointment.exists():
+            raise UserError(_('Appointment not found'))
+
+        if not appointment.patient_id.whatsapp:
+            raise UserError(_('Patient has no WhatsApp number'))
+
+        # Create message record
+        message = self.create({
+            'patient_id': appointment.patient_id.id,
+            'appointment_id': appointment.id,
+            'phone_number': appointment.patient_id.whatsapp,
+            'message_body': 'Appointment confirmation',
+            'direction': 'outbound',
+        })
+
+        # Format appointment details
+        body_text = (
+            f"Hello {appointment.patient_id.name}!\n\n"
+            f"Your appointment is scheduled for:\n"
+            f"📅 {appointment.start.strftime('%B %d, %Y at %I:%M %p')}\n"
+            f"👨‍⚕️ Dr. {appointment.staff_id.name}\n"
+            f"📍 {appointment.branch_id.name}\n\n"
+            f"Please confirm your attendance:"
+        )
+
+        buttons = [
+            {'id': 'confirm', 'title': '✅ Confirm'},
+            {'id': 'reschedule', 'title': '📅 Reschedule'},
+            {'id': 'cancel', 'title': '❌ Cancel'}
+        ]
+
+        message.send_interactive_buttons(
+            phone=appointment.patient_id.whatsapp,
+            body_text=body_text,
+            buttons=buttons,
+            header_text='Appointment Confirmation',
+            footer_text='Powered by Clinic System'
+        )
+
+        return True
+
+    def _handle_interactive_response(self, message, message_data, patient):
+        """
+        Handle interactive button/list responses (TASK-F3-003)
+
+        Processes button clicks and list selections, triggering appropriate actions.
+
+        Args:
+            message (recordset): Created WhatsApp message record
+            message_data (dict): Original webhook payload
+            patient (recordset): Patient who sent the response
+
+        Returns:
+            bool: True if handled successfully
+        """
+        if not message or not patient:
+            return False
+
+        try:
+            interactive_data = message_data.get('interactive', {})
+            interactive_type = interactive_data.get('type')
+
+            # Handle button reply
+            if interactive_type == 'button_reply':
+                button_reply = interactive_data.get('button_reply', {})
+                button_id = button_reply.get('id')
+
+                _logger.info(f"Processing button response: {button_id} from patient {patient.id}")
+
+                # Route button actions
+                if button_id == 'confirm':
+                    self._handle_appointment_confirmation(message, patient)
+                elif button_id == 'reschedule':
+                    self._handle_appointment_reschedule(message, patient)
+                elif button_id == 'cancel':
+                    self._handle_appointment_cancellation(message, patient)
+                else:
+                    _logger.info(f"Unknown button ID: {button_id}")
+
+            # Handle list reply
+            elif interactive_type == 'list_reply':
+                list_reply = interactive_data.get('list_reply', {})
+                row_id = list_reply.get('id')
+
+                _logger.info(f"Processing list selection: {row_id} from patient {patient.id}")
+
+                # Parse row_id to determine action (format: "slot_123", "service_456", etc.)
+                if row_id.startswith('slot_'):
+                    slot_id = int(row_id.replace('slot_', ''))
+                    self._handle_slot_selection(message, patient, slot_id)
+                elif row_id.startswith('service_'):
+                    service_id = int(row_id.replace('service_', ''))
+                    self._handle_service_selection(message, patient, service_id)
+                else:
+                    _logger.info(f"Unknown list row ID: {row_id}")
+
+            return True
+
+        except Exception as e:
+            _logger.error(f"Error handling interactive response: {e}", exc_info=True)
+            return False
+
+    def _handle_appointment_confirmation(self, message, patient):
+        """Handle appointment confirmation button"""
+        # Find most recent upcoming appointment for this patient
+        appointment = self.env['clinic.appointment'].sudo().search([
+            ('patient_id', '=', patient.id),
+            ('state', 'in', ['draft', 'confirmed']),
+            ('start', '>', fields.Datetime.now()),
+        ], order='start asc', limit=1)
+
+        if not appointment:
+            # Send response: no upcoming appointments
+            self.create({
+                'patient_id': patient.id,
+                'phone_number': patient.whatsapp_number or patient.mobile,
+                'message_type': 'text',
+                'message_body': "We couldn't find any upcoming appointments to confirm. Please contact us if you need assistance.",
+                'direction': 'outbound',
+                'state': 'queued',
+            }).action_send()
+            return False
+
+        # Confirm the appointment
+        appointment.write({'state': 'confirmed'})
+
+        # Send confirmation response
+        response_text = (
+            f"✅ Thank you! Your appointment is confirmed:\n\n"
+            f"📅 {appointment.start.strftime('%B %d, %Y at %I:%M %p')}\n"
+            f"👨‍⚕️ Dr. {appointment.staff_id.name}\n"
+            f"📍 {appointment.branch_id.name}\n\n"
+            f"We look forward to seeing you!"
+        )
+
+        self.create({
+            'patient_id': patient.id,
+            'phone_number': patient.whatsapp_number or patient.mobile,
+            'appointment_id': appointment.id,
+            'message_type': 'text',
+            'message_body': response_text,
+            'direction': 'outbound',
+            'state': 'queued',
+        }).action_send()
+
+        _logger.info(f"Appointment {appointment.id} confirmed via WhatsApp by patient {patient.id}")
+        return True
+
+    def _handle_appointment_reschedule(self, message, patient):
+        """Handle appointment reschedule button"""
+        response_text = (
+            "📅 To reschedule your appointment, please:\n\n"
+            "1. Call us at [CLINIC_PHONE]\n"
+            "2. Or visit our website: [CLINIC_WEBSITE]\n\n"
+            "Our team will help you find a new time that works for you."
+        )
+
+        # Send simple text message (interactive list with slots can be added if needed)
+        self.create({
+            'patient_id': patient.id,
+            'phone_number': patient.whatsapp_number or patient.mobile,
+            'message_type': 'text',
+            'message_body': response_text,
+            'direction': 'outbound',
+            'state': 'queued',
+        }).action_send()
+
+        return True
+
+    def _handle_appointment_cancellation(self, message, patient):
+        """Handle appointment cancellation button"""
+        # Find most recent upcoming appointment
+        appointment = self.env['clinic.appointment'].sudo().search([
+            ('patient_id', '=', patient.id),
+            ('state', 'in', ['draft', 'confirmed']),
+            ('start', '>', fields.Datetime.now()),
+        ], order='start asc', limit=1)
+
+        if not appointment:
+            self.create({
+                'patient_id': patient.id,
+                'phone_number': patient.whatsapp_number or patient.mobile,
+                'message_type': 'text',
+                'message_body': "We couldn't find any upcoming appointments to cancel.",
+                'direction': 'outbound',
+                'state': 'queued',
+            }).action_send()
+            return False
+
+        # Cancel the appointment
+        appointment.write({'state': 'cancelled'})
+
+        # Send cancellation confirmation
+        response_text = (
+            f"❌ Your appointment has been cancelled:\n\n"
+            f"📅 {appointment.start.strftime('%B %d, %Y at %I:%M %p')}\n"
+            f"👨‍⚕️ Dr. {appointment.staff_id.name}\n\n"
+            f"If you'd like to reschedule, please contact us."
+        )
+
+        self.create({
+            'patient_id': patient.id,
+            'phone_number': patient.whatsapp_number or patient.mobile,
+            'appointment_id': appointment.id,
+            'message_type': 'text',
+            'message_body': response_text,
+            'direction': 'outbound',
+            'state': 'queued',
+        }).action_send()
+
+        _logger.info(f"Appointment {appointment.id} cancelled via WhatsApp by patient {patient.id}")
+        return True
+
+    def _handle_slot_selection(self, message, patient, slot_id):
+        """Handle time slot selection from list"""
+        # Find the flexible time slot
+        Slot = self.env['clinic.appointment.flexible.slot'].sudo()
+        slot = Slot.browse(slot_id)
+
+        if not slot.exists() or slot.is_booked:
+            self.create({
+                'patient_id': patient.id,
+                'phone_number': patient.whatsapp_number or patient.mobile,
+                'message_type': 'text',
+                'message_body': "Sorry, that time slot is no longer available. Please select another option.",
+                'direction': 'outbound',
+                'state': 'queued',
+            }).action_send()
+            return False
+
+        # Book the slot (create appointment)
+        appointment = self.env['clinic.appointment'].sudo().create({
+            'patient_id': patient.id,
+            'staff_id': slot.wizard_id.staff_id.id if slot.wizard_id else False,
+            'start': slot.start_time,
+            'duration': slot.wizard_id.duration if slot.wizard_id else 30,
+            'state': 'confirmed',
+            'notes': 'Booked via WhatsApp flexible times',
+        })
+
+        slot.write({
+            'is_booked': True,
+            'booked_by': patient.id,
+            'booked_at': fields.Datetime.now(),
+        })
+
+        # Send confirmation
+        response_text = (
+            f"✅ Appointment booked successfully!\n\n"
+            f"📅 {slot.start_time.strftime('%B %d, %Y at %I:%M %p')}\n"
+            f"⏱️ Duration: {slot.wizard_id.duration if slot.wizard_id else 30} minutes\n\n"
+            f"We'll send you a reminder before your appointment."
+        )
+
+        self.create({
+            'patient_id': patient.id,
+            'phone_number': patient.whatsapp_number or patient.mobile,
+            'appointment_id': appointment.id,
+            'message_type': 'text',
+            'message_body': response_text,
+            'direction': 'outbound',
+            'state': 'queued',
+        }).action_send()
+
+        _logger.info(f"Slot {slot_id} booked via WhatsApp by patient {patient.id}")
+        return True
+
+    def _handle_service_selection(self, message, patient, service_id):
+        """Handle service type selection from list"""
+        service = self.env['clinic.appointment.type'].sudo().browse(service_id)
+
+        if not service.exists():
+            return False
+
+        # Send next steps (could send available slots for this service)
+        response_text = (
+            f"You selected: {service.name}\n\n"
+            f"Please call us to schedule this service, or visit our website to see available times."
+        )
+
+        self.create({
+            'patient_id': patient.id,
+            'phone_number': patient.whatsapp_number or patient.mobile,
+            'message_type': 'text',
+            'message_body': response_text,
+            'direction': 'outbound',
+            'state': 'queued',
+        }).action_send()
+
+        return True
+
+    def _get_whatsapp_config(self):
+        """Get WhatsApp API configuration"""
+        config_helper = self.env['clinic.whatsapp.config.helper'].sudo()
+
+        if not config_helper.is_configured():
+            return False
+
+        config = config_helper.get_api_config()
+
+        return {
+            'api_url': config.get('api_url', 'https://graph.facebook.com/v18.0'),
+            'phone_number_id': config.get('phone_number_id'),
+            'api_token': config.get('access_token') or config.get('api_token'),
+        }

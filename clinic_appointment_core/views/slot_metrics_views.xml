@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F1-012: Slot Engine Performance Metrics -->
+
+    <!-- Tree View -->
+    <record id="view_clinic_slot_metrics_tree" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.tree</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <list string="Slot Generation Metrics"
+                  decoration-success="performance_grade == 'excellent'"
+                  decoration-info="performance_grade == 'good'"
+                  decoration-warning="performance_grade == 'acceptable'"
+                  decoration-danger="performance_grade == 'slow'">
+                <field name="create_date" widget="datetime"/>
+                <field name="appointment_type_id"/>
+                <field name="staff_id"/>
+                <field name="date_range_days"/>
+                <field name="slots_generated"/>
+                <field name="duration_seconds" widget="float" decoration-bf="1"/>
+                <field name="cache_hit" widget="boolean"/>
+                <field name="performance_grade" widget="badge"/>
+                <field name="slots_per_second"/>
+                <field name="is_slow" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_clinic_slot_metrics_form" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.form</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <form string="Slot Metrics">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_clinic_appointment_type)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-calendar"
+                                context="{'default_id': appointment_type_id}">
+                            <span>View Type</span>
+                        </button>
+                    </div>
+                    <group>
+                        <group string="Request Details">
+                            <field name="create_date" widget="datetime"/>
+                            <field name="appointment_type_id"/>
+                            <field name="staff_id"/>
+                            <field name="user_id"/>
+                            <field name="timezone"/>
+                        </group>
+                        <group string="Date Range">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="date_range_days"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Performance Metrics">
+                            <field name="duration_seconds" widget="float"/>
+                            <field name="slots_generated"/>
+                            <field name="slots_per_second"/>
+                            <field name="cache_hit" widget="boolean"/>
+                        </group>
+                        <group string="Performance Grade">
+                            <field name="performance_grade" widget="badge"/>
+                            <field name="is_slow" widget="boolean"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_clinic_slot_metrics_search" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.search</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="appointment_type_id"/>
+                <field name="staff_id"/>
+                <field name="create_date"/>
+
+                <filter string="Today" name="today"
+                        domain="[('create_date', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0))]"/>
+                <filter string="Last 7 Days" name="last_7_days"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last 30 Days" name="last_30_days"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+
+                <filter string="Cache Hit" name="cache_hit"
+                        domain="[('cache_hit', '=', True)]"/>
+                <filter string="Cache Miss" name="cache_miss"
+                        domain="[('cache_hit', '=', False)]"/>
+                <separator/>
+
+                <filter string="Slow Queries (>2s)" name="slow"
+                        domain="[('is_slow', '=', True)]"/>
+                <filter string="Excellent" name="excellent"
+                        domain="[('performance_grade', '=', 'excellent')]"/>
+                <filter string="Good" name="good"
+                        domain="[('performance_grade', '=', 'good')]"/>
+                <separator/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Appointment Type" name="group_type"
+                            context="{'group_by': 'appointment_type_id'}"/>
+                    <filter string="Staff" name="group_staff"
+                            context="{'group_by': 'staff_id'}"/>
+                    <filter string="Performance Grade" name="group_grade"
+                            context="{'group_by': 'performance_grade'}"/>
+                    <filter string="Date" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_clinic_slot_metrics_pivot" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.pivot</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <pivot string="Slot Performance Analysis" sample="1">
+                <field name="appointment_type_id" type="row"/>
+                <field name="create_date" interval="day" type="col"/>
+                <field name="duration_seconds" type="measure"/>
+                <field name="slots_generated" type="measure"/>
+                <field name="cache_hit" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_clinic_slot_metrics_graph" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.graph</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <graph string="Slot Performance Trend" type="line" sample="1">
+                <field name="create_date" interval="day"/>
+                <field name="duration_seconds" type="measure"/>
+                <field name="cache_hit" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Dashboard View (Kanban) -->
+    <record id="view_clinic_slot_metrics_dashboard" model="ir.ui.view">
+        <field name="name">clinic.slot.metrics.dashboard</field>
+        <field name="model">clinic.slot.metrics</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" create="false" sample="1">
+                <field name="performance_grade"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="appointment_type_id"/>
+                                    </strong>
+                                    <div class="o_kanban_record_subtitle">
+                                        <field name="create_date" widget="datetime"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="performance_grade" widget="label_selection"
+                                           options="{'classes': {'excellent': 'success', 'good': 'info', 'acceptable': 'warning', 'slow': 'danger'}}"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <span><i class="fa fa-clock-o"/> <field name="duration_seconds"/>s</span>
+                                    <span class="ms-2"><i class="fa fa-calendar"/> <field name="slots_generated"/> slots</span>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="cache_hit" widget="boolean"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_clinic_slot_metrics" model="ir.actions.act_window">
+        <field name="name">Slot Performance Metrics</field>
+        <field name="res_model">clinic.slot.metrics</field>
+        <field name="view_mode">tree,graph,pivot,kanban,form</field>
+        <field name="context">{'search_default_last_30_days': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No slot generation metrics yet
+            </p>
+            <p>
+                Performance metrics are automatically logged when slots are generated.
+                Monitor response times, cache hit rates, and identify slow queries.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item (under Configuration) -->
+    <menuitem id="menu_clinic_slot_metrics"
+              name="Slot Performance"
+              parent="menu_clinic_appointment_config"
+              action="action_clinic_slot_metrics"
+              sequence="50"
+              groups="group_appointment_admin"/>
+
+</odoo>

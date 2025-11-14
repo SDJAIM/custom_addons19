@@ -123,11 +123,11 @@
                             </group>
                             <separator string="Follow-up Appointments"/>
                             <field name="follow_up_ids" readonly="1" nolabel="1">
-                                <tree>
+                                <list>
                                     <field name="appointment_number"/>
                                     <field name="start"/>
                                     <field name="stage_id"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
 
@@ -286,12 +286,42 @@
     </record>
 
     <!-- ======================== -->
+    <!-- Pivot View (TASK-F1-001) -->
+    <!-- ======================== -->
+    <record id="view_clinic_appointment_pivot" model="ir.ui.view">
+        <field name="name">clinic.appointment.pivot</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <pivot string="Appointments Analysis" sample="1">
+                <field name="staff_id" type="row"/>
+                <field name="appointment_type_id" type="row"/>
+                <field name="start" interval="month" type="col"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ======================== -->
+    <!-- Graph View (TASK-F1-001) -->
+    <!-- ======================== -->
+    <record id="view_clinic_appointment_graph" model="ir.ui.view">
+        <field name="name">clinic.appointment.graph</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <graph string="Appointments Statistics" type="bar" sample="1">
+                <field name="staff_id"/>
+                <field name="state"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ======================== -->
     <!-- Appointment Action Window -->
     <!-- ======================== -->
     <record id="action_clinic_appointment" model="ir.actions.act_window">
         <field name="name">Appointments</field>
         <field name="res_model">clinic.appointment</field>
-        <field name="view_mode">tree,kanban,calendar,form</field>
+        <field name="view_mode">tree,kanban,calendar,form,pivot,graph</field>
         <field name="search_view_id" ref="view_clinic_appointment_search"/>
         <field name="context">{'search_default_today': 1, 'search_default_confirmed': 1}</field>
         <field name="help" type="html">

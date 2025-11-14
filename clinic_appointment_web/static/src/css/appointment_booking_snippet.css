@@ -1,0 +1,110 @@
+/* TASK-F1-007: Appointment Booking Snippet Styles */
+
+.s_appointment_booking {
+    background-color: #f8f9fa;
+}
+
+.s_appointment_booking .card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.s_appointment_booking .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.s_appointment_booking .form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.s_appointment_booking .form-label i {
+    color: #0d6efd;
+}
+
+.s_appointment_booking .form-control,
+.s_appointment_booking .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.s_appointment_booking .form-control:focus,
+.s_appointment_booking .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.s_appointment_booking .btn-primary {
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.s_appointment_booking .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+.s_appointment_booking .form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.s_appointment_booking h2.h1 {
+    font-weight: 700;
+    color: #212529;
+}
+
+.s_appointment_booking .lead {
+    font-size: 1.125rem;
+}
+
+.s_appointment_booking .border-bottom {
+    border-color: #dee2e6 !important;
+}
+
+.s_appointment_booking .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.s_appointment_booking .text-muted {
+    color: #6c757d !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .s_appointment_booking .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .s_appointment_booking h2.h1 {
+        font-size: 1.75rem;
+    }
+}
+
+/* Loading state (for future AJAX enhancement) */
+.s_appointment_booking .appointment-booking-form.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.s_appointment_booking .appointment-booking-form.loading::after {
+    content: "Loading...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}

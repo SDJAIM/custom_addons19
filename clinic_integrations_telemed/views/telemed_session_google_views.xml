@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-002: Google Meet Integration - Telemed Session Form Extension -->
+
+    <record id="view_telemed_session_form_google" model="ir.ui.view">
+        <field name="name">clinic.telemed.session.form.google</field>
+        <field name="model">clinic.telemed.session</field>
+        <field name="inherit_id" ref="clinic_integrations_telemed.view_telemed_session_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Google Meet buttons to header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_create_google_meet"
+                        string="Create Google Meet"
+                        type="object"
+                        class="btn-primary"
+                        attrs="{'invisible': ['|', '|', ('google_meet_link', '!=', False), ('state', 'not in', ['draft', 'scheduled']), ('can_create_google_meet', '=', False)]}"/>
+                <button name="action_open_google_meet"
+                        string="Open Google Meet"
+                        type="object"
+                        class="btn-success"
+                        attrs="{'invisible': [('google_meet_link', '=', False)]}"/>
+                <button name="action_cancel_google_meet"
+                        string="Cancel Google Meet"
+                        type="object"
+                        confirm="Are you sure you want to cancel this Google Meet?"
+                        attrs="{'invisible': [('google_meet_link', '=', False)]}"/>
+            </xpath>
+
+            <!-- Add provider field after meeting_url -->
+            <xpath expr="//field[@name='meeting_url']" position="after">
+                <field name="provider" widget="badge"
+                       decoration-info="provider == 'discuss'"
+                       decoration-success="provider == 'google_meet'"/>
+                <field name="google_meet_link" readonly="1"
+                       widget="url"
+                       attrs="{'invisible': [('provider', '!=', 'google_meet')]}"/>
+                <field name="google_event_id" invisible="1"/>
+                <field name="google_meet_config_id" invisible="1"/>
+                <field name="can_create_google_meet" invisible="1"/>
+            </xpath>
+
+            <!-- Add Google Meet info section -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Google Meet" name="google_meet"
+                      attrs="{'invisible': [('provider', '!=', 'google_meet')]}">
+                    <group>
+                        <group>
+                            <field name="google_meet_link" readonly="1" widget="url"/>
+                            <field name="google_event_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="google_meet_config_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('google_meet_link', '!=', False)]}">
+                        <h4>How to Create Google Meet:</h4>
+                        <ol>
+                            <li>Make sure the doctor has connected their Google account</li>
+                            <li>Click "Create Google Meet" button in the header</li>
+                            <li>A Google Meet link will be automatically generated</li>
+                            <li>The link will be shared with the patient via email</li>
+                        </ol>
+                        <p class="mb-0">
+                            <strong>Note:</strong> The doctor needs to connect their Google account first in
+                            Settings → Google Meet Configuration.
+                        </p>
+                    </div>
+
+                    <div class="alert alert-success" role="alert" attrs="{'invisible': [('google_meet_link', '=', False)]}">
+                        <p><i class="fa fa-check-circle"/> Google Meet link is ready!</p>
+                        <p class="mb-0">
+                            Patients can join the meeting using the link sent via email,
+                            or by accessing the appointment details in the patient portal.
+                        </p>
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

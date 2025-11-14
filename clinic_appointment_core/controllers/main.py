@@ -427,3 +427,35 @@ class AppointmentBookingController(http.Controller):
                 'success': False,
                 'error': str(e),
             }
+
+    # ========================
+    # Calendar Download (TASK-F3-005)
+    # ========================
+
+    @http.route('/appointment/calendar/<int:appointment_id>/<string:token>.ics', type='http', auth='public')
+    def appointment_download_ics(self, appointment_id, token, **kwargs):
+        """Download appointment as .ics calendar file (TASK-F3-005)"""
+        Appointment = request.env['clinic.appointment'].sudo()
+
+        appointment = Appointment.search([
+            ('id', '=', appointment_id),
+            ('access_token', '=', token)
+        ], limit=1)
+
+        if not appointment:
+            return request.not_found()
+
+        # Generate ICS content using the existing ics_generator module
+        ICSGenerator = request.env['clinic.appointment.ics.generator'].sudo()
+        ics_content = ICSGenerator.generate_appointment_ics(appointment.id)
+
+        # Return as downloadable file
+        filename = f"appointment_{appointment.appointment_number or appointment.id}.ics"
+
+        return request.make_response(
+            ics_content,
+            headers=[
+                ('Content-Type', 'text/calendar; charset=utf-8'),
+                ('Content-Disposition', f'attachment; filename="{filename}"'),
+            ]
+        )

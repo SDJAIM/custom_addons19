@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Moved from clinic_patient to fix circular dependency -->
+
+    <!-- Multi-Company Rule for Patient Insurance -->
+    <record id="patient_insurance_company_rule" model="ir.rule">
+        <field name="name">Patient Insurance: Company</field>
+        <field name="model_id" ref="model_clinic_patient_insurance"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
+    </record>
+
+    <!-- Patient Insurance Branch Rules - FAIL-CLOSED SECURITY -->
+
+    <record id="patient_insurance_branch_rule_with_staff" model="ir.rule">
+        <field name="name">Patient Insurance: Branch Access (With Staff)</field>
+        <field name="model_id" ref="model_clinic_patient_insurance"/>
+        <field name="domain_force">[
+            '|', ('patient_id.branch_ids', '=', False),
+            ('patient_id.branch_ids', 'in', user.staff_id.branch_ids.ids)
+        ]</field>
+        <field name="groups" eval="[(4, ref('clinic_patient.group_clinic_patient_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="patient_insurance_branch_rule_no_staff" model="ir.rule">
+        <field name="name">Patient Insurance: No Access (Without Staff)</field>
+        <field name="model_id" ref="model_clinic_patient_insurance"/>
+        <field name="domain_force">[('id', '=', -1)]</field>
+        <field name="groups" eval="[(4, ref('clinic_patient.group_clinic_patient_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

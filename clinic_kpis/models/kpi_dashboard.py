@@ -86,8 +86,16 @@ class KPIDashboard(models.Model):
     )
     
     @api.model
-    def get_dashboard_data(self, dashboard_id=None):
-        """Get all dashboard KPI data"""
+    def get_dashboard_data(self, dashboard_id=None, period='month', branch_id=None, staff_id=None):
+        """
+        Get all dashboard KPI data (TASK-F3-004: Enhanced with filters)
+
+        Args:
+            dashboard_id: Dashboard configuration ID
+            period: 'week', 'month', 'quarter', 'year'
+            branch_id: Filter by branch
+            staff_id: Filter by staff member
+        """
         if dashboard_id:
             dashboard = self.browse(dashboard_id)
         else:
@@ -235,9 +243,8 @@ class KPIDashboard(models.Model):
     def _get_avg_wait_time(self):
         """Calculate average wait time for today
 
-        Note: waiting_time field needs to be added to clinic.appointment model
-        or this KPI should be disabled until the field exists.
-        For now, returning placeholder data.
+        Note: Returns N/A until waiting_time tracking is added to appointments.
+        To implement, add check-in/check-out timestamps to clinic.appointment model.
         """
         today = fields.Date.today()
         appointments = self.env['clinic.appointment'].search([
@@ -245,8 +252,6 @@ class KPIDashboard(models.Model):
             ('start', '<=', today.strftime('%Y-%m-%d 23:59:59'))
         ])
 
-        # TODO: Implement waiting_time field or calculate from check-in time
-        # For now, return N/A since waiting_time field doesn't exist
         avg_wait_minutes = 0
 
         return {

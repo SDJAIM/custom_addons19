@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Appointment Type Form View - Add WhatsApp Template to Reminders Tree -->
+    <record id="view_clinic_appointment_type_form_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.form.whatsapp</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_type_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='reminder_ids']//tree//field[@name='sms_template_id']" position="after">
+                <field name="whatsapp_template_id" invisible="channel != 'whatsapp'" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Appointment Reminder Config Form View - Add WhatsApp Template Field -->
+    <record id="view_clinic_appointment_reminder_config_form_whatsapp" model="ir.ui.view">
+        <field name="name">clinic.appointment.reminder.config.form.whatsapp</field>
+        <field name="model">clinic.appointment.reminder.config</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_reminder_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sms_template_id']" position="after">
+                <field name="whatsapp_template_id" invisible="channel != 'whatsapp'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -374,12 +374,24 @@ class ClinicUtils(models.AbstractModel):
         business_days = 0
         current_date = start_date
 
+        holidays = set()
+        if exclude_holidays:
+            leaves = self.env['resource.calendar.leaves'].search([
+                ('calendar_id', '=', False),
+                ('date_from', '<=', end_date),
+                ('date_to', '>=', start_date),
+            ])
+            for leave in leaves:
+                leave_date = leave.date_from.date() if isinstance(leave.date_from, datetime) else leave.date_from
+                while leave_date <= (leave.date_to.date() if isinstance(leave.date_to, datetime) else leave.date_to):
+                    if leave_date >= start_date and leave_date <= end_date:
+                        holidays.add(leave_date)
+                    leave_date += timedelta(days=1)
+
         while current_date <= end_date:
-            if current_date.weekday() < 5:  # Monday = 0, Sunday = 6
+            if current_date.weekday() < 5 and current_date not in holidays:
                 business_days += 1
             current_date += timedelta(days=1)
-
-        # TODO: Subtract holidays if exclude_holidays is True
 
         return business_days
 

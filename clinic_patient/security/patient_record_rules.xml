@@ -7,7 +7,7 @@
         <field name="name">Patient: Company</field>
         <field name="model_id" ref="model_clinic_patient"/>
         <field name="global" eval="True"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
     </record>
 
     <!-- Multi-Company Rule for Patient Family -->
@@ -15,28 +15,36 @@
         <field name="name">Patient Family: Company</field>
         <field name="model_id" ref="model_clinic_patient_family"/>
         <field name="global" eval="True"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', user.company_ids.ids)]</field>
     </record>
 
-    <!-- Multi-Company Rule for Patient Insurance -->
-    <record id="patient_insurance_company_rule" model="ir.rule">
-        <field name="name">Patient Insurance: Company</field>
-        <field name="model_id" ref="model_clinic_patient_insurance"/>
-        <field name="global" eval="True"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
+    <!-- Patient Branch Rules - FAIL-CLOSED SECURITY (Two-Rule Approach) -->
 
-    <!-- Patient Branch Rule - Users can only see patients from their branches -->
-    <record id="patient_branch_rule" model="ir.rule">
-        <field name="name">Patient: User Branch Access</field>
+    <!-- Rule 1: Users WITH staff_id can see patients from their branches -->
+    <record id="patient_branch_rule_with_staff" model="ir.rule">
+        <field name="name">Patient: Branch Access (With Staff)</field>
         <field name="model_id" ref="model_clinic_patient"/>
-        <field name="domain_force">[('company_id', 'in', company_ids), '|',
-            ('branch_ids', '=', False),
-            ('branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
+        <field name="domain_force">[
+            ('company_id', 'in', user.company_ids.ids),
+            '|', ('branch_ids', '=', False),
+            ('branch_ids', 'in', user.staff_id.branch_ids.ids)
+        ]</field>
         <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Rule 2: Users WITHOUT staff_id see NOTHING (fail-closed) -->
+    <record id="patient_branch_rule_no_staff" model="ir.rule">
+        <field name="name">Patient: No Access (Without Staff)</field>
+        <field name="model_id" ref="model_clinic_patient"/>
+        <field name="domain_force">[('id', '=', -1)]</field>
+        <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
@@ -50,20 +58,6 @@
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
-    </record>
-
-    <!-- Patient Insurance Branch Rule -->
-    <record id="patient_insurance_branch_rule" model="ir.rule">
-        <field name="name">Patient Insurance: Branch Access</field>
-        <field name="model_id" ref="model_clinic_patient_insurance"/>
-        <field name="domain_force">['|',
-            ('patient_id.branch_ids', '=', False),
-            ('patient_id.branch_ids', 'in', [b.id for b in user.staff_id.branch_ids] if user.staff_id else [])]</field>
-        <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
     </record>
 
     <!-- Patient Portal Access - Patients can only see their own records -->

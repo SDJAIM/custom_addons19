@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-005: Open Graph Meta Tags Template -->
+
+    <!-- Open Graph Meta Tags Snippet -->
+    <template id="open_graph_meta_tags" name="Open Graph Meta Tags">
+        <t t-if="og_data">
+            <!-- Open Graph -->
+            <meta property="og:type" t-att-content="og_data.get('og:type')"/>
+            <meta property="og:site_name" t-att-content="og_data.get('og:site_name')"/>
+            <meta property="og:title" t-att-content="og_data.get('og:title')"/>
+            <meta property="og:description" t-att-content="og_data.get('og:description')"/>
+            <meta property="og:image" t-att-content="og_data.get('og:image')"/>
+            <meta property="og:image:width" t-att-content="og_data.get('og:image:width')"/>
+            <meta property="og:image:height" t-att-content="og_data.get('og:image:height')"/>
+            <meta property="og:url" t-att-content="og_data.get('og:url')"/>
+
+            <!-- Twitter Card -->
+            <meta name="twitter:card" t-att-content="og_data.get('twitter:card')"/>
+            <meta name="twitter:title" t-att-content="og_data.get('twitter:title')"/>
+            <meta name="twitter:description" t-att-content="og_data.get('twitter:description')"/>
+            <meta name="twitter:image" t-att-content="og_data.get('twitter:image')"/>
+
+            <!-- Standard Meta Description -->
+            <meta name="description" t-att-content="og_data.get('description')"/>
+        </t>
+    </template>
+
+    <!-- Extend Shareable Booking Wizard to Include OG Tags -->
+    <template id="shareable_booking_wizard_og" inherit_id="clinic_appointment_web.shareable_booking_wizard">
+        <xpath expr="//head" position="inside">
+            <t t-call="clinic_appointment_web.open_graph_meta_tags"/>
+        </xpath>
+    </template>
+
+</odoo>

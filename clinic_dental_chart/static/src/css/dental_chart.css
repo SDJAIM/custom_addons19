@@ -1,0 +1,238 @@
+/**
+ * TASK-F2-010: Dental Chart OWL Component Styles
+ */
+
+.o_dental_chart_container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.o_dental_chart_controls {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.o_dental_chart_grid {
+    background: white;
+    padding: 30px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.o_dental_arch {
+    margin-bottom: 20px;
+}
+
+.o_dental_arch h5 {
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.o_dental_teeth_row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.o_dental_tooth_wrapper {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.o_dental_tooth_wrapper:hover {
+    transform: scale(1.1);
+}
+
+.o_dental_tooth {
+    width: 50px;
+    height: 70px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.o_dental_tooth:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.o_dental_tooth_number {
+    font-size: 12px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.o_dental_tooth_status {
+    font-size: 24px;
+}
+
+.o_dental_tooth_status i {
+    transition: color 0.3s ease;
+}
+
+/* Tooth Status Colors */
+.o_dental_tooth_healthy {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.o_dental_tooth_healthy .o_dental_tooth_status i {
+    color: #28a745;
+}
+
+.o_dental_tooth_cavity {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.o_dental_tooth_cavity .o_dental_tooth_status i {
+    color: #ffc107;
+}
+
+.o_dental_tooth_filled {
+    background: #d1ecf1;
+    border-color: #17a2b8;
+}
+
+.o_dental_tooth_filled .o_dental_tooth_status i {
+    color: #17a2b8;
+}
+
+.o_dental_tooth_crown {
+    background: #cfe2ff;
+    border-color: #0d6efd;
+}
+
+.o_dental_tooth_crown .o_dental_tooth_status i {
+    color: #0d6efd;
+}
+
+.o_dental_tooth_implant {
+    background: #e2e3e5;
+    border-color: #6c757d;
+}
+
+.o_dental_tooth_implant .o_dental_tooth_status i {
+    color: #6c757d;
+}
+
+.o_dental_tooth_missing {
+    background: #f8d7da;
+    border-color: #dc3545;
+    opacity: 0.6;
+}
+
+.o_dental_tooth_missing .o_dental_tooth_status i {
+    color: #dc3545;
+}
+
+.o_dental_tooth_root_canal {
+    background: #fde2e4;
+    border-color: #e83e8c;
+}
+
+.o_dental_tooth_root_canal .o_dental_tooth_status i {
+    color: #e83e8c;
+}
+
+.o_dental_tooth_bridge {
+    background: #e7e9eb;
+    border-color: #6c757d;
+}
+
+.o_dental_tooth_bridge .o_dental_tooth_status i {
+    color: #6c757d;
+}
+
+.o_dental_tooth_selected {
+    border-width: 3px;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+/* Legend */
+.o_dental_chart_legend {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.o_dental_chart_legend h6 {
+    margin-bottom: 10px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.o_dental_chart_legend .badge {
+    margin: 5px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .o_dental_tooth {
+        width: 40px;
+        height: 60px;
+    }
+
+    .o_dental_tooth_number {
+        font-size: 10px;
+    }
+
+    .o_dental_tooth_status {
+        font-size: 20px;
+    }
+
+    .o_dental_teeth_row {
+        gap: 5px;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_dental_tooth {
+        width: 35px;
+        height: 50px;
+    }
+
+    .o_dental_tooth_number {
+        font-size: 9px;
+    }
+
+    .o_dental_tooth_status {
+        font-size: 16px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .o_dental_chart_controls {
+        display: none;
+    }
+
+    .o_dental_tooth_wrapper {
+        cursor: default;
+    }
+
+    .o_dental_tooth_wrapper:hover {
+        transform: none;
+    }
+
+    .o_dental_chart_grid {
+        box-shadow: none;
+    }
+}

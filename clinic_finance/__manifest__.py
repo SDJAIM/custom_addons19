@@ -45,6 +45,7 @@ Features:
         # Security
         'security/finance_security.xml',
         'security/ir.model.access.csv',
+        'security/patient_insurance_record_rules.xml',
 
         # Data
         'data/menus.xml',
@@ -56,6 +57,7 @@ Features:
         'views/invoice_views.xml',
         'views/insurance_claim_views.xml',
         'views/payment_plan_views.xml',
+        'views/patient_insurance_views.xml',
     ],
     
     'installable': True,

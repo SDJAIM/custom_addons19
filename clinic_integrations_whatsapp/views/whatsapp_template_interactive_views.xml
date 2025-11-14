@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-003: WhatsApp Interactive Template Views -->
+
+    <!-- Template Button Tree View -->
+    <record id="view_whatsapp_template_button_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.button.tree</field>
+        <field name="model">clinic.whatsapp.template.button</field>
+        <field name="arch" type="xml">
+            <tree string="Template Buttons" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="button_text"/>
+                <field name="button_id"/>
+                <field name="button_type"/>
+                <field name="url" attrs="{'invisible': [('button_type', '!=', 'url')], 'required': [('button_type', '=', 'url')]}"/>
+                <field name="phone_number" attrs="{'invisible': [('button_type', '!=', 'call')], 'required': [('button_type', '=', 'call')]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Template Button Form View -->
+    <record id="view_whatsapp_template_button_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.button.form</field>
+        <field name="model">clinic.whatsapp.template.button</field>
+        <field name="arch" type="xml">
+            <form string="Template Button">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="button_text"/>
+                            <field name="button_id"/>
+                            <field name="button_type"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="url" attrs="{'invisible': [('button_type', '!=', 'url')], 'required': [('button_type', '=', 'url')]}"/>
+                            <field name="phone_number" attrs="{'invisible': [('button_type', '!=', 'call')], 'required': [('button_type', '=', 'call')]}"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <p class="text-muted">
+                            • Button text is limited to 20 characters<br/>
+                            • Maximum 3 buttons per template<br/>
+                            • Reply buttons are used for interactive actions<br/>
+                            • URL buttons open web pages<br/>
+                            • Call buttons initiate phone calls
+                        </p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List Row Tree View -->
+    <record id="view_whatsapp_template_list_row_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.list.row.tree</field>
+        <field name="model">clinic.whatsapp.template.list.row</field>
+        <field name="arch" type="xml">
+            <tree string="List Rows" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="row_id"/>
+                <field name="title"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- List Row Form View -->
+    <record id="view_whatsapp_template_list_row_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.list.row.form</field>
+        <field name="model">clinic.whatsapp.template.list.row</field>
+        <field name="arch" type="xml">
+            <form string="List Row">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="row_id"/>
+                            <field name="title"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="description"/>
+                        </group>
+                    </group>
+                    <group string="Character Limits">
+                        <p class="text-muted">
+                            • Row ID: Used to identify which option was selected<br/>
+                            • Title: Maximum 24 characters<br/>
+                            • Description: Maximum 72 characters (optional)
+                        </p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List Section Tree View -->
+    <record id="view_whatsapp_template_list_section_tree" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.list.section.tree</field>
+        <field name="model">clinic.whatsapp.template.list.section</field>
+        <field name="arch" type="xml">
+            <tree string="List Sections">
+                <field name="sequence" widget="handle"/>
+                <field name="title"/>
+                <field name="row_count"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- List Section Form View -->
+    <record id="view_whatsapp_template_list_section_form" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.list.section.form</field>
+        <field name="model">clinic.whatsapp.template.list.section</field>
+        <field name="arch" type="xml">
+            <form string="List Section">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="title"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="row_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rows" name="rows">
+                            <field name="row_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="row_id"/>
+                                    <field name="title"/>
+                                    <field name="description"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group string="Constraints">
+                        <p class="text-muted">
+                            • Section title: Maximum 24 characters<br/>
+                            • Maximum 10 rows per section<br/>
+                            • Maximum 10 sections per template
+                        </p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Extend WhatsApp Template Form View -->
+    <record id="view_whatsapp_template_form_interactive" model="ir.ui.view">
+        <field name="name">clinic.whatsapp.template.form.interactive</field>
+        <field name="model">clinic.whatsapp.template</field>
+        <field name="inherit_id" ref="clinic_integrations_whatsapp.view_whatsapp_template_form"/>
+        <field name="arch" type="xml">
+            <!-- Add interactive types to message_type field -->
+            <xpath expr="//field[@name='message_type']" position="after">
+                <field name="button_count" attrs="{'invisible': [('message_type', '!=', 'interactive_buttons')]}"/>
+                <field name="list_section_count" attrs="{'invisible': [('message_type', '!=', 'interactive_list')]}"/>
+                <field name="list_button_text" attrs="{'invisible': [('message_type', '!=', 'interactive_list')], 'required': [('message_type', '=', 'interactive_list')]}"/>
+            </xpath>
+
+            <!-- Add buttons tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Interactive Buttons" name="interactive_buttons"
+                      attrs="{'invisible': [('message_type', '!=', 'interactive_buttons')]}">
+                    <field name="button_ids">
+                        <tree editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="button_text"/>
+                            <field name="button_id"/>
+                            <field name="button_type"/>
+                            <field name="url" attrs="{'invisible': [('button_type', '!=', 'url')]}"/>
+                            <field name="phone_number" attrs="{'invisible': [('button_type', '!=', 'call')]}"/>
+                        </tree>
+                    </field>
+                    <group>
+                        <p class="alert alert-info" role="alert">
+                            <strong>Interactive Buttons Configuration:</strong><br/>
+                            • Add 1-3 reply buttons for patient interactions<br/>
+                            • Button text is limited to 20 characters<br/>
+                            • Button IDs are used to identify which button was clicked<br/>
+                            • Common button IDs: 'confirm', 'reschedule', 'cancel'
+                        </p>
+                    </group>
+                </page>
+
+                <page string="Interactive List" name="interactive_list"
+                      attrs="{'invisible': [('message_type', '!=', 'interactive_list')]}">
+                    <field name="list_section_ids">
+                        <tree>
+                            <field name="sequence" widget="handle"/>
+                            <field name="title"/>
+                            <field name="row_count"/>
+                        </tree>
+                        <form>
+                            <sheet>
+                                <group>
+                                    <field name="title"/>
+                                    <field name="sequence"/>
+                                    <field name="row_count"/>
+                                </group>
+                                <notebook>
+                                    <page string="Rows">
+                                        <field name="row_ids">
+                                            <tree editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="row_id"/>
+                                                <field name="title"/>
+                                                <field name="description"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </sheet>
+                        </form>
+                    </field>
+                    <group>
+                        <p class="alert alert-info" role="alert">
+                            <strong>Interactive List Configuration:</strong><br/>
+                            • Add 1-10 sections with multiple options<br/>
+                            • Each section can have up to 10 rows<br/>
+                            • Row IDs format: 'slot_123', 'service_456', etc.<br/>
+                            • List button text appears on the main button (max 20 chars)
+                        </p>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

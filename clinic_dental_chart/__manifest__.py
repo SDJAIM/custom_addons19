@@ -51,7 +51,16 @@ Features:
         # Views
         'views/dental_chart_views.xml',
     ],
-    
+
+    # TASK-F2-010: OWL Component Assets
+    'assets': {
+        'web.assets_backend': [
+            'clinic_dental_chart/static/src/js/dental_chart.js',
+            'clinic_dental_chart/static/src/xml/dental_chart.xml',
+            'clinic_dental_chart/static/src/css/dental_chart.css',
+        ],
+    },
+
     'installable': True,
     'application': False,
     'auto_install': False,

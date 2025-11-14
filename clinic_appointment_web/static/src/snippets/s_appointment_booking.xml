@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F1-007: Website Builder Snippet for Appointment Booking -->
+
+    <!-- Snippet Template -->
+    <template id="s_appointment_booking" name="Appointment Booking Form">
+        <section class="s_appointment_booking pt-5 pb-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2 class="h1 mb-3">Book Your Appointment</h2>
+                            <p class="lead text-muted">Schedule your visit with our healthcare professionals</p>
+                        </div>
+
+                        <!-- Booking Form Card -->
+                        <div class="card shadow-sm">
+                            <div class="card-body p-4">
+                                <form action="/appointment/book" method="post" class="appointment-booking-form">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                    <!-- Appointment Type -->
+                                    <div class="mb-3">
+                                        <label for="appointment_type" class="form-label fw-bold">
+                                            <i class="fa fa-stethoscope me-2"/>Service Type
+                                        </label>
+                                        <select name="appointment_type_id" id="appointment_type" class="form-select" required="required">
+                                            <option value="">-- Select Service --</option>
+                                            <t t-foreach="request.env['clinic.appointment.type'].sudo().search([('allow_online_booking', '=', True)])" t-as="apt_type">
+                                                <option t-att-value="apt_type.id">
+                                                    <t t-esc="apt_type.name"/>
+                                                    (<t t-esc="apt_type.default_duration"/> min)
+                                                </option>
+                                            </t>
+                                        </select>
+                                        <div class="form-text">Choose the type of appointment you need</div>
+                                    </div>
+
+                                    <!-- Preferred Date -->
+                                    <div class="mb-3">
+                                        <label for="preferred_date" class="form-label fw-bold">
+                                            <i class="fa fa-calendar me-2"/>Preferred Date
+                                        </label>
+                                        <input type="date"
+                                               name="preferred_date"
+                                               id="preferred_date"
+                                               class="form-control"
+                                               required="required"
+                                               t-att-min="datetime.date.today().isoformat()"/>
+                                        <div class="form-text">Select your preferred appointment date</div>
+                                    </div>
+
+                                    <!-- Staff Preference (Optional) -->
+                                    <div class="mb-3">
+                                        <label for="staff_id" class="form-label fw-bold">
+                                            <i class="fa fa-user-md me-2"/>Preferred Doctor (Optional)
+                                        </label>
+                                        <select name="staff_id" id="staff_id" class="form-select">
+                                            <option value="">-- Any Available --</option>
+                                            <t t-foreach="request.env['clinic.staff'].sudo().search([('state', '=', 'active')])" t-as="staff">
+                                                <option t-att-value="staff.id">
+                                                    <t t-esc="staff.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+
+                                    <!-- Patient Information Section -->
+                                    <div class="mb-3">
+                                        <h5 class="border-bottom pb-2">Contact Information</h5>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_name" class="form-label fw-bold">
+                                                <i class="fa fa-user me-2"/>Full Name
+                                            </label>
+                                            <input type="text"
+                                                   name="patient_name"
+                                                   id="patient_name"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="John Doe"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_email" class="form-label fw-bold">
+                                                <i class="fa fa-envelope me-2"/>Email
+                                            </label>
+                                            <input type="email"
+                                                   name="patient_email"
+                                                   id="patient_email"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="john.doe@example.com"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_phone" class="form-label fw-bold">
+                                                <i class="fa fa-phone me-2"/>Phone Number
+                                            </label>
+                                            <input type="tel"
+                                                   name="patient_phone"
+                                                   id="patient_phone"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="+1234567890"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_dob" class="form-label fw-bold">
+                                                <i class="fa fa-birthday-cake me-2"/>Date of Birth
+                                            </label>
+                                            <input type="date"
+                                                   name="patient_dob"
+                                                   id="patient_dob"
+                                                   class="form-control"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Notes -->
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label fw-bold">
+                                            <i class="fa fa-comment me-2"/>Additional Notes (Optional)
+                                        </label>
+                                        <textarea name="notes"
+                                                  id="notes"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Any specific requests or health concerns..."></textarea>
+                                    </div>
+
+                                    <!-- Terms Acceptance -->
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               id="accept_terms"
+                                               name="accept_terms"
+                                               required="required"/>
+                                        <label class="form-check-label" for="accept_terms">
+                                            I agree to the <a href="/privacy-policy" target="_blank">privacy policy</a> and consent to be contacted
+                                        </label>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fa fa-check me-2"/>Book Appointment
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Info Footer -->
+                        <div class="text-center mt-4 text-muted">
+                            <small>
+                                <i class="fa fa-info-circle me-1"/>
+                                You will receive a confirmation email with appointment details
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- Snippet Options (for Website Builder customization) -->
+    <template id="s_appointment_booking_options" inherit_id="website.snippet_options">
+        <xpath expr="." position="inside">
+            <div data-js="AppointmentBookingOptions"
+                 data-selector=".s_appointment_booking"
+                 data-no-check="true">
+
+                <!-- Background Color Option -->
+                <we-colorpicker string="Background Color"
+                                data-select-style="true"
+                                data-css-property="background-color"
+                                data-color-prefix="bg-"/>
+
+                <!-- Padding Options -->
+                <we-select string="Vertical Padding" data-select-style="">
+                    <we-button data-select-class="pt-3 pb-3">Small</we-button>
+                    <we-button data-select-class="pt-5 pb-5">Medium</we-button>
+                    <we-button data-select-class="pt-8 pb-8">Large</we-button>
+                </we-select>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Add snippet to Website Builder Snippets Menu -->
+    <template id="appointment_booking_snippet_register" inherit_id="website.snippets">
+        <xpath expr="//div[@id='snippet_structure']//t[@t-snippet][last()]" position="after">
+            <t t-snippet="clinic_appointment_web.s_appointment_booking"
+               t-thumbnail="/clinic_appointment_web/static/src/img/snippet_thumbnail.svg"
+               t-name="Appointment Booking">
+                <keywords>appointment, booking, form, clinic, healthcare, reservation</keywords>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

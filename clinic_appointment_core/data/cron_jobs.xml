@@ -4,16 +4,16 @@
     <!-- Appointment Cron Jobs -->
     <!-- ======================== -->
 
-    <!-- Send Appointment Reminders (Daily) -->
+    <!-- Send Appointment Reminders (Hourly) - TASK-F1-003 -->
     <record id="cron_send_appointment_reminders" model="ir.cron">
         <field name="name">Appointments: Send Reminders</field>
         <field name="model_id" ref="model_clinic_appointment"/>
         <field name="state">code</field>
         <field name="code">model._cron_send_appointment_reminders()</field>
 
-        <!-- Frequency: every 1 day -->
+        <!-- Frequency: every 1 hour (to support 2-hour reminders) -->
         <field name="interval_number">1</field>
-        <field name="interval_type">days</field>
+        <field name="interval_type">hours</field>
 
         <!-- Odoo 19 Settings -->
         <field name="active" eval="True"/>
@@ -30,6 +30,23 @@
         <!-- Frequency: every 1 hour -->
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
+
+        <!-- Odoo 19 Settings -->
+        <field name="active" eval="True"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <!-- Cleanup Old Slot Metrics (Daily) - TASK-F1-012 -->
+    <record id="cron_cleanup_slot_metrics" model="ir.cron">
+        <field name="name">Slot Metrics: Cleanup Old Data</field>
+        <field name="model_id" ref="model_clinic_slot_metrics"/>
+        <field name="state">code</field>
+        <field name="code">model.cleanup_old_metrics(days=90)</field>
+
+        <!-- Frequency: every 1 day at 3 AM -->
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).replace(hour=3, minute=0, second=0)"/>
 
         <!-- Odoo 19 Settings -->
         <field name="active" eval="True"/>

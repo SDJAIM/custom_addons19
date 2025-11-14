@@ -3,6 +3,9 @@ access_clinic_insurance_company_user,clinic.insurance.company.user,model_clinic_
 access_clinic_insurance_company_manager,clinic.insurance.company.manager,model_clinic_insurance_company,group_billing_manager,1,1,1,1
 access_clinic_insurance_policy_user,clinic.insurance.policy.user,model_clinic_insurance_policy,group_billing_user,1,1,1,0
 access_clinic_insurance_policy_manager,clinic.insurance.policy.manager,model_clinic_insurance_policy,group_billing_manager,1,1,1,1
+access_clinic_patient_insurance_portal,clinic.patient.insurance.portal,model_clinic_patient_insurance,base.group_portal,1,0,0,0
+access_clinic_patient_insurance_user,clinic.patient.insurance.user,model_clinic_patient_insurance,group_billing_user,1,1,1,0
+access_clinic_patient_insurance_manager,clinic.patient.insurance.manager,model_clinic_patient_insurance,group_billing_manager,1,1,1,1
 access_clinic_insurance_claim_user,clinic.insurance.claim.user,model_clinic_insurance_claim,group_billing_user,1,1,1,0
 access_clinic_insurance_claim_specialist,clinic.insurance.claim.specialist,model_clinic_insurance_claim,group_insurance_specialist,1,1,1,0
 access_clinic_insurance_claim_manager,clinic.insurance.claim.manager,model_clinic_insurance_claim,group_billing_manager,1,1,1,1

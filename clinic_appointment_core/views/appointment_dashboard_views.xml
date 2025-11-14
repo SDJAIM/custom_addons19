@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Advanced Analytics Dashboard Views (TASK-F3-004) -->
+
+    <!-- Client Action for OWL Dashboard Component -->
+    <record id="action_appointment_dashboard" model="ir.actions.client">
+        <field name="name">Analytics Dashboard</field>
+        <field name="tag">clinic_appointment_core.dashboard</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Menu Item: Dashboard -->
+    <menuitem
+        id="menu_appointment_dashboard"
+        name="Dashboard"
+        parent="menu_appointment_root"
+        action="action_appointment_dashboard"
+        sequence="1"/>
+
+    <!-- Assets Bundle for Dashboard -->
+    <template id="assets_backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/clinic_appointment_core/static/src/js/appointment_dashboard.js"/>
+            <link rel="stylesheet" type="text/css" href="/clinic_appointment_core/static/src/css/appointment_dashboard.css"/>
+        </xpath>
+    </template>
+
+    <template id="assets_qweb" inherit_id="web.assets_qweb">
+        <xpath expr="." position="inside">
+            <t t-call="clinic_appointment_core.AppointmentDashboard"/>
+        </xpath>
+    </template>
+
+</odoo>

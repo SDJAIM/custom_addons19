@@ -1,99 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- TASK-F1-009: WhatsApp Templates with Variable Substitution -->
+
         <!-- Appointment Reminder Template -->
         <record id="whatsapp_template_appointment_reminder" model="clinic.whatsapp.template">
             <field name="name">Appointment Reminder</field>
-            <field name="template_type">appointment_reminder</field>            <field name="language_code">en_US</field>
-            <field name="message_body">Hi {{1}},
+            <field name="template_name">appointment_reminder_v1</field>
+            <field name="template_type">appointment_reminder</field>
+            <field name="language_code">en</field>
+            <field name="message_body">Hi {{1}}, reminder about your appointment on {{2}} at {{3}} with {{4}}.
 
-This is a reminder about your appointment at {{2}} on {{3}} at {{4}}.
-
-Doctor: {{5}}
+Type: {{5}}
 Location: {{6}}
 
-Please arrive 10 minutes early for check-in.
+Please arrive 15 minutes early. Reply CONFIRM or CANCEL.
 
-Reply CONFIRM to confirm or CANCEL to cancel your appointment.</field>
+Ref: {{7}}</field>
+            <field name="footer">Thank you for choosing our clinic</field>
             <field name="active">True</field>
+            <field name="approval_status">draft</field>
         </record>
 
         <!-- Appointment Confirmation Template -->
         <record id="whatsapp_template_appointment_confirmation" model="clinic.whatsapp.template">
             <field name="name">Appointment Confirmation</field>
-            <field name="template_type">appointment_confirmation</field>            <field name="language_code">en_US</field>
-            <field name="message_body">Dear {{1}},
+            <field name="template_name">appointment_confirmation_v1</field>
+            <field name="template_type">appointment_confirmation</field>
+            <field name="language_code">en</field>
+            <field name="message_body">✅ Appointment Confirmed
 
-Your appointment has been confirmed:
+Hello {{1}}, your appointment is confirmed for {{2}} at {{3}}.
 
-Date: {{2}}
-Time: {{3}}
 Doctor: {{4}}
-Department: {{5}}
+Type: {{5}}
+Location: {{6}}
 
-Please bring your insurance card and any relevant medical records.
+Confirmation #: {{7}}
 
-If you need to reschedule, please call us at {{6}}.</field>
+We look forward to seeing you!</field>
+            <field name="footer">Reply HELP for assistance</field>
             <field name="active">True</field>
+            <field name="approval_status">draft</field>
         </record>
 
         <!-- Medication Reminder Template -->
         <record id="whatsapp_template_prescription_reminder" model="clinic.whatsapp.template">
             <field name="name">Medication Reminder</field>
+            <field name="template_name">prescription_reminder_v1</field>
             <field name="template_type">prescription_reminder</field>
-            <field name="language_code">en_US</field>
-            <field name="message_body">Hi {{1}},
-
-This is a reminder about your medication schedule.
+            <field name="language_code">en</field>
+            <field name="message_body">Hi {{1}}, reminder about your medication prescription #{{2}}.
 
 Please check your patient portal for complete details and instructions.
-🔗 Portal: [Your Portal URL]
 
-Follow the schedule provided by your healthcare provider for best results.
-
-For inquiries or concerns, please contact us at {{2}}.</field>
+For inquiries, contact us.</field>
+            <field name="footer">Your health is our priority</field>
             <field name="active">True</field>
+            <field name="approval_status">draft</field>
         </record>
 
-        <!-- Medical Information Available Template -->
+        <!-- Medical Information Available Template (PHI-Compliant) -->
         <record id="whatsapp_template_lab_results" model="clinic.whatsapp.template">
             <field name="name">Medical Information Available</field>
+            <field name="template_name">medical_info_available_v1</field>
             <field name="template_type">general</field>
-            <field name="language_code">en_US</field>
-            <field name="message_body">Dear {{1}},
+            <field name="language_code">en</field>
+            <field name="message_body">Dear {{1}}, new information from your visit on {{2}} is now available in your secure patient portal.
 
-New medical information from your visit on {{2}} is now available in your secure patient portal.
+Please log in to view details. You may also pick up a copy at reception.
 
-Attending physician: {{4}}
-
-Please log in to view your complete information:
-🔗 Patient Portal: [Your Portal URL]
-
-You may also pick up a printed copy at reception or schedule a follow-up appointment.
-
-For inquiries, please contact us at {{5}}.</field>
+For assistance, contact us.</field>
+            <field name="footer">Thank you for trusting us with your care</field>
             <field name="active">True</field>
+            <field name="approval_status">draft</field>
         </record>
 
         <!-- Welcome Message Template -->
         <record id="whatsapp_template_welcome" model="clinic.whatsapp.template">
             <field name="name">Welcome Message</field>
+            <field name="template_name">welcome_message_v1</field>
             <field name="template_type">general</field>
-            <field name="language_code">en_US</field>
-            <field name="message_body">Dear {{1}},
+            <field name="language_code">en</field>
+            <field name="message_body">Dear {{1}}, welcome to {{2}}!
 
-Welcome to {{2}}!
-
-Thank you for registering with us. We're committed to providing you with the best healthcare services.
-
-You can now:
+Thank you for registering. You can now:
 ✓ Book appointments online
 ✓ Access your secure patient portal
-✓ Receive appointment reminders
-✓ Get important notifications
+✓ Receive reminders
 
-For assistance, reply HELP or call us at {{3}}.</field>
+For assistance, reply HELP.</field>
+            <field name="footer">We're here for your health</field>
             <field name="active">True</field>
+            <field name="approval_status">draft</field>
         </record>
     </data>
 </odoo>

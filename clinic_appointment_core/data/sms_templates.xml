@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F1-006: SMS Templates using Odoo CE's built-in sms.template -->
+
+    <!-- SMS Template: Appointment Confirmation -->
+    <record id="sms_template_appointment_confirmation" model="sms.template">
+        <field name="name">Appointment Confirmation</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="body"><![CDATA[Your appointment is confirmed!
+
+Date: {{ object.start.strftime('%B %d at %H:%M') }}
+{% if object.staff_id %}Doctor: {{ object.staff_id.name }}{% endif %}
+{% if object.branch_id %}Location: {{ object.branch_id.name }}{% endif %}
+
+Confirmation #: {{ object.appointment_number }}
+
+Manage: {{ object.get_booking_url('view') if object.get_booking_url else '' }}]]></field>
+    </record>
+
+    <!-- SMS Template: Appointment Reminder -->
+    <record id="sms_template_appointment_reminder" model="sms.template">
+        <field name="name">Appointment Reminder</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="body"><![CDATA[Reminder: You have an appointment on {{ object.start.strftime('%B %d at %H:%M') }}{% if object.staff_id %} with {{ object.staff_id.name }}{% endif %}.
+
+Type: {{ object.appointment_type_id.name }}
+{% if object.branch_id %}Location: {{ object.branch_id.name }}{% endif %}
+
+View details: {{ object.get_booking_url('view') if object.get_booking_url else '' }}
+
+To reschedule or cancel, use the link above.]]></field>
+    </record>
+
+    <!-- SMS Template: Appointment Cancellation -->
+    <record id="sms_template_appointment_cancelled" model="sms.template">
+        <field name="name">Appointment Cancelled</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="body"><![CDATA[Your appointment on {{ object.start.strftime('%B %d at %H:%M') }} has been cancelled.
+
+To book a new appointment, visit our website or call us.]]></field>
+    </record>
+
+    <!-- SMS Template: Appointment Rescheduled -->
+    <record id="sms_template_appointment_rescheduled" model="sms.template">
+        <field name="name">Appointment Rescheduled</field>
+        <field name="model_id" ref="model_clinic_appointment"/>
+        <field name="body"><![CDATA[Your appointment has been rescheduled.
+
+New date: {{ object.start.strftime('%B %d at %H:%M') }}
+{% if object.staff_id %}Doctor: {{ object.staff_id.name }}{% endif %}
+{% if object.branch_id %}Location: {{ object.branch_id.name }}{% endif %}
+
+View details: {{ object.get_booking_url('view') if object.get_booking_url else '' }}]]></field>
+    </record>
+
+    <!-- SMS Template: Waiting List Notification -->
+    <record id="sms_template_waiting_list_notification" model="sms.template">
+        <field name="name">Waiting List Slot Available</field>
+        <field name="model_id" ref="model_clinic_waiting_list"/>
+        <field name="body"><![CDATA[Good news! A slot is now available for your requested appointment.
+
+Date: {{ object.preferred_date.strftime('%B %d') }}
+{% if object.preferred_staff_id %}Doctor: {{ object.preferred_staff_id.name }}{% endif %}
+
+Book now: {{ object.get_booking_url() if object.get_booking_url else 'Contact us to confirm' }}
+
+This slot is available for the next 24 hours.]]></field>
+    </record>
+
+</odoo>

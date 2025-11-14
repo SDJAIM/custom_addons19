@@ -10,7 +10,7 @@ import re
 class ClinicPatient(models.Model):
     _name = 'clinic.patient'
     _description = 'Clinic Patient'
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin', 'encryption.mixin']  # TASK-F3-007
     _rec_name = 'display_name'
     _order = 'create_date desc'
     
@@ -116,12 +116,45 @@ class ClinicPatient(models.Model):
     occupation = fields.Char(string='Occupation')
     employer = fields.Char(string='Employer')
     
-    # Medical History
-    medical_history = fields.Text(string='Medical History')
-    surgical_history = fields.Text(string='Surgical History')
-    medications = fields.Text(string='Current Medications')
-    allergies = fields.Text(string='Allergies', tracking=True)
-    chronic_conditions = fields.Text(string='Chronic Conditions')
+    # Medical History (TASK-F3-007: Encrypted fields)
+    # Encrypted storage fields (binary)
+    medical_history_encrypted = fields.Binary(string='Medical History (Encrypted)', readonly=True, copy=False)
+    surgical_history_encrypted = fields.Binary(string='Surgical History (Encrypted)', readonly=True, copy=False)
+    medications_encrypted = fields.Binary(string='Medications (Encrypted)', readonly=True, copy=False)
+    chronic_conditions_encrypted = fields.Binary(string='Chronic Conditions (Encrypted)', readonly=True, copy=False)
+
+    # Computed fields (decrypted for display/editing)
+    medical_history = fields.Text(
+        string='Medical History',
+        compute='_compute_medical_history',
+        inverse='_inverse_medical_history',
+        store=False,
+        help='Stored encrypted at rest'
+    )
+    surgical_history = fields.Text(
+        string='Surgical History',
+        compute='_compute_surgical_history',
+        inverse='_inverse_surgical_history',
+        store=False,
+        help='Stored encrypted at rest'
+    )
+    medications = fields.Text(
+        string='Current Medications',
+        compute='_compute_medications',
+        inverse='_inverse_medications',
+        store=False,
+        help='Stored encrypted at rest'
+    )
+    chronic_conditions = fields.Text(
+        string='Chronic Conditions',
+        compute='_compute_chronic_conditions',
+        inverse='_inverse_chronic_conditions',
+        store=False,
+        help='Stored encrypted at rest'
+    )
+
+    # Allergies still needs tracking, so keep it unencrypted but add warning
+    allergies = fields.Text(string='Allergies', tracking=True, help='Note: This field is not encrypted for safety/emergency access')
     
     # Dental History
     dental_history = fields.Text(string='Dental History')
@@ -193,6 +226,7 @@ class ClinicPatient(models.Model):
         'res.partner',
         string='Related Contact',
         ondelete='restrict',
+        index=True,  # ⚡ PERFORMANCE: Used in portal access rules
         help='Link to Odoo contact/partner'
     )
 
@@ -221,13 +255,9 @@ class ClinicPatient(models.Model):
         inverse_name='patient_id',
         string='Family Members'
     )
-    
-    insurance_ids = fields.One2many(
-        'clinic.patient.insurance',
-        'patient_id',
-        string='Insurance Policies'
-    )
-    
+
+    # insurance_ids moved to clinic_finance/models/patient_finance_extension.py
+
     # ========================
     # Status and Settings
     # ========================
@@ -255,7 +285,23 @@ class ClinicPatient(models.Model):
         string='Marketing Consent',
         help='Patient agrees to receive marketing communications'
     )
-    
+
+    # GDPR Compliance (TASK-F2-006)
+    gdpr_anonymized = fields.Boolean(
+        string='GDPR Anonymized',
+        default=False,
+        readonly=True,
+        tracking=True,
+        help='Indicates if patient data has been anonymized per GDPR request'
+    )
+
+    gdpr_anonymized_date = fields.Datetime(
+        string='Anonymization Date',
+        readonly=True,
+        tracking=True,
+        help='Date and time when patient data was anonymized'
+    )
+
     portal_access = fields.Boolean(
         string='Portal Access Enabled',
         compute='_compute_portal_access',
@@ -421,7 +467,55 @@ class ClinicPatient(models.Model):
         # Will be implemented when appointment module is created
         for record in self:
             record.last_visit_date = False
-    
+
+    # ========================
+    # Encryption Compute/Inverse Methods (TASK-F3-007)
+    # ========================
+
+    @api.depends('medical_history_encrypted')
+    def _compute_medical_history(self):
+        """Decrypt medical history for display"""
+        for record in self:
+            record.medical_history = record._decrypt_field('medical_history_encrypted')
+
+    def _inverse_medical_history(self):
+        """Encrypt medical history for storage"""
+        for record in self:
+            record.medical_history_encrypted = record._encrypt_field(record.medical_history)
+
+    @api.depends('surgical_history_encrypted')
+    def _compute_surgical_history(self):
+        """Decrypt surgical history for display"""
+        for record in self:
+            record.surgical_history = record._decrypt_field('surgical_history_encrypted')
+
+    def _inverse_surgical_history(self):
+        """Encrypt surgical history for storage"""
+        for record in self:
+            record.surgical_history_encrypted = record._encrypt_field(record.surgical_history)
+
+    @api.depends('medications_encrypted')
+    def _compute_medications(self):
+        """Decrypt medications for display"""
+        for record in self:
+            record.medications = record._decrypt_field('medications_encrypted')
+
+    def _inverse_medications(self):
+        """Encrypt medications for storage"""
+        for record in self:
+            record.medications_encrypted = record._encrypt_field(record.medications)
+
+    @api.depends('chronic_conditions_encrypted')
+    def _compute_chronic_conditions(self):
+        """Decrypt chronic conditions for display"""
+        for record in self:
+            record.chronic_conditions = record._decrypt_field('chronic_conditions_encrypted')
+
+    def _inverse_chronic_conditions(self):
+        """Encrypt chronic conditions for storage"""
+        for record in self:
+            record.chronic_conditions_encrypted = record._encrypt_field(record.chronic_conditions)
+
     @api.constrains('email')
     def _check_email(self):
         """Validate email address format.

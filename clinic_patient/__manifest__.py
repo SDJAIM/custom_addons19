@@ -20,6 +20,7 @@ Features:
 * Document management and attachments
 * Portal access for patients
 * GDPR-compliant data handling
+* Field-level encryption for sensitive medical data (TASK-F3-007)
     """,
     
     'author': "Clinic System",
@@ -42,14 +43,19 @@ Features:
 
         # Data
         'data/patient_sequence.xml',
-        
+
+        # Wizards
+        'views/patient_anonymize_wizard_views.xml',
+
         # Views (load after models are fully initialized)
         'views/patient_views.xml',
         'views/menu_views.xml',
     ],
-    
-    
-    
+
+    'external_dependencies': {
+        'python': ['cryptography'],  # TASK-F3-007: Required for field-level encryption
+    },
+
     'installable': True,
     'application': False,
     'auto_install': False,

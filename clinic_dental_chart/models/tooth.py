@@ -122,13 +122,6 @@ class Tooth(models.Model):
         ('fracture', 'Fractured'),
     ], string='Lingual Surface', default='healthy')
     
-    # Conditions
-    # TODO: Define clinic.tooth.condition model or remove this field
-    # condition_ids = fields.Many2many(
-    #     'clinic.tooth.condition',
-    #     string='Conditions'
-    # )
-    
     # Procedures
     procedure_ids = fields.Many2many(
         'clinic.dental.procedure',

@@ -50,7 +50,18 @@ Features:
 
         # Views
         'views/booking_templates.xml',
+        'views/open_graph_templates.xml',  # TASK-F3-005
+        'views/appointment_type_og_views.xml',  # TASK-F3-005
+
+        # Website Snippets - TASK-F1-007
+        'static/src/snippets/s_appointment_booking.xml',
     ],
+
+    'assets': {
+        'website.assets_frontend': [
+            'clinic_appointment_web/static/src/css/appointment_booking_snippet.css',
+        ],
+    },
 
     'installable': True,
     'application': False,

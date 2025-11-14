@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- TASK-F3-002: Google Meet API Configuration Parameters -->
+
+        <!--
+        SETUP INSTRUCTIONS:
+        ===================
+        1. Go to https://console.cloud.google.com/
+        2. Create a new project or select existing
+        3. Enable "Google Calendar API"
+        4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
+        5. Application type: "Web application"
+        6. Add authorized redirect URI: https://your-odoo-domain.com/google/auth/callback
+        7. Copy Client ID and Client Secret below
+        -->
+
+        <record id="google_meet_client_id" model="ir.config_parameter">
+            <field name="key">google_meet.client_id</field>
+            <field name="value">YOUR_CLIENT_ID_HERE.apps.googleusercontent.com</field>
+        </record>
+
+        <record id="google_meet_client_secret" model="ir.config_parameter">
+            <field name="key">google_meet.client_secret</field>
+            <field name="value">YOUR_CLIENT_SECRET_HERE</field>
+        </record>
+
+        <!--
+        IMPORTANT: After installation, update these values in:
+        Settings → Technical → Parameters → System Parameters
+
+        Search for:
+        - google_meet.client_id
+        - google_meet.client_secret
+        -->
+    </data>
+</odoo>

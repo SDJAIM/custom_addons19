@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-001: Flexible Times Email Template -->
+    <record id="email_template_flexible_times" model="mail.template">
+        <field name="name">Flexible Appointment Times</field>
+        <field name="model_id" ref="model_clinic_appointment_flexible_share"/>
+        <field name="subject">Choose Your Preferred Appointment Time - ${object.appointment_type_id.name}</field>
+        <field name="email_from">${object.create_uid.email_formatted or ''}</field>
+        <field name="email_to">${object.patient_id.email}</field>
+        <field name="body_html" type="html">
+<![CDATA[
+<table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #555; width: 100%; border-collapse:separate;">
+    <tr>
+        <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                    <td style="padding: 24px; text-align: center; background-color: #875A7B; border-radius: 8px 8px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">
+                            Choose Your Appointment Time
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding: 32px;">
+                        <p style="font-size: 16px; color: #333; margin-bottom: 24px;">
+                            Hello <strong>${object.patient_id.name}</strong>,
+                        </p>
+
+                        <p style="font-size: 15px; color: #555; line-height: 1.6; margin-bottom: 24px;">
+                            ${object.custom_message or 'We have several appointment times available for you. Please select your preferred time from the options below:'}
+                        </p>
+
+                        <div style="margin: 32px 0; padding: 20px; background-color: #F8F9FA; border-radius: 6px; border-left: 4px solid #875A7B;">
+                            <p style="margin: 0; font-size: 14px; color: #666;">
+                                <strong>Appointment Type:</strong> ${object.appointment_type_id.name}<br/>
+                                % if object.staff_id:
+                                <strong>Doctor:</strong> ${object.staff_id.name}<br/>
+                                % endif
+                                <strong>Available Slots:</strong> ${len(object.slot_ids)} options
+                            </p>
+                        </div>
+
+                        <!-- Call to Action Button -->
+                        <div style="text-align: center; margin: 32px 0;">
+                            <a href="${object.share_url}"
+                               style="display: inline-block; padding: 16px 32px; background-color: #28A745; color: white; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                View Available Times
+                            </a>
+                        </div>
+
+                        <p style="font-size: 14px; color: #777; margin-top: 32px; padding-top: 24px; border-top: 1px solid #DDD;">
+                            <strong>Important:</strong><br/>
+                            • This link is valid until ${format_datetime(object.token_expires_at, dt_format='MMMM d, yyyy')}<br/>
+                            • Once you select a time, the other options will become unavailable<br/>
+                            • You will receive a confirmation email after booking
+                        </p>
+
+                        <p style="font-size: 13px; color: #999; margin-top: 16px;">
+                            If you have any questions or need to make changes, please contact us directly.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding: 24px; background-color: #F8F9FA; border-radius: 0 0 8px 8px; text-align: center;">
+                        <p style="margin: 0; font-size: 12px; color: #999;">
+                            This is an automated message from your healthcare provider.<br/>
+                            Please do not reply to this email.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+]]>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================ -->
+    <!-- Open Graph Meta Tags for Social Sharing (TASK-F3-005) -->
+    <!-- ================================================ -->
+
+    <!-- Open Graph Meta Tags Template for Appointment Types -->
+    <template id="appointment_og_meta_tags" name="Appointment Open Graph Meta Tags">
+        <t t-set="og_title" t-value="og_title or appointment_type.name"/>
+        <t t-set="og_description" t-value="og_description or appointment_type.description or 'Book an appointment online'"/>
+        <t t-set="og_image" t-value="og_image or '/clinic_appointment_core/static/img/default_appointment_share.png'"/>
+        <t t-set="og_url" t-value="og_url or request.httprequest.url"/>
+
+        <!-- Open Graph Protocol -->
+        <meta property="og:title" t-att-content="og_title"/>
+        <meta property="og:description" t-att-content="og_description"/>
+        <meta property="og:image" t-att-content="og_image"/>
+        <meta property="og:url" t-att-content="og_url"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:site_name" content="Online Appointment Booking"/>
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image"/>
+        <meta name="twitter:title" t-att-content="og_title"/>
+        <meta name="twitter:description" t-att-content="og_description"/>
+        <meta name="twitter:image" t-att-content="og_image"/>
+
+        <!-- Additional SEO -->
+        <meta name="description" t-att-content="og_description"/>
+    </template>
+
+    <!-- Social Sharing Buttons Component -->
+    <template id="social_sharing_buttons" name="Social Sharing Buttons">
+        <div class="social-sharing-buttons mb-4">
+            <h6 class="text-muted mb-3">
+                <i class="fa fa-share-alt"/> Share this booking page:
+            </h6>
+            <div class="btn-group" role="group">
+                <!-- Facebook Share -->
+                <a t-attf-href="https://www.facebook.com/sharer/sharer.php?u=#{share_url}"
+                   target="_blank"
+                   class="btn btn-outline-primary"
+                   title="Share on Facebook">
+                    <i class="fa fa-facebook"/> Facebook
+                </a>
+
+                <!-- Twitter Share -->
+                <a t-attf-href="https://twitter.com/intent/tweet?url=#{share_url}&amp;text=#{share_text}"
+                   target="_blank"
+                   class="btn btn-outline-info"
+                   title="Share on Twitter">
+                    <i class="fa fa-twitter"/> Twitter
+                </a>
+
+                <!-- LinkedIn Share -->
+                <a t-attf-href="https://www.linkedin.com/sharing/share-offsite/?url=#{share_url}"
+                   target="_blank"
+                   class="btn btn-outline-primary"
+                   title="Share on LinkedIn">
+                    <i class="fa fa-linkedin"/> LinkedIn
+                </a>
+
+                <!-- WhatsApp Share -->
+                <a t-attf-href="https://wa.me/?text=#{share_text} #{share_url}"
+                   target="_blank"
+                   class="btn btn-outline-success"
+                   title="Share on WhatsApp"
+                   data-action="share/whatsapp/share">
+                    <i class="fa fa-whatsapp"/> WhatsApp
+                </a>
+
+                <!-- Email Share -->
+                <a t-attf-href="mailto:?subject=#{share_subject}&amp;body=#{share_text} #{share_url}"
+                   class="btn btn-outline-secondary"
+                   title="Share via Email">
+                    <i class="fa fa-envelope"/> Email
+                </a>
+
+                <!-- Copy Link -->
+                <button type="button"
+                        class="btn btn-outline-dark"
+                        onclick="navigator.clipboard.writeText(this.dataset.url).then(() => {this.innerHTML = '&lt;i class=\'fa fa-check\'&gt;&lt;/i&gt; Copied!'; setTimeout(() => {this.innerHTML = '&lt;i class=\'fa fa-link\'&gt;&lt;/i&gt; Copy Link'}, 2000);})"
+                        t-att-data-url="share_url"
+                        title="Copy link to clipboard">
+                    <i class="fa fa-link"/> Copy Link
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Enhanced Booking Start Page with Open Graph -->
+    <template id="appointment_booking_start_og" inherit_id="clinic_appointment_core.appointment_booking_start">
+        <xpath expr="//t[@t-call='website.layout']" position="before">
+            <t t-set="additional_title" t-value="appointment_type.name + ' - Book Online'"/>
+            <t t-set="og_title" t-value="appointment_type.name + ' - Online Booking'"/>
+            <t t-set="og_description" t-value="appointment_type.description or 'Book your appointment online. Easy, fast, and convenient.'"/>
+            <t t-set="og_url" t-value="request.httprequest.url"/>
+        </xpath>
+
+        <xpath expr="//t[@t-call='website.layout']" position="attributes">
+            <attribute name="t-set-head" separator=";">
+                <t t-call="clinic_appointment_core.appointment_og_meta_tags"/>
+            </attribute>
+        </xpath>
+
+        <!-- Add Share Buttons -->
+        <xpath expr="//div[@class='text-center']" position="before">
+            <t t-set="share_url" t-value="request.httprequest.url"/>
+            <t t-set="share_text" t-value="'Book ' + appointment_type.name + ' appointment online'"/>
+            <t t-set="share_subject" t-value="'Appointment Booking - ' + appointment_type.name"/>
+            <t t-call="clinic_appointment_core.social_sharing_buttons"/>
+        </xpath>
+    </template>
+
+    <!-- Enhanced Confirmation Page with Open Graph and Sharing -->
+    <template id="appointment_confirm_og" inherit_id="clinic_appointment_core.appointment_confirm">
+        <xpath expr="//t[@t-call='website.layout']" position="before">
+            <t t-set="additional_title" t-value="'Appointment Confirmed - ' + appointment.appointment_type_id.name"/>
+            <t t-set="og_title" t-value="'Appointment Confirmed!'"/>
+            <t t-set="og_description" t-value="'Your ' + appointment.appointment_type_id.name + ' appointment has been confirmed for ' + appointment.start.strftime('%B %d, %Y')"/>
+            <t t-set="og_url" t-value="request.httprequest.host_url + 'appointment/view/' + str(appointment.id) + '/' + appointment.access_token"/>
+        </xpath>
+
+        <xpath expr="//t[@t-call='website.layout']" position="attributes">
+            <attribute name="t-set-head" separator=";">
+                <t t-call="clinic_appointment_core.appointment_og_meta_tags"/>
+            </attribute>
+        </xpath>
+
+        <!-- Add Share Buttons to Confirmation Page -->
+        <xpath expr="//hr" position="before">
+            <div class="mb-4">
+                <t t-set="share_url" t-value="request.httprequest.host_url + 'appointment/book/' + str(appointment.appointment_type_id.id)"/>
+                <t t-set="share_text" t-value="'I just booked an appointment! You can book yours too:'"/>
+                <t t-set="share_subject" t-value="'Online Appointment Booking Available'"/>
+                <t t-call="clinic_appointment_core.social_sharing_buttons"/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Add .ics Calendar Download Button -->
+    <template id="appointment_ics_download_button" name="Download Calendar Event">
+        <a t-attf-href="/appointment/calendar/#{appointment.id}/#{appointment.access_token}.ics"
+           class="btn btn-outline-primary"
+           download="">
+            <i class="fa fa-calendar-plus-o"/> Add to Calendar
+        </a>
+    </template>
+
+    <!-- Enhance Confirmation Page with Calendar Download -->
+    <template id="appointment_confirm_calendar" inherit_id="clinic_appointment_core.appointment_confirm">
+        <xpath expr="//div[@class='mb-4']/a[@class='btn btn-primary']" position="after">
+            <t t-call="clinic_appointment_core.appointment_ics_download_button"/>
+        </xpath>
+    </template>
+
+</odoo>

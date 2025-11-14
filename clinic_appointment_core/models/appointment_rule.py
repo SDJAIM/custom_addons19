@@ -118,20 +118,36 @@ class AppointmentRule(models.Model):
     def is_rule_active_for_date(self, check_date):
         """Check if rule is active for a specific date"""
         self.ensure_one()
-        
+
         # Check if date is in valid range
         if self.date_from and check_date < self.date_from:
             return False
         if self.date_to and check_date > self.date_to:
             return False
-        
+
         # Check exclusions
         if self.is_date_excluded(check_date):
             return False
-        
+
         # Check weekday
         weekday_num = str(check_date.weekday())
         if self.weekday != weekday_num:
             return False
-        
+
         return True
+
+    def write(self, vals):
+        """Update rule and invalidate slot cache"""
+        result = super().write(vals)
+
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache when rule is modified
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
+        return result
+
+    def unlink(self):
+        """Delete rule and invalidate slot cache"""
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache before deletion
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
+        return super().unlink()

@@ -53,6 +53,9 @@ Features:
         'views/specialization_views.xml',
         'views/schedule_views.xml',
         'views/menu_views.xml',  # Menu structure must be loaded after actions
+
+        # Wizards - TASK-F3-006
+        'wizards/resource_calendar_migration_views.xml',
     ],
     
     

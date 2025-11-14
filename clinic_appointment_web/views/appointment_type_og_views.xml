@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-005: Open Graph Fields for Appointment Types -->
+
+    <record id="view_appointment_type_form_og" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.form.og</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="inherit_id" ref="clinic_appointment_core.view_clinic_appointment_type_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Social Sharing tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Social Sharing" name="social_sharing">
+                    <group>
+                        <group string="Open Graph Settings">
+                            <field name="og_image" widget="image" class="oe_avatar"
+                                   options="{'size': [1200, 630]}"
+                                   help="Recommended size: 1200x630px"/>
+                            <field name="og_image_filename" invisible="1"/>
+                        </group>
+                        <group string="Social Preview">
+                            <field name="og_title" readonly="1"/>
+                            <field name="og_description" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Custom Titles &amp; Descriptions">
+                        <group>
+                            <field name="og_custom_title"
+                                   placeholder="Leave empty to auto-generate from appointment type name"/>
+                            <field name="og_custom_description"
+                                   placeholder="Leave empty to auto-generate from description"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <div class="alert alert-info" role="alert">
+                            <h4>Social Sharing Setup</h4>
+                            <p>Configure how your appointment booking links appear when shared on social media platforms like WhatsApp, Facebook, Twitter, and LinkedIn.</p>
+                            <ul class="mb-0">
+                                <li><strong>Image:</strong> Upload a custom image (1200x630px recommended) or leave blank to use the default clinic image</li>
+                                <li><strong>Title:</strong> Auto-generated as "Book [Type Name] Appointment | [Clinic Name]" - override if needed</li>
+                                <li><strong>Description:</strong> Auto-generated from the appointment type description - customize for better engagement</li>
+                            </ul>
+                            <p class="mt-2 mb-0">
+                                <strong>Shareable Link:</strong>
+                                <code t-esc="'/appointments/' + str(object.id) + '/book'"/>
+                            </p>
+                        </div>
+                    </group>
+
+                    <group string="Social Media Preview Examples">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <i class="fa fa-facebook"/> Facebook Preview
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="og-preview-image mb-2"
+                                             style="background: #f0f2f5; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                            <field name="og_image" widget="image" readonly="1"
+                                                   options="{'size': [400, 209]}"
+                                                   style="max-width: 100%; max-height: 100%;"/>
+                                        </div>
+                                        <div class="og-preview-title font-weight-bold" style="font-size: 16px; color: #1c1e21;">
+                                            <field name="og_title" readonly="1" nolabel="1"/>
+                                        </div>
+                                        <div class="og-preview-description text-muted small mt-1">
+                                            <field name="og_description" readonly="1" nolabel="1"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <i class="fa fa-whatsapp"/> WhatsApp Preview
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="og-preview-image mb-2"
+                                             style="background: #ece5dd; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                            <field name="og_image" widget="image" readonly="1"
+                                                   options="{'size': [400, 209]}"
+                                                   style="max-width: 100%; max-height: 100%;"/>
+                                        </div>
+                                        <div class="og-preview-title font-weight-bold" style="font-size: 14px; color: #000;">
+                                            <field name="og_title" readonly="1" nolabel="1"/>
+                                        </div>
+                                        <div class="og-preview-description text-muted small mt-1">
+                                            <field name="og_description" readonly="1" nolabel="1"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-002: Google Meet Configuration Views -->
+
+    <!-- Form View -->
+    <record id="view_google_meet_config_form" model="ir.ui.view">
+        <field name="name">clinic.google.meet.config.form</field>
+        <field name="model">clinic.google.meet.config</field>
+        <field name="arch" type="xml">
+            <form string="Google Meet Configuration">
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                    <button name="action_disconnect"
+                            string="Disconnect"
+                            type="object"
+                            confirm="Are you sure you want to disconnect your Google account?"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                    <field name="is_connected" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
+                                type="action"
+                                name="%(action_google_auth_redirect)d"
+                                icon="fa-google"
+                                attrs="{'invisible': [('is_connected', '=', True)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Connect Google</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Connected" bg_color="bg-success"
+                            attrs="{'invisible': [('is_connected', '=', False)]}"/>
+                    <widget name="web_ribbon" title="Not Connected" bg_color="bg-danger"
+                            attrs="{'invisible': [('is_connected', '=', True)]}"/>
+
+                    <group>
+                        <group>
+                            <field name="staff_id" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="google_email" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="google_calendar_id"/>
+                            <field name="token_expiry" readonly="1"
+                                   attrs="{'invisible': [('token_expiry', '=', False)]}"/>
+                            <field name="last_sync_date" readonly="1"
+                                   attrs="{'invisible': [('last_sync_date', '=', False)]}"/>
+                        </group>
+                    </group>
+
+                    <group string="Instructions" attrs="{'invisible': [('is_connected', '=', True)]}">
+                        <div class="alert alert-info" role="alert">
+                            <h4>How to Connect Google Meet:</h4>
+                            <ol>
+                                <li>Click the "Connect Google" button above</li>
+                                <li>Sign in with your Google account</li>
+                                <li>Grant calendar access permissions</li>
+                                <li>You'll be redirected back automatically</li>
+                            </ol>
+                            <p><strong>Note:</strong> You'll be able to create Google Meet links for your telemedicine appointments after connecting.</p>
+                        </div>
+                    </group>
+
+                    <group string="Connection Details" attrs="{'invisible': [('is_connected', '=', False)]}">
+                        <div class="alert alert-success" role="alert">
+                            <p><i class="fa fa-check-circle"/> Your Google account is connected and ready to use.</p>
+                            <p>You can now create Google Meet links for telemedicine sessions.</p>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_google_meet_config_tree" model="ir.ui.view">
+        <field name="name">clinic.google.meet.config.tree</field>
+        <field name="model">clinic.google.meet.config</field>
+        <field name="arch" type="xml">
+            <tree string="Google Meet Configurations">
+                <field name="staff_id"/>
+                <field name="google_email"/>
+                <field name="is_connected" widget="boolean_toggle"/>
+                <field name="last_sync_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_google_meet_config" model="ir.actions.act_window">
+        <field name="name">Google Meet Configuration</field>
+        <field name="res_model">clinic.google.meet.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Google Meet configurations yet
+            </p>
+            <p>
+                Configure Google Meet integration for staff members to enable automatic Google Meet link creation for telemedicine appointments.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action to redirect to OAuth -->
+    <record id="action_google_auth_redirect" model="ir.actions.act_url">
+        <field name="name">Connect Google Account</field>
+        <field name="url">/google/auth/start</field>
+        <field name="target">self</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_google_meet_config"
+              name="Google Meet"
+              parent="clinic_integrations_telemed.menu_telemed_config"
+              action="action_google_meet_config"
+              sequence="20"/>
+
+</odoo>

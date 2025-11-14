@@ -24,13 +24,16 @@
               name="Insurance"
               parent="menu_clinic_patient_root"
               sequence="20"/>
-    
+
+    <!-- COMMENTED - Circular dependency with clinic_finance -->
+    <!--
     <menuitem id="menu_clinic_insurance_companies"
               name="Insurance Companies"
               parent="menu_clinic_insurance"
               action="action_clinic_insurance_company"
               sequence="10"/>
-    
+    -->
+
     <menuitem id="menu_clinic_patient_insurance"
               name="Patient Policies"
               parent="menu_clinic_insurance"

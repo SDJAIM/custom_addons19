@@ -37,7 +37,14 @@ class AppointmentBilling(models.Model):
         ('insurance_cash', 'Insurance + Co-pay'),
         ('free', 'Free/Charity'),
     ], string='Billing Type', default='cash', required=True, tracking=True)
-    
+
+    # Patient Insurance reference (moved from clinic_appointment_core)
+    insurance_id = fields.Many2one(
+        'clinic.patient.insurance',
+        string='Insurance',
+        domain="[('patient_id', '=', patient_id), ('is_active', '=', True)]"
+    )
+
     insurance_policy_id = fields.Many2one(
         'clinic.insurance.policy',
         string='Insurance Policy',

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F2-001: Appointment Team Views -->
+
+    <!-- Tree View -->
+    <record id="view_appointment_team_tree" model="ir.ui.view">
+        <field name="name">clinic.appointment.team.tree</field>
+        <field name="model">clinic.appointment.team</field>
+        <field name="arch" type="xml">
+            <list string="Appointment Teams">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="leader_id"/>
+                <field name="member_count"/>
+                <field name="capacity"/>
+                <field name="assignment_mode"/>
+                <field name="appointment_count"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_appointment_team_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.team.form</field>
+        <field name="model">clinic.appointment.team</field>
+        <field name="arch" type="xml">
+            <form string="Appointment Team">
+                <header>
+                    <button name="action_view_appointments"
+                            string="View Team Appointments"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-calendar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_appointments" icon="fa-calendar">
+                            <field string="Appointments" name="appointment_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+
+                    <div class="oe_title">
+                        <label for="name" string="Team Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Dental Surgery Team"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Team Structure">
+                            <field name="active" invisible="1"/>
+                            <field name="sequence"/>
+                            <field name="leader_id" options="{'no_create': True}"/>
+                            <field name="member_count"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Capacity and Assignment">
+                            <field name="capacity"/>
+                            <field name="capacity_mode"/>
+                            <field name="assignment_mode"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Team Members" name="members">
+                            <field name="member_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="mobile"/>
+                                    <field name="email"/>
+                                    <field name="specialty_id"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Configuration" name="config">
+                            <group>
+                                <group string="Calendar">
+                                    <field name="color" widget="color_picker"/>
+                                    <field name="calendar_view_id" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="description" placeholder="Team description and purpose..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_appointment_team_kanban" model="ir.ui.view">
+        <field name="name">clinic.appointment.team.kanban</field>
+        <field name="model">clinic.appointment.team</field>
+        <field name="arch" type="xml">
+            <kanban string="Appointment Teams" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="leader_id"/>
+                <field name="member_count"/>
+                <field name="appointment_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary"><field name="name"/></div>
+                                    <div class="o_secondary" t-if="record.leader_id.value">
+                                        <i class="fa fa-user"/> <field name="leader_id"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <button class="btn btn-primary btn-sm" type="object" name="action_view_appointments">
+                                            <i class="fa fa-calendar"/> <field name="appointment_count"/> Appointments
+                                        </button>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span class="badge badge-pill badge-info">
+                                            <i class="fa fa-users"/> <field name="member_count"/> Members
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_appointment_team_search" model="ir.ui.view">
+        <field name="name">clinic.appointment.team.search</field>
+        <field name="model">clinic.appointment.team</field>
+        <field name="arch" type="xml">
+            <search string="Search Teams">
+                <field name="name"/>
+                <field name="leader_id"/>
+                <field name="member_ids"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Round Robin" name="round_robin" domain="[('assignment_mode', '=', 'round_robin')]"/>
+                <filter string="Load Balanced" name="load_balanced" domain="[('assignment_mode', '=', 'load_balanced')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Team Leader" name="group_by_leader" context="{'group_by': 'leader_id'}"/>
+                    <filter string="Assignment Mode" name="group_by_assignment" context="{'group_by': 'assignment_mode'}"/>
+                    <filter string="Company" name="group_by_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_appointment_team" model="ir.actions.act_window">
+        <field name="name">Appointment Teams</field>
+        <field name="res_model">clinic.appointment.team</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first appointment team!
+            </p>
+            <p>
+                Teams allow you to organize staff members, manage capacity,
+                and enable team-based appointment assignment.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_appointment_team"
+              name="Teams"
+              parent="clinic_appointment_core.menu_appointment_config"
+              action="action_appointment_team"
+              sequence="25"/>
+
+</odoo>

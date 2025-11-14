@@ -55,13 +55,13 @@
                     <field name="model_name"/>
                     <field name="user_id"/>
                     <field name="action"/>
+                    <filter string="Today" name="today" domain="[('timestamp','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                    <filter string="This Week" name="this_week" domain="[('timestamp','&gt;=', (context_today()-datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
                     <separator/>
-                    <group expand="0" string="Group By">
-                        <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
-                        <filter string="Model" name="group_model" context="{'group_by':'model_name'}"/>
-                        <filter string="Action" name="group_action" context="{'group_by':'action'}"/>
-                        <filter string="Date" name="group_date" context="{'group_by':'timestamp:month'}"/>
-                    </group>
+                    <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
+                    <filter string="Model" name="group_model" context="{'group_by':'model_name'}"/>
+                    <filter string="Action" name="group_action" context="{'group_by':'action'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'timestamp:month'}"/>
                 </search>
             </field>
         </record>

@@ -118,8 +118,22 @@ class ClinicStaffAvailability(models.Model):
         if exception.availability_type == 'limited':
             if start_time and end_time:
                 # Check if requested time is within limited availability
-                return (start_time >= exception.start_time and 
+                return (start_time >= exception.start_time and
                        end_time <= exception.end_time)
             return True  # If no specific time requested, consider available
-        
-        return True
+
+    def write(self, vals):
+        """Update availability and invalidate slot cache"""
+        result = super().write(vals)
+
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache when availability changes
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
+        return result
+
+    def unlink(self):
+        """Delete availability and invalidate slot cache"""
+        # ⚡ CACHE INVALIDATION (P0-003): Clear slot engine cache before deletion
+        self.env['clinic.appointment.slot.engine']._invalidate_slot_cache()
+
+        return super().unlink()

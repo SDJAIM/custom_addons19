@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F2-006: GDPR Patient Anonymization Wizard -->
+
+    <!-- Wizard Form View -->
+    <record id="view_patient_anonymize_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.patient.anonymize.wizard.form</field>
+        <field name="model">clinic.patient.anonymize.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anonymize Patient Data">
+                <group>
+                    <group>
+                        <field name="patient_id" invisible="1"/>
+                        <field name="patient_name"/>
+                    </group>
+                </group>
+
+                <group>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>⚠️ WARNING: This action is irreversible!</strong>
+                        <ul>
+                            <li>All personal identifiable information (PII) will be replaced with "DELETED_USER_XXX"</li>
+                            <li>Contact information (email, phone, address) will be removed or redacted</li>
+                            <li>Medical records will be PRESERVED as required by law</li>
+                            <li>Portal access will be disabled</li>
+                            <li>This action CANNOT be undone</li>
+                        </ul>
+                    </div>
+                </group>
+
+                <group string="Anonymization Details">
+                    <field name="reason" placeholder="Optional: Describe the reason for this GDPR request"/>
+                </group>
+
+                <group>
+                    <field name="confirm"/>
+                </group>
+
+                <footer>
+                    <button name="action_anonymize"
+                            string="Anonymize Patient Data"
+                            type="object"
+                            class="btn-danger"
+                            confirm="Are you absolutely sure you want to anonymize this patient's data? This action CANNOT be undone!"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_patient_anonymize_wizard" model="ir.actions.act_window">
+        <field name="name">Anonymize Patient (GDPR)</field>
+        <field name="res_model">clinic.patient.anonymize.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_clinic_patient"/>
+        <field name="binding_view_types">form</field>
+    </record>
+
+</odoo>

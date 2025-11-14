@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Advanced Appointment Analytics Dashboard Template (TASK-F3-004) -->
+    <t t-name="clinic_appointment_core.AppointmentDashboard">
+        <div class="o_appointment_dashboard">
+            <!-- Dashboard Header with Filters -->
+            <div class="o_dashboard_header p-3 bg-white border-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-0">
+                            <i class="fa fa-line-chart"/> Appointment Analytics Dashboard
+                        </h2>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary" t-on-click="onRefresh">
+                            <i class="fa fa-refresh"/> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters Row -->
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Date From</label>
+                        <input type="date"
+                               class="form-control"
+                               t-model="state.dateFrom"
+                               t-on-change="onDateFromChange"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date To</label>
+                        <input type="date"
+                               class="form-control"
+                               t-model="state.dateTo"
+                               t-on-change="onDateToChange"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Branch</label>
+                        <select class="form-select" t-on-change="onBranchChange">
+                            <option value="">All Branches</option>
+                            <t t-foreach="state.branches" t-as="branch" t-key="branch.id">
+                                <option t-att-value="branch.id" t-esc="branch.name"/>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Staff</label>
+                        <select class="form-select" t-on-change="onStaffChange">
+                            <option value="">All Staff</option>
+                            <t t-foreach="state.staff" t-as="staff_member" t-key="staff_member.id">
+                                <option t-att-value="staff_member.id" t-esc="staff_member.name"/>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <t t-if="state.loading">
+                <div class="text-center p-5">
+                    <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                    <p class="mt-3 text-muted">Loading dashboard data...</p>
+                </div>
+            </t>
+
+            <!-- Error State -->
+            <t t-elif="state.error">
+                <div class="alert alert-danger m-3" role="alert">
+                    <i class="fa fa-exclamation-triangle"/> <t t-esc="state.error"/>
+                </div>
+            </t>
+
+            <!-- Dashboard Content -->
+            <t t-else="">
+                <div class="o_dashboard_content p-3">
+
+                    <!-- KPI Cards Row -->
+                    <div class="row g-3 mb-4">
+                        <!-- Total Appointments -->
+                        <div class="col-md-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-muted mb-2">Total Appointments</h6>
+                                            <h3 class="mb-0" t-esc="formatNumber(state.kpis.total_appointments)"/>
+                                        </div>
+                                        <div class="text-primary">
+                                            <i class="fa fa-calendar fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small>
+                                            <i t-att-class="getGrowthIcon(state.kpis.growth_percentage)"/>
+                                            <span t-esc="Math.abs(state.kpis.growth_percentage)"/>% vs previous period
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completion Rate -->
+                        <div class="col-md-3">
+                            <div class="card h-100 bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-2">Completion Rate</h6>
+                                            <h3 class="mb-0"><t t-esc="state.kpis.completion_rate"/>%</h3>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-check-circle fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><t t-esc="state.kpis.completed"/> completed appointments</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Rate -->
+                        <div class="col-md-3">
+                            <div class="card h-100 bg-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-2">Cancellation Rate</h6>
+                                            <h3 class="mb-0"><t t-esc="state.kpis.cancellation_rate"/>%</h3>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-times-circle fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><t t-esc="state.kpis.cancelled"/> cancelled appointments</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No-Show Rate -->
+                        <div class="col-md-3">
+                            <div class="card h-100 bg-danger text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-2">No-Show Rate</h6>
+                                            <h3 class="mb-0"><t t-esc="state.kpis.no_show_rate"/>%</h3>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-user-times fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><t t-esc="state.kpis.no_show"/> no-show appointments</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional KPIs Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Unique Patients</h6>
+                                    <h3 class="text-primary" t-esc="formatNumber(state.kpis.unique_patients)"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Average per Day</h6>
+                                    <h3 class="text-info" t-esc="state.kpis.avg_per_day"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">New Patients</h6>
+                                    <h3 class="text-success" t-esc="formatNumber(state.patientMetrics.new_patients)"/>
+                                    <small class="text-muted">
+                                        / <t t-esc="formatNumber(state.patientMetrics.returning_patients)"/> returning
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row g-3 mb-4">
+                        <!-- Status Distribution Chart -->
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-pie-chart"/> Appointments by Status
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 300px; position: relative;">
+                                        <canvas id="statusChart"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Chart -->
+                        <div class="col-md-8">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-area-chart"/> Appointments Timeline
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 300px; position: relative;">
+                                        <canvas id="timelineChart"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Distribution Chart -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-bar-chart"/> Hourly Distribution
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 300px; position: relative;">
+                                        <canvas id="hourlyChart"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tables Row -->
+                    <div class="row g-3 mb-4">
+                        <!-- Top Staff -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-user-md"/> Top Staff Performance
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Staff Name</th>
+                                                <th class="text-end">Appointments</th>
+                                                <th class="text-end">Completed</th>
+                                                <th class="text-end">Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="state.topStaff.length === 0">
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted py-3">
+                                                        No staff data available
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-foreach="state.topStaff" t-as="staff" t-key="staff.staff_id">
+                                                    <tr>
+                                                        <td><t t-esc="staff.name"/></td>
+                                                        <td class="text-end"><t t-esc="staff.appointments"/></td>
+                                                        <td class="text-end"><t t-esc="staff.completed"/></td>
+                                                        <td class="text-end">
+                                                            <span class="badge bg-success">
+                                                                <t t-esc="staff.completion_rate"/>%
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Types -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-list"/> Top Appointment Types
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Appointment Type</th>
+                                                <th class="text-end">Count</th>
+                                                <th class="text-end">Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="state.appointmentsByType.length === 0">
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-3">
+                                                        No appointment type data available
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-foreach="state.appointmentsByType" t-as="type" t-key="type.type">
+                                                    <tr>
+                                                        <td><t t-esc="type.type"/></td>
+                                                        <td class="text-end"><t t-esc="type.count"/></td>
+                                                        <td class="text-end">
+                                                            <t t-esc="Math.round(type.count / state.kpis.total_appointments * 100)"/>%
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch Performance -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-building"/> Branch Performance
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Branch Name</th>
+                                                <th class="text-end">Total Appointments</th>
+                                                <th class="text-end">Completed</th>
+                                                <th class="text-end">Completion Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="state.branchPerformance.length === 0">
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted py-3">
+                                                        No branch data available
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-foreach="state.branchPerformance" t-as="branch" t-key="branch.branch_id">
+                                                    <tr>
+                                                        <td><t t-esc="branch.name"/></td>
+                                                        <td class="text-end"><t t-esc="branch.total"/></td>
+                                                        <td class="text-end"><t t-esc="branch.completed"/></td>
+                                                        <td class="text-end">
+                                                            <div class="progress" style="height: 20px;">
+                                                                <div class="progress-bar bg-success"
+                                                                     role="progressbar"
+                                                                     t-att-style="'width: ' + branch.completion_rate + '%'"
+                                                                     t-att-aria-valuenow="branch.completion_rate"
+                                                                     aria-valuemin="0"
+                                                                     aria-valuemax="100">
+                                                                    <t t-esc="branch.completion_rate"/>%
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Services -->
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-stethoscope"/> Service Type Distribution
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <t t-foreach="state.topServices" t-as="service" t-key="service.service">
+                                            <div class="col-md-3 mb-3">
+                                                <div class="p-3 border rounded">
+                                                    <h6 class="text-muted text-uppercase small" t-esc="service.service"/>
+                                                    <h4 class="mb-0 text-primary" t-esc="service.count"/>
+                                                    <small class="text-muted">
+                                                        <t t-esc="Math.round(service.count / state.kpis.total_appointments * 100)"/>% of total
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

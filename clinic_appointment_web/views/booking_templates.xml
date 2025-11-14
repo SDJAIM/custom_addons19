@@ -50,12 +50,271 @@
     <!-- Success Page -->
     <template id="booking_success" name="Booking Success">
         <t t-call="website.layout">
-            <div class="container mt-4 mb-4">
-                <div class="alert alert-success">
-                    <h3>Appointment Booked Successfully!</h3>
-                    <p>Your appointment has been scheduled. You will receive a confirmation email shortly.</p>
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 offset-lg-3">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-check-circle text-success" style="font-size: 4rem;"/>
+                                </div>
+                                <h2 class="mb-3">Appointment Request Received!</h2>
+                                <p class="lead text-muted">Thank you for booking with us.</p>
+
+                                <t t-if="appointment">
+                                    <div class="alert alert-info mt-4">
+                                        <p><strong>Appointment Details:</strong></p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fa fa-user me-2"/>Patient: <strong t-esc="patient.name"/></li>
+                                            <li><i class="fa fa-stethoscope me-2"/>Service: <strong t-esc="appointment.appointment_type_id.name"/></li>
+                                            <li><i class="fa fa-calendar me-2"/>Date: <strong t-esc="appointment.start"/></li>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <p class="mt-4">
+                                    You will receive a confirmation email at <strong t-esc="patient.email"/> shortly with your appointment details.
+                                </p>
+
+                                <div class="mt-4">
+                                    <a href="/" class="btn btn-primary me-2">Return Home</a>
+                                    <a href="/contactus" class="btn btn-outline-secondary">Contact Us</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <a href="/my/appointments" class="btn btn-primary">View My Appointments</a>
+            </div>
+        </t>
+    </template>
+
+    <!-- Error Page - TASK-F1-007 -->
+    <template id="booking_error" name="Booking Error">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 offset-lg-3">
+                        <div class="card shadow-sm border-danger">
+                            <div class="card-body text-center p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-exclamation-triangle text-danger" style="font-size: 4rem;"/>
+                                </div>
+                                <h2 class="mb-3">Booking Error</h2>
+                                <p class="lead text-muted">We encountered an issue processing your appointment.</p>
+
+                                <div class="alert alert-danger mt-4">
+                                    <p class="mb-0" t-esc="error_message or 'An unexpected error occurred. Please try again.'"/>
+                                </div>
+
+                                <t t-if="technical_error">
+                                    <div class="alert alert-warning mt-3">
+                                        <small><strong>Technical Details:</strong> <t t-esc="technical_error"/></small>
+                                    </div>
+                                </t>
+
+                                <div class="mt-4">
+                                    <a href="javascript:history.back()" class="btn btn-primary me-2">
+                                        <i class="fa fa-arrow-left me-1"/>Go Back
+                                    </a>
+                                    <a href="/contactus" class="btn btn-outline-secondary">
+                                        <i class="fa fa-phone me-1"/>Contact Support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- TASK-F1-002: Shareable Booking Wizard -->
+    <template id="shareable_booking_wizard" name="Shareable Booking Wizard">
+        <t t-call="website.layout">
+            <div class="container mt-4 mb-5">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <!-- Header with appointment type info -->
+                        <div class="text-center mb-4">
+                            <h1 class="mb-2" t-esc="appointment_type.name"/>
+                            <p class="lead text-muted">
+                                <i class="fa fa-clock-o me-1"/>
+                                Duration: <t t-esc="appointment_type.default_duration"/> hours
+                            </p>
+                            <t t-if="appointment_type.description">
+                                <div class="alert alert-info mt-3" t-raw="appointment_type.description"/>
+                            </t>
+                        </div>
+
+                        <!-- Booking Form (reuse snippet form) -->
+                        <div class="card shadow-sm">
+                            <div class="card-body p-4">
+                                <form action="/appointment/book" method="post" class="appointment-booking-form">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="hidden" name="appointment_type_id" t-att-value="appointment_type.id"/>
+
+                                    <!-- Preferred Date -->
+                                    <div class="mb-3">
+                                        <label for="preferred_date" class="form-label fw-bold">
+                                            <i class="fa fa-calendar me-2"/>Preferred Date
+                                        </label>
+                                        <input type="date"
+                                               name="preferred_date"
+                                               id="preferred_date"
+                                               class="form-control"
+                                               required="required"
+                                               t-att-min="min_date"
+                                               t-att-max="max_date"/>
+                                        <div class="form-text">
+                                            Bookings must be made at least <t t-esc="appointment_type.min_notice_hours"/> hours in advance
+                                        </div>
+                                    </div>
+
+                                    <!-- Staff Selection -->
+                                    <t t-if="available_staff">
+                                        <div class="mb-3">
+                                            <label for="staff_id" class="form-label fw-bold">
+                                                <i class="fa fa-user-md me-2"/>Preferred Provider (Optional)
+                                            </label>
+                                            <select name="staff_id" id="staff_id" class="form-select">
+                                                <option value="">-- Any Available --</option>
+                                                <t t-foreach="available_staff" t-as="staff">
+                                                    <option t-att-value="staff.id">
+                                                        <t t-esc="staff.name"/>
+                                                    </option>
+                                                </t>
+                                            </select>
+                                        </div>
+                                    </t>
+
+                                    <!-- Patient Information -->
+                                    <div class="mb-3">
+                                        <h5 class="border-bottom pb-2">Your Information</h5>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_name" class="form-label fw-bold">
+                                                <i class="fa fa-user me-2"/>Full Name
+                                            </label>
+                                            <input type="text"
+                                                   name="patient_name"
+                                                   id="patient_name"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="John Doe"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_email" class="form-label fw-bold">
+                                                <i class="fa fa-envelope me-2"/>Email
+                                            </label>
+                                            <input type="email"
+                                                   name="patient_email"
+                                                   id="patient_email"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="john.doe@example.com"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_phone" class="form-label fw-bold">
+                                                <i class="fa fa-phone me-2"/>Phone Number
+                                            </label>
+                                            <input type="tel"
+                                                   name="patient_phone"
+                                                   id="patient_phone"
+                                                   class="form-control"
+                                                   required="required"
+                                                   placeholder="+1234567890"/>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label for="patient_dob" class="form-label fw-bold">
+                                                <i class="fa fa-birthday-cake me-2"/>Date of Birth (Optional)
+                                            </label>
+                                            <input type="date"
+                                                   name="patient_dob"
+                                                   id="patient_dob"
+                                                   class="form-control"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Notes -->
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label fw-bold">
+                                            <i class="fa fa-comment me-2"/>Additional Notes (Optional)
+                                        </label>
+                                        <textarea name="notes"
+                                                  id="notes"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Any specific requests or health concerns..."></textarea>
+                                    </div>
+
+                                    <!-- Terms -->
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               id="accept_terms"
+                                               name="accept_terms"
+                                               required="required"/>
+                                        <label class="form-check-label" for="accept_terms">
+                                            I agree to the <a href="/privacy-policy" target="_blank">privacy policy</a> and consent to be contacted
+                                        </label>
+                                    </div>
+
+                                    <!-- Submit -->
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fa fa-check me-2"/>Book Appointment
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- TASK-F1-002: Booking Disabled Page -->
+    <template id="booking_disabled" name="Booking Disabled">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 offset-lg-3">
+                        <div class="card shadow-sm border-warning">
+                            <div class="card-body text-center p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-ban text-warning" style="font-size: 4rem;"/>
+                                </div>
+                                <h2 class="mb-3">Online Booking Unavailable</h2>
+                                <p class="lead text-muted">
+                                    Online booking is currently not available for <strong t-esc="appointment_type.name"/>.
+                                </p>
+
+                                <div class="alert alert-warning mt-4">
+                                    <p class="mb-0">
+                                        Please contact us directly to schedule your appointment.
+                                    </p>
+                                </div>
+
+                                <div class="mt-4">
+                                    <a href="/" class="btn btn-primary me-2">
+                                        <i class="fa fa-home me-1"/>Back to Home
+                                    </a>
+                                    <a href="/contactus" class="btn btn-outline-secondary">
+                                        <i class="fa fa-phone me-1"/>Contact Us
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </t>
     </template>

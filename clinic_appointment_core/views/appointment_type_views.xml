@@ -1,4 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Appointment Type views will be added as needed -->
+    <!-- TASK-F1-003: Appointment Type Views with Multiple Reminders -->
+
+    <!-- Tree View -->
+    <record id="view_clinic_appointment_type_tree" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.tree</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="arch" type="xml">
+            <list string="Appointment Types">
+                <field name="name"/>
+                <field name="default_duration"/>
+                <field name="allow_online_booking" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_clinic_appointment_type_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.form</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="arch" type="xml">
+            <form string="Appointment Type">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                        </button>
+                        <!-- TASK-F1-002: Share Link Button -->
+                        <button name="action_share_link"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-share-alt"
+                                invisible="not allow_online_booking">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Share</span>
+                                <span class="o_stat_text">Link</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Appointment Type"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., General Consultation"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="code"/>
+                            <field name="category"/>
+                            <field name="service_type"/>
+                            <field name="default_duration" widget="float_time"/>
+                        </group>
+                        <group string="Settings">
+                            <field name="capacity_per_slot"/>
+                            <field name="buffer_before" widget="float_time"/>
+                            <field name="buffer_after" widget="float_time"/>
+                            <field name="allow_online_booking"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- TASK-F1-003: Multiple Reminders Configuration -->
+                        <page string="Reminders" name="reminders">
+                            <field name="reminder_ids" mode="tree">
+                                <list string="Reminders" editable="bottom">
+                                    <field name="hours_before"/>
+                                    <field name="channel" widget="badge"/>
+                                    <field name="email_template_id" invisible="channel != 'email'" optional="show"/>
+                                    <field name="sms_template_id" invisible="channel != 'sms'" optional="show"/>
+                                    <!-- whatsapp_template_id added by clinic_integrations_whatsapp -->
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                            <group>
+                                <group>
+                                    <p class="text-muted">
+                                        Configure multiple reminders at different times before the appointment.
+                                        Examples: 168 hours (7 days), 24 hours (1 day), 2 hours.
+                                    </p>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Legacy Reminder Settings (kept for backward compatibility) -->
+                        <page string="Legacy Settings" name="legacy" groups="base.group_no_one">
+                            <group>
+                                <group string="Old Reminder Settings (Deprecated)">
+                                    <field name="reminder_hours_before"/>
+                                    <field name="send_confirmation_email"/>
+                                </group>
+                            </group>
+                            <group>
+                                <p class="text-warning">
+                                    These fields are deprecated. Use the "Reminders" tab to configure multiple reminders.
+                                </p>
+                            </group>
+                        </page>
+
+                        <!-- TASK-F1-004: Seasonal Availability -->
+                        <page string="Availability" name="availability">
+                            <group>
+                                <group string="Seasonal Availability">
+                                    <field name="active_from"/>
+                                    <field name="active_to"/>
+                                </group>
+                            </group>
+                            <group>
+                                <p class="text-muted">
+                                    Leave empty for year-round availability. Set dates to limit this appointment type to specific periods (e.g., flu season).
+                                </p>
+                            </group>
+                        </page>
+
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe this appointment type..."/>
+                        </page>
+
+                        <!-- TASK-F1-002: Online Booking Tab -->
+                        <page string="Online Booking" name="online_booking" invisible="not allow_online_booking">
+                            <group>
+                                <group string="Shareable Booking Link">
+                                    <field name="shareable_url" widget="url" readonly="1"/>
+                                    <button name="action_share_link"
+                                            type="object"
+                                            string="Open Share Dialog"
+                                            class="btn-link"
+                                            icon="fa-external-link"/>
+                                </group>
+                                <group string="QR Code">
+                                    <field name="qr_code" widget="image" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <p class="text-muted">
+                                    Share this link with your patients to allow them to book appointments directly.
+                                    The QR code can be printed on flyers, business cards, or displayed in your clinic.
+                                </p>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- TASK-F1-002: Share Dialog -->
+    <record id="view_appointment_type_share_dialog" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.share.dialog</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="arch" type="xml">
+            <form string="Share Booking Link">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Share Booking Link</h1>
+                        <h3 class="text-muted" field="name"/>
+                    </div>
+                    <group>
+                        <group string="Shareable URL">
+                            <field name="shareable_url" widget="url" readonly="1"/>
+                            <div class="text-muted">
+                                <i class="fa fa-info-circle"/> Copy this link and share it with patients via email, SMS, or social media.
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="QR Code">
+                            <field name="qr_code" widget="image" readonly="1"/>
+                            <div class="text-muted">
+                                <i class="fa fa-info-circle"/> Right-click the QR code to save it for printing on marketing materials.
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <div class="alert alert-info">
+                            <h4><i class="fa fa-lightbulb-o"/> Marketing Ideas:</h4>
+                            <ul>
+                                <li>Add the QR code to your business cards</li>
+                                <li>Print flyers with the QR code for your waiting room</li>
+                                <li>Share the link on social media (Facebook, Instagram, WhatsApp)</li>
+                                <li>Include the link in email signatures</li>
+                                <li>Add it to your website</li>
+                            </ul>
+                        </div>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_clinic_appointment_type_search" model="ir.ui.view">
+        <field name="name">clinic.appointment.type.search</field>
+        <field name="model">clinic.appointment.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category"/>
+                <field name="service_type"/>
+
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Online Booking" name="online_booking" domain="[('allow_online_booking', '=', True)]"/>
+                <separator/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_category" context="{'group_by': 'category'}"/>
+                    <filter string="Service Type" name="group_service_type" context="{'group_by': 'service_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_clinic_appointment_type" model="ir.actions.act_window">
+        <field name="name">Appointment Types</field>
+        <field name="res_model">clinic.appointment.type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first appointment type!
+            </p>
+            <p>
+                Appointment types define the categories of appointments (e.g., General Consultation, Dental Checkup).
+                Configure duration, reminders, and availability for each type.
+            </p>
+        </field>
+    </record>
+
 </odoo>

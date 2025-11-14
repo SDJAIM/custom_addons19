@@ -28,11 +28,16 @@ class ClinicPatientInsurance(models.Model):
         index=True
     )
     
+    # TASK-F2-008: Insurance company consolidation - properly linked to clinic_finance
+    # This creates a dependency: clinic_patient → clinic_finance
+    # This is SAFE because clinic_finance already depends on clinic_patient
     insurance_company_id = fields.Many2one(
         'clinic.insurance.company',
         string='Insurance Company',
         required=True,
-        ondelete='restrict'
+        ondelete='restrict',
+        index=True,
+        help='Insurance company from clinic_finance module'
     )
     
     policy_number = fields.Char(
@@ -271,54 +276,16 @@ class ClinicPatientInsurance(models.Model):
             )
 
 
-class ClinicInsuranceCompany(models.Model):
-    _name = 'clinic.insurance.company'
-    _description = 'Insurance Company'
-    _order = 'name'
-    
-    name = fields.Char(
-        string='Company Name',
-        required=True
-    )
-    
-    code = fields.Char(
-        string='Company Code',
-        help='Short code for the insurance company'
-    )
-    
-    phone = fields.Char(string='Phone')
-    fax = fields.Char(string='Fax')
-    email = fields.Char(string='Email')
-    website = fields.Char(string='Website')
-    
-    street = fields.Char(string='Street')
-    street2 = fields.Char(string='Street2')
-    city = fields.Char(string='City')
-    state_id = fields.Many2one('res.country.state', string='State')
-    country_id = fields.Many2one('res.country', string='Country')
-    zip = fields.Char(string='ZIP')
-    
-    provider_portal_url = fields.Char(
-        string='Provider Portal URL',
-        help='URL for provider portal'
-    )
-    
-    eligibility_check_url = fields.Char(
-        string='Eligibility Check URL',
-        help='URL or API endpoint for eligibility verification'
-    )
-    
-    notes = fields.Text(string='Notes')
-    active = fields.Boolean(string='Active', default=True)
-
-    @api.constrains('name')
-    def _check_name_unique(self):
-        for record in self:
-            if self.search_count([('name', '=', record.name), ('id', '!=', record.id)]) > 0:
-                raise ValidationError(_('Insurance company name must be unique!'))
-
-    @api.constrains('code')
-    def _check_code_unique(self):
-        for record in self:
-            if record.code and self.search_count([('code', '=', record.code), ('id', '!=', record.id)]) > 0:
-                raise ValidationError(_('Insurance company code must be unique!'))
+# ==============================================================================
+# NOTE (TASK-F2-008): Insurance Company Consolidation
+# ==============================================================================
+# The ClinicInsuranceCompany model has been REMOVED from this file to eliminate
+# duplication. The comprehensive InsuranceCompany model in clinic_finance module
+# provides all the necessary functionality including:
+#   - EDI settings and claims processing
+#   - Payment terms and pre-authorization
+#   - Policy and claim statistics
+#   - Partner integration
+#
+# All references to 'clinic.insurance.company' now use the clinic_finance version.
+# ==============================================================================

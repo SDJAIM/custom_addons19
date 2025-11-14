@@ -36,59 +36,8 @@
             <field name="implied_ids" eval="[(4, ref('group_clinic_patient_manager'))]"/>
             <field name="comment">Full access to patient management</field>
         </record>
-        
-        <!-- Record Rules -->
-        
-        <!-- Portal users can only see their own patient record -->
-        <record id="patient_portal_rule" model="ir.rule">
-            <field name="name">Portal: Own Patient Record</field>
-            <field name="model_id" ref="model_clinic_patient"/>
-            <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-        
-        <!-- Portal users can see their family members -->
-        <record id="patient_family_portal_rule" model="ir.rule">
-            <field name="name">Portal: Own Family Members</field>
-            <field name="model_id" ref="model_clinic_patient_family"/>
-            <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-        
-        <!-- Portal users can see their insurance -->
-        <record id="patient_insurance_portal_rule" model="ir.rule">
-            <field name="name">Portal: Own Insurance</field>
-            <field name="model_id" ref="model_clinic_patient_insurance"/>
-            <field name="domain_force">[('patient_id.partner_id', '=', user.partner_id.id)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-        
-        <!-- Patient Users can only see active patients -->
-        <record id="patient_user_active_rule" model="ir.rule">
-            <field name="name">Patient User: Active Patients Only</field>
-            <field name="model_id" ref="model_clinic_patient"/>
-            <field name="domain_force">[('active', '=', True)]</field>
-            <field name="groups" eval="[(4, ref('group_clinic_patient_user'))]"/>
-        </record>
-        
-        <!-- Patient Managers can see all patients -->
-        <record id="patient_manager_all_rule" model="ir.rule">
-            <field name="name">Patient Manager: All Patients</field>
-            <field name="model_id" ref="model_clinic_patient"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('group_clinic_patient_manager'))]"/>
-        </record>
+
+        <!-- NOTE: Record Rules moved to patient_record_rules.xml for better organization -->
+        <!-- All security rules (company, branch, portal, manager) are defined there -->
     </data>
 </odoo>

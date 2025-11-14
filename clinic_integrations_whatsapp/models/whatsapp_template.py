@@ -477,6 +477,118 @@ class WhatsAppTemplate(models.Model):
 
         return stats
 
+    # ========================
+    # Template Variables (TASK-F1-009)
+    # ========================
+    def render_template(self, **params):
+        """
+        Replace {{1}}, {{2}}, ... placeholders with actual values
+
+        Args:
+            **params: Keyword arguments with values to substitute
+                     Example: name='John', date='2025-01-15'
+
+        Returns:
+            str: Rendered message body with substituted values
+
+        Example:
+            template.message_body = "Hi {{1}}, your appointment is on {{2}}"
+            result = template.render_template(name='John', date='2025-01-15')
+            # Returns: "Hi John, your appointment is on 2025-01-15"
+        """
+        import re
+        from datetime import datetime
+
+        self.ensure_one()
+        body = self.message_body
+
+        if not body:
+            return ''
+
+        # Replace placeholders in order of parameters
+        for i, (key, value) in enumerate(params.items(), 1):
+            placeholder = f'{{{{{i}}}}}'
+
+            # Safe type coercion
+            if isinstance(value, datetime):
+                # Format datetime to user-friendly string
+                value = value.strftime('%Y-%m-%d %H:%M')
+            elif isinstance(value, (int, float)):
+                value = str(value)
+            elif value is None:
+                value = ''
+            elif not isinstance(value, str):
+                value = str(value)
+
+            body = body.replace(placeholder, value)
+
+        return body
+
+    @api.constrains('message_body')
+    def _validate_placeholders(self):
+        """
+        Validate placeholder sequence in template body
+
+        Ensures placeholders are sequential ({{1}}, {{2}}, {{3}}...)
+        without gaps or duplicates
+
+        Raises:
+            ValidationError: If placeholders are not sequential
+        """
+        import re
+
+        for template in self:
+            if not template.message_body:
+                continue
+
+            # Find all placeholders like {{1}}, {{2}}, etc.
+            placeholders = re.findall(r'\{\{(\d+)\}\}', template.message_body)
+
+            if not placeholders:
+                # No placeholders is valid
+                continue
+
+            # Convert to integers and get unique values
+            placeholder_nums = sorted(set(int(p) for p in placeholders))
+
+            # Check for sequential starting from 1
+            max_placeholder = max(placeholder_nums)
+            expected = list(range(1, max_placeholder + 1))
+
+            if placeholder_nums != expected:
+                missing = set(expected) - set(placeholder_nums)
+                raise ValidationError(
+                    _('Placeholders must be sequential starting from {{1}}.\n'
+                      'Found: %s\n'
+                      'Expected: %s\n'
+                      'Missing: %s') % (
+                          ', '.join(f'{{{{{n}}}}}' for n in placeholder_nums),
+                          ', '.join(f'{{{{{n}}}}}' for n in expected),
+                          ', '.join(f'{{{{{n}}}}}' for n in missing) if missing else 'None'
+                      )
+                )
+
+    def get_placeholder_count(self):
+        """
+        Get number of placeholders in template
+
+        Returns:
+            int: Maximum placeholder number (0 if no placeholders)
+        """
+        import re
+
+        self.ensure_one()
+
+        if not self.message_body:
+            return 0
+
+        placeholders = re.findall(r'\{\{(\d+)\}\}', self.message_body)
+
+        if not placeholders:
+            return 0
+
+        return max(int(p) for p in placeholders)
+
     def action_sync_templates(self):
         """
         Manual sync action (called from UI button)

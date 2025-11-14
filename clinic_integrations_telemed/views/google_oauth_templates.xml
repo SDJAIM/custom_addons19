@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-002: Google OAuth Templates -->
+
+    <!-- Success Page -->
+    <template id="google_auth_success" name="Google Auth Success">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <section class="s_cover pt96 pb96" style="background-color: #f8f9fa;">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="card shadow-lg">
+                                    <div class="card-body text-center p-5">
+                                        <i class="fa fa-check-circle fa-5x text-success mb-4"/>
+                                        <h1 class="mb-3">Google Account Connected!</h1>
+                                        <p class="lead text-muted mb-4">
+                                            Your Google account has been successfully connected.
+                                        </p>
+
+                                        <div class="alert alert-info text-left" role="alert">
+                                            <strong>What's next?</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>You can now create Google Meet links for telemedicine appointments</li>
+                                                <li>Links will be automatically shared with patients via email</li>
+                                                <li>Calendar events will appear in your Google Calendar</li>
+                                            </ul>
+                                        </div>
+
+                                        <t t-if="google_email">
+                                            <p class="text-muted">
+                                                <i class="fa fa-envelope"/> Connected as: <strong t-esc="google_email"/>
+                                            </p>
+                                        </t>
+
+                                        <div class="mt-4">
+                                            <a href="/web" class="btn btn-primary btn-lg">
+                                                <i class="fa fa-arrow-left"/> Back to Odoo
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <!-- Error Page -->
+    <template id="google_auth_error" name="Google Auth Error">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <section class="s_cover pt96 pb96" style="background-color: #f8f9fa;">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="card shadow-lg">
+                                    <div class="card-body text-center p-5">
+                                        <i class="fa fa-exclamation-triangle fa-5x text-danger mb-4"/>
+                                        <h1 class="mb-3">Connection Failed</h1>
+                                        <p class="lead text-muted mb-4">
+                                            There was an error connecting your Google account.
+                                        </p>
+
+                                        <div class="alert alert-danger text-left" role="alert">
+                                            <strong>Error Details:</strong>
+                                            <p class="mb-0 mt-2" t-esc="error"/>
+                                            <t t-if="error_detail">
+                                                <hr/>
+                                                <small t-esc="error_detail"/>
+                                            </t>
+                                        </div>
+
+                                        <div class="alert alert-info text-left" role="alert">
+                                            <strong>Troubleshooting:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>Make sure you grant calendar access permissions</li>
+                                                <li>Check that Google Meet API is enabled in your Google Cloud Console</li>
+                                                <li>Verify API credentials are correctly configured in Odoo</li>
+                                                <li>Try again or contact your system administrator</li>
+                                            </ul>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <a href="/google/auth/start" class="btn btn-primary btn-lg mr-2">
+                                                <i class="fa fa-refresh"/> Try Again
+                                            </a>
+                                            <a href="/web" class="btn btn-secondary btn-lg">
+                                                <i class="fa fa-arrow-left"/> Back to Odoo
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

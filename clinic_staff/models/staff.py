@@ -103,7 +103,23 @@ class ClinicStaff(models.Model):
         string='Years of Experience',
         help='Total years of professional experience'
     )
-    
+
+    # LANGUAGES (TASK-F2-003)
+    language_ids = fields.Many2many(
+        'res.lang',
+        'clinic_staff_language_rel',
+        'staff_id',
+        'lang_id',
+        string='Languages Spoken',
+        help='Languages that this staff member can communicate in'
+    )
+
+    language_count = fields.Integer(
+        string='Languages',
+        compute='_compute_language_count',
+        help='Number of languages spoken'
+    )
+
     join_date = fields.Date(
         string='Join Date',
         default=fields.Date.today,
@@ -375,7 +391,13 @@ class ClinicStaff(models.Model):
                 record.license_state = 'expiring'
             else:
                 record.license_state = 'valid'
-    
+
+    @api.depends('language_ids')
+    def _compute_language_count(self):
+        """Compute number of languages spoken (TASK-F2-003)"""
+        for record in self:
+            record.language_count = len(record.language_ids)
+
     def _compute_appointment_metrics(self):
         """Compute appointment statistics"""
         for record in self:

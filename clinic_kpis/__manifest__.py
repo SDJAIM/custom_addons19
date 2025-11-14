@@ -55,7 +55,13 @@ Features:
         'views/dashboard_views.xml',
     ],
 
-    'assets': {},
+    'assets': {
+        'web.assets_backend': [
+            'clinic_kpis/static/src/js/clinic_dashboard.js',
+            'clinic_kpis/static/src/xml/clinic_dashboard.xml',
+            'clinic_kpis/static/src/css/clinic_dashboard.css',
+        ],
+    },
 
     'installable': True,
     'application': False,

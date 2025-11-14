@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-001: Share Flexible Times Wizard Views -->
+
+    <!-- Wizard Form View -->
+    <record id="view_share_flexible_times_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.share.flexible.times.wizard.form</field>
+        <field name="model">clinic.appointment.share.flexible.times.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Share Flexible Times">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Share Flexible Appointment Times</h1>
+                        <p class="text-muted">
+                            Generate multiple time slot options and share them with your patient.
+                            Similar to Calendly - patients can choose their preferred time.
+                        </p>
+                    </div>
+
+                    <group>
+                        <group string="Patient &amp; Appointment">
+                            <field name="patient_id" options="{'no_create': True}"/>
+                            <field name="patient_email" readonly="1"/>
+                            <field name="patient_mobile" readonly="1"/>
+                            <field name="appointment_type_id" options="{'no_create': True}"/>
+                            <field name="staff_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Date Range">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <button name="action_generate_slots"
+                                    string="Generate Available Slots"
+                                    type="object"
+                                    class="btn-primary"
+                                    icon="fa-refresh"/>
+                        </group>
+                    </group>
+
+                    <group string="Available Slots" invisible="not slot_ids">
+                        <field name="selected_slot_count" invisible="1"/>
+                        <p class="text-info" invisible="slot_ids">
+                            Click "Generate Available Slots" to see available times
+                        </p>
+                        <field name="slot_ids" nolabel="1" widget="many2many"/>
+                        <div class="alert alert-info" role="alert" invisible="selected_slot_count == 0">
+                            <strong>Selected: </strong><field name="selected_slot_count"/> slots
+                        </div>
+                    </group>
+
+                    <group string="Sharing Options">
+                        <group>
+                            <field name="send_by_email"/>
+                            <field name="send_by_whatsapp"/>
+                            <field name="send_by_sms"/>
+                        </group>
+                        <group>
+                            <field name="token_expires_at"/>
+                        </group>
+                    </group>
+
+                    <group string="Custom Message">
+                        <field name="custom_message" nolabel="1" placeholder="e.g., Please select your preferred appointment time..."/>
+                    </group>
+
+                    <group string="Share Link" invisible="not access_token">
+                        <field name="access_token" readonly="1"/>
+                        <field name="share_url" readonly="1" widget="url"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_share_slots"
+                            string="Share with Patient"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-share-alt"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Flexible Share Tree View -->
+    <record id="view_appointment_flexible_share_tree" model="ir.ui.view">
+        <field name="name">clinic.appointment.flexible.share.tree</field>
+        <field name="model">clinic.appointment.flexible.share</field>
+        <field name="arch" type="xml">
+            <list string="Shared Flexible Times" decoration-muted="state == 'expired'" decoration-success="state == 'selected'">
+                <field name="create_date"/>
+                <field name="patient_id"/>
+                <field name="appointment_type_id"/>
+                <field name="staff_id"/>
+                <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-success="state == 'selected'"/>
+                <field name="views_count"/>
+                <field name="token_expires_at"/>
+                <field name="appointment_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Flexible Share Form View -->
+    <record id="view_appointment_flexible_share_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.flexible.share.form</field>
+        <field name="model">clinic.appointment.flexible.share</field>
+        <field name="arch" type="xml">
+            <form string="Flexible Times Share">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,selected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_open_share_url" icon="fa-external-link">
+                            <field string="Views" name="views_count" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="appointment_type_id"/>
+                            <field name="staff_id"/>
+                        </group>
+                        <group>
+                            <field name="token_expires_at"/>
+                            <field name="last_viewed_at"/>
+                        </group>
+                    </group>
+
+                    <group string="Share URL">
+                        <field name="share_url" widget="url"/>
+                    </group>
+
+                    <group string="Custom Message">
+                        <field name="custom_message" nolabel="1"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Shared Slots" name="slots">
+                            <field name="slot_ids"/>
+                        </page>
+                        <page string="Selection Details" name="selection" invisible="state != 'selected'">
+                            <group>
+                                <field name="selected_slot_id"/>
+                                <field name="appointment_id"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Wizard -->
+    <record id="action_share_flexible_times_wizard" model="ir.actions.act_window">
+        <field name="name">Share Flexible Times</field>
+        <field name="res_model">clinic.appointment.share.flexible.times.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="clinic_patient.model_clinic_patient"/>
+        <field name="binding_view_types">form</field>
+    </record>
+
+    <!-- Action for Flexible Shares -->
+    <record id="action_appointment_flexible_share" model="ir.actions.act_window">
+        <field name="name">Shared Flexible Times</field>
+        <field name="res_model">clinic.appointment.flexible.share</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_appointment_flexible_share"
+              name="Flexible Times Shared"
+              parent="clinic_appointment_core.menu_appointments"
+              action="action_appointment_flexible_share"
+              sequence="60"/>
+
+</odoo>

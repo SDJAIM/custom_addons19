@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- TASK-F3-006: Resource Calendar Migration Wizard Views -->
+
+    <!-- Migration Wizard Form -->
+    <record id="view_resource_calendar_migration_wizard" model="ir.ui.view">
+        <field name="name">clinic.staff.resource.migration.form</field>
+        <field name="model">clinic.staff.resource.migration</field>
+        <field name="arch" type="xml">
+            <form string="Migrate to Resource Calendar">
+                <group>
+                    <div class="alert alert-info" role="alert">
+                        <h4>⚙️ Resource Calendar Migration</h4>
+                        <p>This wizard will migrate your custom staff schedules to Odoo's standard Resource Calendar system.</p>
+                        <p><strong>Benefits:</strong></p>
+                        <ul class="mb-0">
+                            <li>Integration with HR Leaves module</li>
+                            <li>Global holidays support</li>
+                            <li>Better timezone handling</li>
+                            <li>Less custom code to maintain</li>
+                        </ul>
+                    </div>
+                </group>
+
+                <group>
+                    <group string="Migration Options">
+                        <field name="staff_ids" widget="many2many_tags"
+                               placeholder="Leave empty to migrate all staff"/>
+                        <field name="migrate_schedules"/>
+                        <field name="migrate_availability"/>
+                        <field name="keep_legacy_data"/>
+                    </group>
+                </group>
+
+                <group string="Migration Log" invisible="not migration_log">
+                    <field name="migration_log" nolabel="1" widget="text"/>
+                </group>
+
+                <footer>
+                    <button string="Start Migration" name="action_migrate" type="object"
+                            class="btn-primary" invisible="migration_log"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Migration Wizard -->
+    <record id="action_resource_calendar_migration" model="ir.actions.act_window">
+        <field name="name">Migrate to Resource Calendar</field>
+        <field name="res_model">clinic.staff.resource.migration</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Extend Staff Form View -->
+    <record id="view_clinic_staff_form_resource_calendar" model="ir.ui.view">
+        <field name="name">clinic.staff.form.resource.calendar</field>
+        <field name="model">clinic.staff</field>
+        <field name="inherit_id" ref="clinic_staff.view_clinic_staff_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Resource Calendar tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Resource Calendar" name="resource_calendar">
+                    <group>
+                        <group string="Calendar Settings">
+                            <field name="use_resource_calendar"/>
+                            <field name="resource_calendar_id"/>
+                            <field name="legacy_schedule_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <div class="alert alert-warning" role="alert"
+                             invisible="use_resource_calendar or resource_calendar_id">
+                            <h4>⚙️ Resource Calendar Migration Available</h4>
+                            <p>This staff member is using the legacy schedule system.</p>
+                            <p>Click the button below to migrate to Odoo's standard Resource Calendar.</p>
+                            <button name="action_migrate_to_resource_calendar"
+                                    string="Migrate to Resource Calendar"
+                                    type="object"
+                                    class="btn-primary"/>
+                        </div>
+
+                        <div class="alert alert-success" role="alert"
+                             invisible="not resource_calendar_id">
+                            <h4>✅ Resource Calendar Active</h4>
+                            <p>This staff member is using Odoo's standard Resource Calendar.</p>
+                            <p class="mb-0">
+                                <button name="action_open_resource_calendar"
+                                        string="Open Calendar Configuration"
+                                        type="object"
+                                        class="btn-primary btn-sm"/>
+                            </p>
+                        </div>
+                    </group>
+
+                    <group string="Migration Information">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Before Migration (Legacy System)</h5>
+                                <ul>
+                                    <li><code>clinic.staff.schedule</code> - Weekly working hours</li>
+                                    <li><code>clinic.staff.availability</code> - Leaves and exceptions</li>
+                                    <li>Custom slot calculation logic</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>After Migration (Standard Odoo)</h5>
+                                <ul>
+                                    <li><code>resource.calendar</code> - Working hours</li>
+                                    <li><code>resource.calendar.leaves</code> - Leaves</li>
+                                    <li>Standard Odoo methods</li>
+                                    <li>HR module integration</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_resource_calendar_migration"
+              name="Migrate to Resource Calendar"
+              parent="clinic_staff.menu_clinic_staff_config"
+              action="action_resource_calendar_migration"
+              sequence="100"/>
+
+</odoo>
