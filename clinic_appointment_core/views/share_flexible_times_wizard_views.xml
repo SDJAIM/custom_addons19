@@ -170,7 +170,7 @@
     <!-- Menu Item -->
     <menuitem id="menu_appointment_flexible_share"
               name="Flexible Times Shared"
-              parent="clinic_appointment_core.menu_appointments"
+              parent="menu_clinic_appointment_main"
               action="action_appointment_flexible_share"
               sequence="60"/>
 

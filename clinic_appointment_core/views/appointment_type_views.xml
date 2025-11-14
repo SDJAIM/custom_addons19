@@ -47,9 +47,6 @@
                     </div>
                     <group>
                         <group string="Basic Information">
-                            <field name="code"/>
-                            <field name="category"/>
-                            <field name="service_type"/>
                             <field name="default_duration" widget="float_time"/>
                         </group>
                         <group string="Settings">
@@ -199,9 +196,6 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="code"/>
-                <field name="category"/>
-                <field name="service_type"/>
 
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
@@ -209,10 +203,6 @@
                 <filter string="Online Booking" name="online_booking" domain="[('allow_online_booking', '=', True)]"/>
                 <separator/>
 
-                <group expand="0" string="Group By">
-                    <filter string="Category" name="group_category" context="{'group_by': 'category'}"/>
-                    <filter string="Service Type" name="group_service_type" context="{'group_by': 'service_type'}"/>
-                </group>
             </search>
         </field>
     </record>

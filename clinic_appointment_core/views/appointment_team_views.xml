@@ -72,7 +72,6 @@
                                     <field name="name"/>
                                     <field name="mobile"/>
                                     <field name="email"/>
-                                    <field name="specialty_id"/>
                                 </list>
                             </field>
                         </page>
@@ -159,7 +158,7 @@
                 <filter string="Round Robin" name="round_robin" domain="[('assignment_mode', '=', 'round_robin')]"/>
                 <filter string="Load Balanced" name="load_balanced" domain="[('assignment_mode', '=', 'load_balanced')]"/>
                 <separator/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Team Leader" name="group_by_leader" context="{'group_by': 'leader_id'}"/>
                     <filter string="Assignment Mode" name="group_by_assignment" context="{'group_by': 'assignment_mode'}"/>
                     <filter string="Company" name="group_by_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
@@ -188,7 +187,7 @@
     <!-- Menu Item -->
     <menuitem id="menu_appointment_team"
               name="Teams"
-              parent="clinic_appointment_core.menu_appointment_config"
+              parent="menu_clinic_appointment_config"
               action="action_appointment_team"
               sequence="25"/>
 

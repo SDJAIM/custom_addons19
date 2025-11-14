@@ -13,22 +13,10 @@
     <menuitem
         id="menu_appointment_dashboard"
         name="Dashboard"
-        parent="menu_appointment_root"
+        parent="menu_clinic_appointment_root"
         action="action_appointment_dashboard"
         sequence="1"/>
 
-    <!-- Assets Bundle for Dashboard -->
-    <template id="assets_backend" inherit_id="web.assets_backend">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/clinic_appointment_core/static/src/js/appointment_dashboard.js"/>
-            <link rel="stylesheet" type="text/css" href="/clinic_appointment_core/static/src/css/appointment_dashboard.css"/>
-        </xpath>
-    </template>
-
-    <template id="assets_qweb" inherit_id="web.assets_qweb">
-        <xpath expr="." position="inside">
-            <t t-call="clinic_appointment_core.AppointmentDashboard"/>
-        </xpath>
-    </template>
+    <!-- Assets are defined in __manifest__.py under 'assets' key -->
 
 </odoo>

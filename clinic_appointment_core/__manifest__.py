@@ -66,12 +66,12 @@ Features:
         # Views - Backend
         'views/appointment_views.xml',
         'views/appointment_type_views.xml',
-        'views/appointment_team_views.xml',  # TASK-F2-001
         'views/appointment_reminder_config_views.xml',  # TASK-F1-003
         'views/waiting_list_views.xml',
         'views/slot_views.xml',
-        'views/slot_metrics_views.xml',  # TASK-F1-012
         'views/menu_views.xml',
+        'views/slot_metrics_views.xml',  # TASK-F1-012 - Loaded after menus
+        'views/appointment_team_views.xml',  # TASK-F2-001 - Loaded after menus
         'views/share_flexible_times_wizard_views.xml',  # TASK-F3-001 - Loaded after menus
         'views/sms_config_views.xml',
         'views/appointment_dashboard_views.xml',  # TASK-F3-004
