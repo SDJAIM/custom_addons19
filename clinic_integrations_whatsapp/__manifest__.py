@@ -66,9 +66,9 @@ Features:
         'views/whatsapp_config_views.xml',
         'views/whatsapp_message_views.xml',
         'views/whatsapp_template_views.xml',
-        #         'views/whatsapp_template_interactive_views.xml',  # TASK-F3-003
+        'views/whatsapp_template_interactive_views.xml',  # TASK-F3-003
         'views/patient_whatsapp_views.xml',
-        'views/appointment_reminder_views.xml',  # Extend appointment reminder views
+        # 'views/appointment_reminder_views.xml',  # Extend appointment reminder views
 
         # Menus - Load parent menus after actions are defined
         'views/menu_views.xml',
@@ -76,7 +76,7 @@ Features:
         # Views - Phase 2: Views with child menu items (need parent menus)
         'views/whatsapp_webhook_event_views.xml',
         'views/whatsapp_thread_views.xml',
-        'views/patient_whatsapp_indicators.xml',  # Fase 3.2
+        # 'views/patient_whatsapp_indicators.xml',  # Fase 3.2
         'views/whatsapp_dashboard_views.xml',  # Fase 3.5
 
         # Wizards

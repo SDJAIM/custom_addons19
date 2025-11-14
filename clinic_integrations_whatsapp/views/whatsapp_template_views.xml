@@ -92,6 +92,7 @@
                             <field name="template_name" placeholder="WhatsApp Template ID"/>
                             <field name="template_type"/>
                             <field name="language_code"/>
+                            <field name="message_type"/>
                         </group>
                         <group string="Status">
                             <field name="meta_status" widget="badge"
